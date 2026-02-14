@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stage Locked - Ludo Joy</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --red: #ff4757;
+            --gold: #f1c40f;
+            --bg: #0f0c29;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at center, #1e1e3f, #000);
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .lock-container {
+            text-align: center;
+            padding: 40px 25px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 35px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 0 60px rgba(0,0,0,0.7);
+            position: relative;
+        }
+
+        /* --- Animated Lock Icon --- */
+        .lock-icon-box {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .main-lock {
+            font-size: 75px;
+            color: var(--gold);
+            filter: drop-shadow(0 0 15px rgba(241, 196, 15, 0.5));
+            animation: shake 3s infinite;
+        }
+
+        @keyframes shake {
+            0%, 90%, 100% { transform: rotate(0); }
+            92% { transform: rotate(10deg); }
+            94% { transform: rotate(-10deg); }
+            96% { transform: rotate(10deg); }
+            98% { transform: rotate(-10deg); }
+        }
+
+        h1 {
+            font-family: 'Orbitron';
+            font-size: 24px;
+            margin: 0;
+            letter-spacing: 2px;
+            color: #fff;
+        }
+
+        .milestone-text {
+            color: var(--gold);
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            margin: 10px 0 20px 0;
+            display: block;
+        }
+
+        p {
+            font-size: 14px;
+            color: #bbb;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* --- Progress Bar (Fake) --- */
+        .progress-box {
+            background: rgba(255,255,255,0.1);
+            height: 8px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 45%; /* Aap isey change kar sakte hain */
+            height: 100%;
+            background: var(--gold);
+            box-shadow: 0 0 10px var(--gold);
+        }
+
+        .requirement {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 35px;
+        }
+
+        /* --- Back Button --- */
+        .btn-return {
+            background: linear-gradient(135deg, #444, #111);
+            color: white;
+            border: 1px solid #555;
+            padding: 15px 35px;
+            border-radius: 15px;
+            font-family: 'Orbitron';
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .btn-return:hover {
+            background: white;
+            color: black;
+            transform: translateY(-3px);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="lock-container">
+        <div class="lock-icon-box">
+            <i class="fas fa-lock main-lock"></i>
+        </div>
+        
+        <h1>STAGE LOCKED</h1>
+        <span class="milestone-text">Access Restricted</span>
+        
+        <p>
+            You haven't reached this milestone yet. Complete more matches and increase your player rank to unlock this elite feature.
+        </p>
+
+        <div class="progress-box">
+            <div class="progress-fill"></div>
+        </div>
+        <div class="requirement">Unlock Progress: 45% (Required Level: 10)</div>
+
+        <button class="btn-return" onclick="goBackSafe()">
+            <i class="fas fa-arrow-left"></i> RETURN TO LOBBY
+        </button>
+    </div>
+
+    <script>
+        function goBackSafe() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = "home.html";
+            }
+            // Fallback
+            setTimeout(() => { window.location.href = "home.html"; }, 500);
+        }
+    </script>
+
+</body>
+</html>

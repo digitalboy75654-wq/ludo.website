@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ludo Live - Full Board Beautiful</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --red: #ff4757; --yellow: #f1c40f; --bg: #0f0c29; --green: #2ecc71; --blue: #3498db; }
+        body {
+            font-family: 'Poppins', sans-serif; background: radial-gradient(circle, #1e0515, #000000);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; margin: 0; overflow: hidden; color: white; user-select: none;
+        }
+
+        /* --- OVERLAYS --- */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .loader { width: 50px; height: 50px; border: 5px solid #333; border-top-color: var(--yellow); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Win Modal */
+        #win-overlay { display: none; background: rgba(0,0,0,0.9); }
+        .win-card { background: linear-gradient(45deg, gold, orange); padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 0 50px gold; animation: popUp 0.5s; }
+        .win-title { font-family: 'Orbitron'; font-size: 40px; color: #333; margin: 0; }
+        @keyframes popUp { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        /* --- PLAYER UI --- */
+        .player-corner {
+            position: absolute; width: 90px; padding: 10px;
+            background: rgba(0, 0, 0, 0.6); border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.1); transition: 0.3s;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        #exit-btn {
+            top: 70px !important;
+            left: 15px !important;
+        }
+        .player-corner.active-turn { 
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px currentColor; 
+            transform: scale(1.05); 
+        }
+
+        .p-avatar { width: 50px; height: 50px; border-radius: 50%; background-size: cover; border: 3px solid #fff; margin-bottom: 5px; position: relative; }
+        .p-name { font-size: 11px; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        
+        .you-badge {
+            position: absolute; bottom: -5px; background: #2ecc71; color: white;
+            font-size: 8px; padding: 2px 6px; border-radius: 10px; font-weight: bold;
+            display: none; 
+        }
+
+        #p-red { bottom: 20px; left: 15px; border-left: 5px solid var(--red); color: var(--red); }
+        #p-yellow { top: 70px; right: 15px; border-right: 5px solid var(--yellow); color: var(--yellow); }
+
+        /* --- DICE --- */
+        .dice-wrapper {
+            position: absolute; width: 65px; height: 65px; z-index: 1000;
+            transition: 0.3s; cursor: pointer; opacity: 0.4; pointer-events: none;
+            perspective: 600px;
+        }
+
+        .dice-wrapper.my-turn { 
+            opacity: 1 !important; 
+            pointer-events: auto !important; 
+            filter: drop-shadow(0 0 15px white); 
+            animation: float 2s infinite ease-in-out; 
+        }
+
+        .dice-cube {
+            width: 100%; height: 100%;
+            background: #ffffff; 
+            border-radius: 12px;
+            border: 2px solid #000; 
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            
+            /* Grid System Important for Dots */
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            padding: 6px;
+            box-sizing: border-box;
+            transform-style: preserve-3d;
+        }
+
+        .dot {
+            width: 12px; height: 12px;
+            background-color: #000000 !important; 
+            border-radius: 50%;
+            align-self: center; justify-self: center;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.3);
+        }
+
+        .dice-cube.rolling { animation: tumble 0.6s ease-out forwards; }
+
+        @keyframes tumble {
+            0% { transform: rotate3d(1, 1, 1, 0deg) scale(0.8); }
+            100% { transform: rotate3d(1, 1, 1, 720deg) scale(1); }
+        }
+
+        @keyframes float { 
+            0%, 100% { transform: translateY(0); } 
+            50% { transform: translateY(-5px); } 
+        }
+
+        #dw-red { bottom: 20px; left: 120px; }
+        #dw-yellow { top: 70px; right: 120px; }
+
+        /* --- BOARD --- */
+        .board-frame { width: 340px; height: 340px; background: white; border-radius: 5px; box-shadow: 0 0 50px rgba(0,0,0,0.8); position: relative; }
+        .grid { width: 100%; height: 100%; display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr); }
+        .cell { border: 0.5px solid rgba(0,0,0,0.1); position: relative; }
+        .safe { background-color: #ddd; background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23888"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'); background-size: 60%; background-repeat: no-repeat; background-position: center; }
+        
+        .home { grid-area: span 6 / span 6; display: flex; align-items: center; justify-content: center; }
+        
+        /* UPDATED COLORS FOR FULL BOARD LOOK */
+        .h-red { grid-area: 10/1/16/7; background: var(--red); }
+        .h-yellow { grid-area: 1/10/7/16; background: var(--yellow); }
+        .h-green { grid-area: 1/1/7/7; background: var(--green); opacity: 1; } /* Opacity hatayi */
+        .h-blue { grid-area: 10/10/16/16; background: var(--blue); opacity: 1; } /* Opacity hatayi */
+        
+        .home-in { width: 65%; height: 65%; background: white; border-radius: 15px; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        
+        .center {
+            grid-area: 7/7/10/10;
+            background: conic-gradient(#ecf0f1 0deg 90deg, var(--yellow) 90deg 180deg, #ecf0f1 180deg 270deg, var(--red) 270deg 360deg);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .center::after { content: '🏆'; font-size: 30px; filter: drop-shadow(0 0 10px gold); }
+
+        /* --- TOKENS --- */
+        .token { width: 20px; height: 20px; border-radius: 50%; position: absolute; z-index: 50;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.4); border: 2px solid white; transition: top 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28),
+                left 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        pointer-events: none; }
+        .t-red { background: var(--red); } .t-yellow { background: var(--yellow); }
+        .clickable { cursor: pointer; animation: pulse 0.8s infinite; z-index: 100; box-shadow: 0 0 15px gold; pointer-events: auto !important; }
+        @keyframes pulse { 50% { transform: scale(1.3); } }
+
+        /* Timer Styles */
+        .timer-container {
+            width: 100%; height: 6px; background: rgba(255,255,255,0.1);
+            border-radius: 10px; margin-top: 5px; overflow: hidden;
+        }
+        .timer-bar {
+            width: 100%; height: 100%; background: #2ecc71;
+            transition: width 1s linear, background-color 0.5s;
+        }
+
+        .balance-text {
+            font-size: 12px;
+            color: #2ecc71; /* Green Color */
+            font-weight: 800;
+            margin-top: 2px;
+            text-shadow: 1px 1px 2px #000;
+            display: none; /* Pehle chhupa rahega, JS se show hoga */
+        }
+        /* --- 1. INBOX ICON (Right Bottom) --- */
+.inbox-trigger {
+    position: fixed; bottom: 20px; right: 20px; z-index: 6000;
+    background: linear-gradient(135deg, #f1c40f, #e67e22);
+    width: 55px; height: 55px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.6); cursor: pointer; border: 3px solid #fff;
+    transition: transform 0.2s;
+}
+.inbox-trigger:active { transform: scale(0.9); }
+
+/* Notification Red Dot */
+.notif-dot {
+    position: absolute; top: 0; right: 0; width: 15px; height: 15px;
+    background: red; border-radius: 50%; border: 2px solid white;
+    display: none; animation: pulse-red 1s infinite;
+}
+
+/* --- 2. CHAT WINDOW --- */
+.chat-window {
+    position: fixed; bottom: 90px; right: 20px; width: 280px; height: 380px;
+    background: rgba(15, 12, 41, 0.95); backdrop-filter: blur(10px);
+    border-radius: 15px; border: 2px solid #f1c40f; display: none;
+    flex-direction: column; z-index: 6001; overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
+
+/* Header */
+.chat-header {
+    background: linear-gradient(to right, #f1c40f, #f39c12);
+    color: black; padding: 10px; font-weight: bold; font-family: sans-serif;
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+/* Preset Buttons (Chips) */
+.presets-scroll {
+    display: flex; gap: 8px; padding: 8px; background: rgba(255,255,255,0.05);
+    overflow-x: auto; border-bottom: 1px solid #444; scrollbar-width: none;
+}
+.preset-btn {
+    background: #333; color: #fff; border: 1px solid #555;
+    padding: 5px 12px; border-radius: 20px; font-size: 11px; cursor: pointer;
+    white-space: nowrap; transition: 0.2s;
+}
+.preset-btn:hover { background: #f1c40f; color: black; border-color: white; }
+
+/* Messages Area */
+#chat-messages {
+    flex: 1; overflow-y: auto; padding: 10px; display: flex;
+    flex-direction: column; gap: 8px; scroll-behavior: smooth;
+}
+.msg-row { padding: 8px 12px; border-radius: 12px; font-size: 13px; max-width: 80%; word-wrap: break-word; }
+.msg-me { background: #f1c40f; color: black; align-self: flex-end; border-bottom-right-radius: 2px; }
+.msg-opp { background: #34495e; color: white; align-self: flex-start; border-bottom-left-radius: 2px; }
+
+/* Input Area */
+.chat-input-area {
+    display: flex; padding: 10px; background: rgba(0,0,0,0.6); gap: 5px; border-top: 1px solid #444;
+}
+.chat-input-area input {
+    flex: 1; background: #222; border: 1px solid #555; color: white;
+    padding: 8px 12px; border-radius: 20px; font-size: 13px; outline: none;
+}
+
+/* --- 3. SIDE POPUP BUBBLES --- */
+.side-bubble {
+    position: absolute; background: white; color: black; padding: 8px 12px;
+    border-radius: 12px; font-size: 12px; font-weight: bold; z-index: 10000;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5); max-width: 120px;
+    animation: slideIn 0.3s ease-out; pointer-events: none;
+}
+/* Red (Bottom Left) -> Bubble Right Side Par */
+.sb-red { left: 80px; bottom: 40px; border-bottom-left-radius: 0; }
+.sb-red::after {
+    content:''; position: absolute; left: -8px; bottom: 0;
+    border-width: 8px 8px 0 0; border-style: solid; border-color: white transparent transparent transparent;
+}
+
+/* Yellow (Top Right) -> Bubble Left Side Par */
+.sb-yellow { right: 80px; top: 90px; border-top-right-radius: 0; }
+.sb-yellow::after {
+    content:''; position: absolute; right: -8px; top: 0;
+    border-width: 8px 0 0 8px; border-style: solid; border-color: transparent transparent transparent white;
+}
+
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse-red { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div id="waiting-overlay" class="overlay">
+        <div class="loader"></div>
+        <h2 style="margin-top:20px; font-family: 'Orbitron';">MATCHING...</h2>
+        <p id="match-status">Searching for real player...</p>
+    </div>
+
+    <button id="exit-btn" style="position: fixed; top: 15px; left: 15px; z-index: 6000; padding: 8px 15px; background: #ff4757; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-family: 'Poppins'; box-shadow: 0 4px 10px rgba(255,71,87,0.3);">
+        <i class="fas fa-sign-out-alt"></i> EXIT
+    </button>
+
+    <div id="win-overlay" class="overlay">
+    <div class="win-card" id="win-card-content">
+        <h1 class="win-title" id="status-title">YOU WIN!</h1>
+        <p id="amount-text" style="font-size: 20px; font-weight: bold; margin: 10px 0;"></p>
+        
+        <button id="collect-btn" style="display:none; margin-top:15px; padding:12px 30px; border:none; background: linear-gradient(to right, #11998e, #38ef7d); color:white; border-radius:30px; cursor:pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 16px;">
+            <i class="fas fa-balance"></i> COLLECT WINNINGS
+        </button>
+
+        <button id="home-btn" onclick="window.location.href='home.html'" style="display:none; margin-top:15px; padding:12px 25px; border:none; background:black; color:white; border-radius:30px; cursor:pointer; font-weight: bold;">
+            <i class="fas fa-home"></i> Go Home
+        </button>
+    </div>
+</div>
+
+    <div id="p-yellow" class="player-corner">
+        <div id="skips-yellow" style="font-size: 10px; color: #ff4757; font-weight: bold;">Skips: 0/5</div>
+        <div id="img-yellow" class="p-avatar"><div class="you-badge" id="badge-yellow">YOU</div></div>
+        <div id="name-yellow" class="p-name">Waiting...</div>
+        <div id="real-bal-yellow" class="balance-text"></div>
+        <div class="timer-container"><div id="timer-yellow" class="timer-bar"></div></div>
+    </div>
+    <div class="dice-wrapper" id="dw-yellow" onclick="window.Game.rollDice()"><div class="dice-cube" id="dice-yellow"></div></div>
+
+    <div class="board-frame"><div class="grid" id="grid"></div></div>
+
+    <div id="p-red" class="player-corner">
+        <div id="skips-red" style="font-size: 10px; color: #ff4757; font-weight: bold;">Skips: 0/5</div>
+        <div id="img-red" class="p-avatar"><div class="you-badge" id="badge-red">YOU</div></div>
+        <div id="name-red" class="p-name">Waiting...</div>
+        <div id="real-bal-red" class="balance-text"></div>
+        <div class="timer-container"><div id="timer-red" class="timer-bar"></div></div>
+    </div>
+    <div class="dice-wrapper" id="dw-red" onclick="window.Game.rollDice()"><div class="dice-cube" id="dice-red"></div></div>
+<div class="inbox-trigger" onclick="toggleChatWindow()">
+    <i class="fas fa-comment-alt" style="font-size: 24px; color: black;"></i>
+    <div id="notif-dot" class="notif-dot"></div>
+</div>
+
+<div id="chat-window" class="chat-window">
+    <div class="chat-header">
+        <span><i class="fas fa-circle" style="color:green; font-size:10px;"></i> LIVE CHAT</span>
+        <i class="fas fa-times" onclick="toggleChatWindow()" style="cursor:pointer; font-size:18px;"></i>
+    </div>
+
+    <div class="presets-scroll">
+        <div class="preset-btn" onclick="sendQuickChat('Sorry!')">Sorry!</div>
+        <div class="preset-btn" onclick="sendQuickChat('Play fast!')">Play fast!</div>
+        <div class="preset-btn" onclick="sendQuickChat('Good game')">Good game</div>
+        <div class="preset-btn" onclick="sendQuickChat('Oops!')">Oops!</div>
+    </div>
+
+    <div id="chat-messages">
+        <div style="text-align:center; color:#777; font-size:11px; margin-top:10px;">Chat started...</div>
+    </div>
+
+    <div class="chat-input-area">
+        <input type="text" id="chat-inp" placeholder="Type here..." onkeypress="if(event.key==='Enter') sendCustomChat()">
+        <button onclick="sendCustomChat()" style="background:none; border:none; color:gold; cursor:pointer; font-size:18px;">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update, get, set, onDisconnect, runTransaction } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+import { saveHistory } from './historyLog.js';
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
+            authDomain: "ludo-d46ab.firebaseapp.com", 
+            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
+            projectId: "ludo-d46ab" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+// ID nikalte waqt hi lowercase karlein
+const rawId = urlParams.get('gameId');
+// Agar URL mein "ROOM_1" bhi aaya, toh ye usay "room_1" kar dega
+const GAME_ID = rawId ? rawId.toLowerCase().trim() : null; 
+const ENTRY_FEE = urlParams.get('entry') || "0";
+        let currentUser = null, myColor = null, lastProcessedRoll = null;
+        let unsubscribeGame = null; // Yeh line lazmi add karein
+// Winning Amount (Entry * 2 - 15% Fee) display karne ka code
+const entry = parseInt(new URLSearchParams(window.location.search).get('entry')) || 0;
+const winAmount = (entry * 2) - (entry * 2 * 0.10);
+document.body.insertAdjacentHTML('afterbegin', `<div style="position:fixed;top:0;width:100%;background:linear-gradient(to right,#f1c40f,#e67e22);color:#000;text-align:center;padding:10px;font-family:'Orbitron';font-weight:900;z-index:4500;box-shadow:0 2px 10px rgba(0,0,0,0.5);"><i class="fas fa-trophy"></i> WINNING PRIZE: ${winAmount} Balance</div>`);
+// index.html ke script tag ke andar sabse upar
+
+        const AudioSys = {
+            ctx: null,
+            init() { try { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); if (this.ctx.state === 'suspended') this.ctx.resume(); } catch(e){} },
+            play(freq, type, dur, vol=0.1){
+                this.init(); if(!this.ctx) return;
+                const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+                o.type = type; o.frequency.value = freq;
+                g.gain.setValueAtTime(vol, this.ctx.currentTime); g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + dur);
+                o.connect(g); g.connect(this.ctx.destination); o.start(); o.stop(this.ctx.currentTime + dur);
+            },
+            roll() { for(let i=0;i<6;i++) setTimeout(()=>this.play(200+Math.random()*100,'square',0.05), i*50); },
+            move() { this.play(600, 'sine', 0.1); },
+            kill() { this.play(150, 'sawtooth', 0.3); setTimeout(()=>this.play(100, 'sawtooth', 0.3), 100); },
+            win() { [500,600,700,800].forEach((f,i)=>setTimeout(()=>this.play(f,'square',0.3),i*150)); }
+        };
+        // --- 💬 COMPLETE CHAT SYSTEM (Sound + Side Popup) ---
+
+// 1. Toggle Window
+window.toggleChatWindow = function() {
+    const win = document.getElementById('chat-window');
+    const dot = document.getElementById('notif-dot');
+    
+    if (win.style.display === 'flex') {
+        win.style.display = 'none';
+    } else {
+        win.style.display = 'flex';
+        dot.style.display = 'none'; // Open karne par red dot hatao
+        scrollToBottom();
+    }
+};
+
+// 2. Sound Player (Internal - No external file needed)
+const ChatAudio = {
+    ctx: null,
+    play() {
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.1);
+        
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.1);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+    }
+};
+
+// 3. Initialize Listener
+function initChatListener() {
+    const chatRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/fullChat`);
+    onValue(chatRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        // Message History mein dalo
+        appendMessage(data);
+
+        // Agar naya message hai (2 sec purana nahi)
+        if ((Date.now() - data.ts) < 2000) {
+            // Sound
+            ChatAudio.play();
+
+            // Side Popup dikhao
+            showSidePopup(data);
+
+            // Notification Dot (Agar window band hai aur message mera nahi hai)
+            const win = document.getElementById('chat-window');
+            if (win.style.display !== 'flex' && data.from !== myColor) {
+                document.getElementById('notif-dot').style.display = 'block';
+            }
+        }
+    });
+}
+
+// 4. Send Functions
+window.sendQuickChat = function(text) {
+    pushMessage(text);
+};
+
+window.sendCustomChat = function() {
+    const inp = document.getElementById('chat-inp');
+    const text = inp.value.trim();
+    if (text) {
+        pushMessage(text);
+        inp.value = "";
+    }
+};
+
+function pushMessage(msg) {
+    set(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/fullChat`), {
+        msg: msg,
+        from: myColor,
+        ts: Date.now()
+    });
+}
+
+// 5. UI Helpers
+function appendMessage(data) {
+    const container = document.getElementById('chat-messages');
+    
+    // Duplicate check (Optional but good)
+    const lastMsg = container.lastElementChild;
+    if (lastMsg && lastMsg.innerText === data.msg && lastMsg.classList.contains(data.from === myColor ? 'msg-me' : 'msg-opp')) {
+        return; // Don't repeat identical consecutive messages immediately
+    }
+
+    const div = document.createElement('div');
+    div.className = `msg-row ${data.from === myColor ? 'msg-me' : 'msg-opp'}`;
+    div.innerText = data.msg;
+    container.appendChild(div);
+    scrollToBottom();
+}
+
+function scrollToBottom() {
+    const c = document.getElementById('chat-messages');
+    c.scrollTop = c.scrollHeight;
+}
+
+// 6. SIDE POPUP LOGIC (10 Seconds)
+function showSidePopup(data) {
+    // Parent dhoondo (p-red ya p-yellow)
+    const parent = document.getElementById(`p-${data.from}`);
+    if (!parent) return;
+
+    // Purana popup hatao
+    const old = document.getElementById(`sp-${data.from}`);
+    if (old) old.remove();
+
+    // Naya popup banao
+    const pop = document.createElement('div');
+    pop.id = `sp-${data.from}`;
+    
+    // Class decide karo based on color
+    // Red -> sb-red, Yellow -> sb-yellow
+    pop.className = `side-bubble sb-${data.from}`;
+    pop.innerText = data.msg;
+
+    // Body mein append karo taake absolute positioning sahi kaam kare
+    // Lekin humein coordinates chahiye parent ke
+    const rect = parent.getBoundingClientRect();
+    
+    // Agar hum body me daal rahe hain to fixed position use karni padegi style se override karke
+    pop.style.position = 'fixed';
+    
+    if (data.from === 'red') {
+        // Red (Bottom Left) -> Right side par dikhao
+        pop.style.left = (rect.right + 10) + 'px';
+        pop.style.bottom = (window.innerHeight - rect.bottom + 20) + 'px';
+        pop.classList.add('sb-red'); // Style ke liye
+    } else {
+        // Yellow (Top Right) -> Left side par dikhao
+        pop.style.left = (rect.left - 130) + 'px'; // Thoda left shift
+        pop.style.top = (rect.top + 20) + 'px';
+        pop.classList.add('sb-yellow');
+    }
+
+    document.body.appendChild(pop);
+
+    // 10 Second Timer
+    setTimeout(() => {
+        if(pop) {
+            pop.style.transition = "opacity 0.5s";
+            pop.style.opacity = "0";
+            setTimeout(() => pop.remove(), 500);
+        }
+    }, 10000);
+}
+
+// 7. INITIALIZE (Auth State Change ke andar)
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        currentUser = user;
+        await startMatchmaking(); 
+        if (GAME_ID && myColor) {
+            initChatListener(); // Chat Start Here
+        }
+    }
+});
+
+        // --- UPDATED WINNER & CLEANUP LOGIC ---
+        async function handleForcedEnd(winnerColor) {
+    // 1. Foran saare timers aur listeners roko
+    if (window.Game && window.Game.turnTimer) clearInterval(window.Game.turnTimer);
+    if (unsubscribeGame) unsubscribeGame();
+
+    const winOverlay = document.getElementById('win-overlay');
+    const statusTitle = document.getElementById('status-title');
+    const amountText = document.getElementById('amount-text');
+    const collectBtn = document.getElementById('collect-btn');
+    const homeBtn = document.getElementById('home-btn');
+
+    winOverlay.style.display = 'flex';
+
+    // Calculation: 15% Admin fee nikal kar
+    const entry = parseInt(ENTRY_FEE);
+    const totalPot = entry * 2;
+    const adminFee = totalPot * 0.15; 
+    const winAmount = totalPot - adminFee;
+
+    if (myColor === winnerColor) {
+        // --- WINNER LOGIC ---
+        // Jahan winner logic hai, wahan bas ye line add karein:
+saveHistory(db, currentUser.uid, winAmount, "1vs1 Win", "win");
+        statusTitle.innerText = "YOU WON!";
+        statusTitle.style.color = "#2ecc71";
+        amountText.innerText = `Winning: ${winAmount} Balance`;
+        
+        collectBtn.style.display = 'block';
+        homeBtn.style.display = 'none';
+        AudioSys.win();
+
+        collectBtn.onclick = async function() {
+            collectBtn.disabled = true;
+            collectBtn.innerText = "Processing...";
+
+            try {
+                // Step 1: Winner ke account mein paise dalo
+                const userRef = ref(db, `users/${currentUser.uid}/balance`);
+                await runTransaction(userRef, (curr) => (curr || 0) + winAmount);
+
+                // Step 2: DATA DELETE (Room khatam karo)
+                // Sirf winner delete karega taake database par load na paray
+                await set(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), null);
+
+                alert("Balance updated and Room cleared!");
+                window.location.href = "home.html";
+            } catch (err) {
+                console.error("Cleanup Error:", err);
+                window.location.href = "home.html";
+            }
+        };
+
+    } else {
+        // --- LOSER LOGIC ---
+        // Jahan loser logic hai, wahan bas ye line add karein:
+saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
+        statusTitle.innerText = "GAME OVER";
+        statusTitle.style.color = "#ff4757";
+        amountText.innerText = `You lost ${entry} Balance`;
+        
+        collectBtn.style.display = 'none';
+        homeBtn.style.display = 'block';
+
+        homeBtn.onclick = function() {
+            window.location.href = "home.html";
+        };
+        // --- LOSER LOGIC ---
+        statusTitle.innerText = "GAME OVER";
+        statusTitle.style.color = "red";
+        amountText.innerText = `Lost: ${ENTRY_FEE} balance`;
+        
+        collectBtn.style.display = 'none';
+        homeBtn.style.display = 'block'; // Sirf Home button dikhao
+    }
+}
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) { currentUser = user; await startMatchmaking(); } else { window.location.href = "login.html"; }
+        });
+
+        async function startMatchmaking() {
+    if (!GAME_ID || !ENTRY_FEE) {
+        window.location.href = "home.html";
+        return;
+    }
+
+    // 1. Path ko clean aur lowercase karein
+    const cleanEntry = ENTRY_FEE.toString().trim();
+    const cleanRoom = GAME_ID.toString().trim().toLowerCase(); 
+
+    const roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
+    console.log("Checking DB Path:", `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
+
+    let isFound = false;
+
+    // 2. Retry Logic: 5 baar check karega (Total 10 seconds)
+    // Takke internet slow hone par bhi data mil jaye
+    for (let i = 0; i < 5; i++) {
+        const snap = await get(roomRef);
+        const roomData = snap.val();
+
+        if (roomData && roomData.players && roomData.players[currentUser.uid]) {
+            myColor = roomData.players[currentUser.uid].color;
+            isFound = true;
+            break; 
+        }
+        
+        console.warn(`Attempt ${i+1}: Waiting for server sync...`);
+        await new Promise(r => setTimeout(r, 2000)); 
+    }
+
+    if (!isFound) {
+        alert(`Session Expired!\nRoom ID: ${cleanRoom} nahi mila.\nLobby se dobara join karein.`);
+        window.location.href = "home.html";
+        return;
+    }
+
+    // SUCCESS
+    const overlay = document.getElementById('waiting-overlay');
+    if (overlay) overlay.style.display = 'none';
+    window.Game.init();
+    listenToLiveUpdates(roomRef);
+}
+    
+        function listenToLiveUpdates(gameRef) {
+            unsubscribeGame = onValue(gameRef, (snapshot) => {
+                const data = snapshot.val();
+                console.log("Firebase Data Received:", data); // Debugging ke liye
+
+                if (!data) return;
+                // Taake dono ke skips screen par nazar aayen
+if (window.initSkipDisplay) {
+    window.initSkipDisplay(db, ref, onValue, GAME_ID, ENTRY_FEE);
+}
+
+                // 1. WAITING OVERLAY FIX
+                // data.players aik object hota hai jiske andar UID keys hoti hain
+                if (data.players) {
+                    const playerIds = Object.keys(data.players);
+                    console.log("Players in room:", playerIds.length);
+
+                    // Agar 2 players hain toh matching screen hatao
+                    if (playerIds.length >= 2) {
+                        const overlay = document.getElementById('waiting-overlay');
+                        if (overlay) {
+                            overlay.style.display = 'none';
+                            console.log("Overlay Hidden");
+                        }
+                    }
+
+                    // Players UI (Avatar/Name) update karein
+                    playerIds.forEach(id => {
+                        const p = data.players[id];
+                        const nameEl = document.getElementById(`name-${p.color}`);
+                        const imgEl = document.getElementById(`img-${p.color}`);
+                        const badgeEl = document.getElementById(`badge-${p.color}`);
+
+                        if(nameEl) nameEl.innerText = p.name;
+                        if(imgEl) imgEl.style.backgroundImage = `url('${p.photo}')`;
+
+                        if (p.uid === currentUser.uid) {
+                            if(badgeEl) badgeEl.style.display = 'block';
+                            if(nameEl) {
+                                nameEl.style.color = 'gold';
+                                nameEl.innerHTML = p.name + ' <i class="fas fa-star" style="font-size:8px"></i>';
+                            }
+                        }
+
+                        // Check if opponent left
+                        if (p.uid !== currentUser.uid && p.online === "left") {
+                            handleForcedEnd(myColor); // I win since opponent left
+                        }
+                    });
+                }
+
+                // 2. DICE SYNC FIX
+                if (data.lastRoll && data.lastRoll.ts !== lastProcessedRoll) {
+                    lastProcessedRoll = data.lastRoll.ts;
+                    if (data.lastRoll.color !== myColor) {
+                        const dBox = document.getElementById(`dice-${data.lastRoll.color}`);
+                        const dw = document.getElementById(`dw-${data.lastRoll.color}`);
+                        if (dBox && dw) {
+                            AudioSys.roll();
+                            dw.classList.add('rolling');
+                            let fakes = 0;
+                            const fakeInt = setInterval(() => {
+                                dBox.innerHTML = window.Game.getDiceHTML(Math.floor(Math.random() * 6) + 1);
+                                if (++fakes > 8) {
+                                    clearInterval(fakeInt);
+                                    dBox.innerHTML = window.Game.getDiceHTML(data.lastRoll.value);
+                                    dw.classList.remove('rolling');
+                                }
+                            }, 70);
+                        }
+                    }
+                }
+
+                // 3. GAME STATE SYNC
+                if (data.gameState && window.Game) {
+                    window.Game.sync(data.gameState);
+                }
+            });
+        }
+
+        const Game = {
+            tokens: { red: [0,0,0,0], yellow: [0,0,0,0] },
+            turn: 'red', diceVal: 0,
+            isRolling: false, hasRolled: false, rollInterval: null,
+            turnTimer: null,
+            path: [[13,6],[12,6],[11,6],[10,6],[9,6], [8,5],[8,4],[8,3],[8,2],[8,1],[8,0], [7,0], [6,0], [6,1],[6,2],[6,3],[6,4],[6,5], [5,6],[4,6],[3,6],[2,6],[1,6],[0,6], [0,7], [0,8], [1,8],[2,8],[3,8],[4,8],[5,8], [6,9],[6,10],[6,11],[6,12],[6,13],[6,14], [7,14], [8,14], [8,13],[8,12],[8,11],[8,10],[8,9], [9,8],[10,8],[11,8],[12,8],[13,8],[14,8], [14,7], [14,6]],
+            safeZones: [1, 9, 14, 22, 27, 35, 40, 48],
+            homes: { red: [[11,2],[11,3],[12,2],[12,3]], yellow: [[2,11],[2,12],[3,11],[3,12]] },
+            winP: { red: [[13,7],[12,7],[11,7],[10,7],[9,7],[8,7]], yellow: [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7]] },
+
+            init() { 
+                this.drawGrid(); this.spawnTokens();
+                setTimeout(() => {
+                    const dRed = document.getElementById('dice-red');
+                    const dYellow = document.getElementById('dice-yellow');
+                    if(dRed) dRed.innerHTML = this.getDiceHTML(6);
+                    if(dYellow) dYellow.innerHTML = this.getDiceHTML(6);
+                }, 100);
+            },
+
+            getDiceHTML(val) {
+                const patterns = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+                const v = val || 6;
+                let html = '';
+                for (let i = 0; i < 9; i++) {
+                    if (patterns[v] && patterns[v].includes(i)) html += '<div class="dot"></div>';
+                    else html += '<div></div>';
+                }
+                return html;
+            },
+
+            sync(state) {
+    // 1. Agar Firebase mein winner mil jaye
+    if (state.winner) {
+        // Game timers aur listeners ko stop karo
+        if (unsubscribeGame) unsubscribeGame();
+        if (this.turnTimer) clearInterval(this.turnTimer);
+        
+        // Winner/Loser popup aur cleanup logic call karo
+        handleForcedEnd(state.winner); 
+        return; 
+    }
+
+    // 2. Tokens Movement Sync (Opponent ki goti chalne ki animation)
+    const opp = myColor === 'red' ? 'yellow' : 'red';
+    const oldToks = this.tokens[opp];
+    const newToks = state.tokens[opp];
+    
+    let movedIdx = -1;
+    for(let i=0; i<4; i++) { 
+        if (newToks[i] > oldToks[i]) { movedIdx = i; break; } 
+    }
+
+    if (movedIdx !== -1) {
+        let start = oldToks[movedIdx] === 0 ? 1 : oldToks[movedIdx];
+        this.animateOpponentMove(opp, movedIdx, start, newToks[movedIdx]);
+    }
+
+    // 3. UI aur Turn Update
+    this.tokens = state.tokens;
+    if (this.turn !== state.turn) { this.hasRolled = false; this.isRolling = false; }
+    this.turn = state.turn;
+    this.renderAll();
+    this.updateUI();
+},
+
+            async animateOpponentMove(color, idx, start, end) {
+                for (let s = start + 1; s <= end; s++) { AudioSys.move(); await new Promise(r => setTimeout(r, 250)); }
+            },
+
+            updateUI() {
+                document.querySelectorAll('.player-corner').forEach(e => e.classList.remove('active-turn'));
+                document.querySelectorAll('.dice-wrapper').forEach(e => { e.classList.remove('my-turn'); e.style.opacity = '0.4'; e.style.pointerEvents = 'none'; });
+                const activeCard = document.getElementById(`p-${this.turn}`);
+                if(activeCard) activeCard.classList.add('active-turn');
+                if (this.turn === myColor && !this.hasRolled && !this.isRolling) {
+                    const myDice = document.getElementById(`dw-${myColor}`);
+                    myDice.classList.add('my-turn'); myDice.style.opacity = '1'; myDice.style.pointerEvents = 'auto';
+                }
+                // YEH LINE ZAROORI HAI:
+                this.startTimer(this.hasRolled ? 'move' : 'roll');
+            },
+
+            startTimer(type) {
+                if (this.turnTimer) clearInterval(this.turnTimer);
+
+                let timeLeft = 20;
+                const activeColor = this.turn;
+                const bar = document.getElementById(`timer-${activeColor}`);
+
+                this.turnTimer = setInterval(() => {
+                    timeLeft--;
+                    let percentage = (timeLeft / 20) * 100;
+                    if (bar) {
+                        bar.style.width = percentage + '%';
+                        if (timeLeft > 10) bar.style.backgroundColor = '#2ecc71';
+                        else if (timeLeft > 5) bar.style.backgroundColor = '#f1c40f';
+                        else bar.style.backgroundColor = '#ff4757';
+                    }
+
+                    if (timeLeft <= 0) {
+                        clearInterval(this.turnTimer);
+
+                        // AGAR MERI BARI HAI (Lekin main offline hoon ya move nahi kar raha)
+                        if (activeColor === myColor) {
+                            if (type === 'roll' && !this.hasRolled) this.rollDice();
+                            else if (type === 'move' && this.hasRolled) this.autoMove();
+                        }
+                        if (window.handleMissedTurnLogic) {
+    window.handleMissedTurnLogic({
+        db, ref, get, update, GAME_ID, ENTRY_FEE, myColor, currentUser, activeColor: this.turn
+    });
+}
+                        // AGAR OPPONENT KI BARI HAI (Aur uska internet chala gaya hai)
+                        else {
+                            console.log("Opponent is inactive, auto-simulating for him...");
+                            // Hum opponent ke liye dice roll aur move ka faisla yahan se karwa sakte hain
+                            this.simulateOpponentTurn();
+                        }
+                    }
+                }, 1000);
+            },
+
+            autoMove() {
+                let movableTokens = [];
+                this.tokens[myColor].forEach((p, i) => {
+                    if ((p === 0 && this.diceVal === 6) || (p > 0 && p + this.diceVal <= 57)) {
+                        movableTokens.push(i);
+                    }
+                });
+                if (movableTokens.length > 0) {
+                    this.handleMove(movableTokens[0]);
+                }
+            },
+
+            /* --- FAST ROLL LOGIC (Paste inside Game object) --- */
+
+async rollDice() {
+    AudioSys.init();
+    
+    // 1. Checks
+    if (this.turn !== myColor || this.isRolling || this.hasRolled) return;
+
+    this.isRolling = true; 
+    
+    // 2. UI Setup
+    const diceBox = document.getElementById(`dice-${myColor}`);
+    const diceEl = document.getElementById(`dw-${myColor}`);
+    diceEl.classList.remove('my-turn'); 
+    diceEl.style.cursor = 'default';
+    diceBox.classList.add('rolling'); 
+    try { AudioSys.roll(); } catch(e){}
+
+    // 3. --- MAGIC FIX: Number pehle hi decide kar lo ---
+    const val = Math.floor(Math.random() * 6) + 1;
+    this.diceVal = val;
+
+    // 4. --- FAST UPDATE: Firebase ko FORAN bata do (Animation se pehle) ---
+    // Is se opponent ko signal 1 second jaldi milega
+    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), { 
+        lastRoll: { color: myColor, value: val, ts: Date.now() } 
+    });
+
+    // 5. Local Animation (Apne liye)
+    let rollCount = 0;
+    if (this.rollInterval) clearInterval(this.rollInterval);
+
+    this.rollInterval = setInterval(() => {
+        diceBox.innerHTML = this.getDiceHTML(Math.floor(Math.random() * 6) + 1);
+        rollCount++;
+        
+        if (rollCount > 8) { 
+            clearInterval(this.rollInterval); 
+            this.finalizeRoll(diceBox, val); // Value pass kar di
+        }
+    }, 70);
+},
+
+async finalizeRoll(diceBox, val) {
+    // 6. Dots Set karo
+    diceBox.innerHTML = this.getDiceHTML(val);
+    diceBox.classList.remove('rolling');
+
+    this.isRolling = false;
+    this.hasRolled = true;
+
+    // Note: Firebase update humne upar hi kar diya tha, dubara nahi karna.
+
+    // 7. Check Move Logic
+    let canMove = false;
+    this.tokens[myColor].forEach((p, i) => {
+        if ((p === 0 && val === 6) || (p > 0 && p + val <= 57)) {
+            const tokenEl = document.getElementById(`t-${myColor}-${i}`);
+            tokenEl.classList.add('clickable');
+            tokenEl.onclick = () => this.handleMove(i);
+            canMove = true;
+        }
+    });
+
+    if (canMove) {
+        this.startTimer('move'); // Goti chalne ke liye 20 sec dobara shuru
+    } else {
+        setTimeout(() => this.passTurn(false), 1000);
+    }
+},
+
+            async handleMove(id) {
+    // 1. Click foran band karo taake user bar bar click na kare
+    document.querySelectorAll('.token').forEach(t => { 
+        t.classList.remove('clickable'); 
+        t.onclick = null; 
+    });
+
+    let currentPos = this.tokens[myColor][id];
+    let targetPos = (currentPos === 0) ? 1 : currentPos + this.diceVal;
+    const opp = myColor === 'red' ? 'yellow' : 'red';
+    const myGlob = this.toGlobal(myColor, targetPos);
+
+    // 2. --- FAST LOGIC: Firebase ko foran update bhejdo ---
+    let tempTokens = JSON.parse(JSON.stringify(this.tokens));
+    tempTokens[myColor][id] = targetPos;
+
+    let killed = false;
+    if (!this.safeZones.includes(targetPos) && targetPos < 52) {
+        tempTokens[opp].forEach((op, i) => {
+            if (op > 0 && op < 52 && this.toGlobal(opp, op) === myGlob) {
+                tempTokens[opp][i] = 0; 
+                killed = true;
+            }
+        });
+    }
+
+    let winner = null;
+    if (tempTokens[myColor].every(t => t === 57)) winner = myColor;
+    let nextTurn = (this.diceVal === 6 || killed || targetPos === 57) ? myColor : opp;
+    if (winner) nextTurn = null;
+
+    // UPDATE FIREBASE NOW (Bina animation ka wait kiye)
+    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+        tokens: tempTokens, 
+        turn: nextTurn, 
+        winner: winner 
+    });
+
+    // 3. --- AB APNI SCREEN PAR ANIMATION CHALAO ---
+    if (currentPos === 0) {
+        this.tokens[myColor][id] = 1;
+        this.renderAll();
+        AudioSys.move();
+    } else {
+        // Animation speed thodi fast rakhi hai (150ms)
+        for (let step = currentPos + 1; step <= targetPos; step++) {
+            this.tokens[myColor][id] = step;
+            this.renderAll();
+            AudioSys.move();
+            await new Promise(r => setTimeout(r, 150)); 
+        }
+    }
+
+    if (killed) {
+        AudioSys.kill();
+        this.tokens = tempTokens; // Goti marne ke baad position sahi karo
+        this.renderAll();
+    }
+
+    // 4. Bari dobara milne ka logic
+    if (nextTurn === myColor) {
+        this.hasRolled = false;
+        this.updateUI();
+    }
+},
+            passTurn(repeat) {
+                const opp = myColor === 'red' ? 'yellow' : 'red';
+                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { turn: repeat ? myColor : opp });
+            },
+
+            async simulateOpponentTurn() {
+                // 1. Agar opponent ne roll nahi kiya, toh auto-roll karein
+                if (!this.hasRolled) {
+                    const fakeVal = Math.floor(Math.random() * 6) + 1;
+                    this.diceVal = fakeVal;
+
+                    // Firebase mein roll update karein taake jab wo wapis aaye to usay value dikhe
+                    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), {
+                        lastRoll: { color: this.turn, value: fakeVal, ts: Date.now() }
+                    });
+
+                    // 2. Thora wait karke auto-move karein
+                    setTimeout(() => {
+                        this.autoMoveForOpponent(fakeVal);
+                    }, 1000);
+                }
+            },
+
+            autoMoveForOpponent(val) {
+                const opp = this.turn;
+                let movableTokens = [];
+                this.tokens[opp].forEach((p, i) => {
+                    if ((p === 0 && val === 6) || (p > 0 && p + val <= 57)) movableTokens.push(i);
+                });
+
+                if (movableTokens.length > 0) {
+                    // Opponent ki pehli possible goti chal dein
+                    this.handleMoveForColor(opp, movableTokens[0], val);
+                } else {
+                    this.passTurn(false);
+                }
+            },
+
+            async handleMoveForColor(color, id, val) {
+                let currentPos = this.tokens[color][id];
+                let targetPos = (currentPos === 0) ? 1 : currentPos + val;
+                const opp = color === 'red' ? 'yellow' : 'red';
+                const myGlob = this.toGlobal(color, targetPos);
+
+                let tempTokens = JSON.parse(JSON.stringify(this.tokens));
+                tempTokens[color][id] = targetPos;
+
+                let killed = false;
+                if (!this.safeZones.includes(targetPos) && targetPos < 52) {
+                    tempTokens[opp].forEach((op, i) => {
+                        if (op > 0 && op < 52 && this.toGlobal(opp, op) === myGlob) {
+                            tempTokens[opp][i] = 0;
+                            killed = true;
+                        }
+                    });
+                }
+
+                let winner = null;
+                if (tempTokens[color].every(t => t === 57)) winner = color;
+                let nextTurn = (val === 6 || killed || targetPos === 57) ? color : opp;
+                if (winner) nextTurn = null;
+
+                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), {
+                    tokens: tempTokens,
+                    turn: nextTurn,
+                    winner: winner
+                });
+            },
+
+            toGlobal(c, p) { return (p + (c === 'red' ? 0 : 26) - 1) % 52; },
+
+           drawGrid() {
+    const g = document.getElementById('grid'); 
+    if(g.children.length > 0) return;
+
+    // 1. Safaid Rasta (General Path)
+    this.path.forEach((p, i) => {
+        const c = document.createElement('div'); 
+        c.className = 'cell';
+        if ([0, 8, 13, 21, 26, 34, 39, 47].includes(i)) c.classList.add('safe');
+        c.style.gridRow = p[0] + 1; 
+        c.style.gridColumn = p[1] + 1; 
+        g.appendChild(c);
+    });
+
+    // 2. Win Paths (Charo Rangi Raste) - Isko dhyan se copy karein
+    const winColors = ['red', 'yellow', 'green', 'blue'];
+    const winPaths = {
+        red: [[13,7],[12,7],[11,7],[10,7],[9,7]],    // Bottom se Center ki taraf (Green ke upar)
+    yellow: [[1,7],[2,7],[3,7],[4,7],[5,7]],    // Top se Center ki taraf (Blue ke niche)
+    green: [[7,1],[7,2],[7,3],[7,4],[7,5]],     // Left se Center ki taraf (Yellow ke niche)
+    blue: [[7,9],[7,10],[7,11],[7,12],[7,13]]   // Right se Center ki taraf (Red ke upar)
+    };
+
+    winColors.forEach(color => {
+        winPaths[color].forEach(coord => {
+            const div = document.createElement('div');
+            div.className = `cell win-${color}`;
+            // Yahan hum direct color style de rahe hain taake miss na ho
+            div.style.backgroundColor = `var(--${color})`; 
+            div.style.gridRow = coord[0] + 1;
+            div.style.gridColumn = coord[1] + 1;
+            div.style.border = "0.5px solid rgba(255,255,255,0.5)";
+            g.appendChild(div);
+        });
+    });
+
+    // 3. Charo Ghar (Home Boxes)
+    ['red', 'yellow', 'green', 'blue'].forEach((c) => {
+        const h = document.createElement('div'); 
+        h.className = `home h-${c}`;
+        h.innerHTML = '<div class="home-in"></div>'; 
+        g.appendChild(h);
+    });
+
+    // 4. Center Area
+    g.innerHTML += '<div class="center"></div>';
+},
+            spawnTokens() {
+    const g = document.getElementById('grid');
+    // Pehle purani gotiyan saaf karein (agar koi ho)
+    document.querySelectorAll('.token').forEach(t => t.remove());
+
+    ['red', 'yellow'].forEach(c => {
+        for (let i = 0; i < 4; i++) {
+            const t = document.createElement('div'); 
+            t.id = `t-${c}-${i}`; 
+            t.className = `token t-${c}`;
+            
+            // ✨ MAGIC LINE: Goti ko board se -100px ooper phenk do
+            t.style.top = "-100px"; 
+            
+            g.appendChild(t);
+        }
+    });
+},
+
+            renderAll() {
+                ['red', 'yellow'].forEach(c => this.tokens[c].forEach((p, i) => {
+                    const el = document.getElementById(`t-${c}-${i}`);
+                    const size = 340 / 15;
+                    let r, col;
+                    if (p === 0) [r, col] = this.homes[c][i];
+                    else if (p > 51) [r, col] = this.winP[c][p - 52];
+                    else { let gi = this.toGlobal(c, p); [r, col] = this.path[gi]; }
+                    el.style.top = (r * size + 2) + 'px'; el.style.left = (col * size + 2) + 'px';
+                }));
+            }
+        };
+
+        // --- UPDATED EXIT LOGIC (Balance Deduct + Data Update) ---
+       // --- NEW EXIT LOGIC (Secure) ---
+       // Jahan exit button ka code hai:
+
+document.getElementById('exit-btn').onclick = async function() {
+    // Message change kiya hai taake user ko pata ho paise wapas nahi milenge
+    if (confirm("Are you sure you want to leave the game? Your entry fee will not be refunded and you will forfeit the match.")) {
+
+        // 1. Yahan se balance deduction ka code HATA DIYA hai.
+        // (Kyunki paise ab 'startMatchmaking' mein shuru mein hi kat chuke hain)
+
+        // 2. Database mein apna status 'left' set karein
+        // Is se Opponent ke paas 'You Win' ka popup aayega
+        const myStatusRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/players/${currentUser.uid}/online`);
+        await set(myStatusRef, "left");
+saveHistory(db, currentUser.uid, -entry, "Left Game", "loss");
+        // 3. User ko foran Home bhej dein
+        window.location.href = "home.html";
+    }
+};
+
+        window.Game = Game;
+
+        // Internet Disconnect Alert
+        window.addEventListener('offline', () => {
+            document.body.style.filter = "grayscale(1)";
+            alert("Connection Lost! Please check your internet.");
+        });
+
+        window.addEventListener('online', () => {
+            document.body.style.filter = "none";
+            // Page reload karne ki zaroorat nahi, Firebase khud reconnect ho jayega
+        });
+        // --- Yeh block apni script ke end mein replace karein ---
+
+// --- FINAL FIXED BALANCE LOGIC ---
+// --- FINAL & DYNAMIC BALANCE DISPLAY ---
+// --- RED & YELLOW FIXED BALANCE LOGIC ---
+// --- FINAL STABLE BALANCE LOGIC ---
+// --- ERROR-FREE STABLE BALANCE LOGIC ---
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // Ek interval set karein jo har 1 second baad check karega jab tak data mil na jaye
+        let syncRetry = setInterval(async () => {
+            if (!ENTRY_FEE || !GAME_ID) return;
+
+            const cleanE = ENTRY_FEE.toString().trim();
+            const cleanG = GAME_ID.toString().trim().toLowerCase();
+            const roomPath = `matchmaking_pool/${cleanE}/${cleanG}/players/${user.uid}`;
+
+            try {
+                const snap = await get(ref(db, roomPath));
+                const userData = snap.val();
+
+                // Agar data mil gaya hai
+                if (userData && userData.color) {
+                    clearInterval(syncRetry); // Retry band kar dein
+                    const myCol = userData.color;
+                    console.log("Color Verified for Balance:", myCol);
+
+                    // Real-time Balance listener
+                    onValue(ref(db, `users/${user.uid}/balance`), (bSnap) => {
+                        const bal = bSnap.val() || 0;
+                        
+                        // UI Update
+                        const rEl = document.getElementById('real-bal-red');
+                        const yEl = document.getElementById('real-bal-yellow');
+                        if (rEl) rEl.style.display = 'none';
+                        if (yEl) yEl.style.display = 'none';
+
+                        const target = document.getElementById(`real-bal-${myCol}`);
+                        if (target) {
+                            target.innerHTML = `<i class="fas fa-wallet"></i> ₹${bal}`;
+                            target.style.display = "block";
+                            target.style.color = "#2ecc71";
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Syncing...");
+            }
+        }, 1000); 
+
+        // 10 second baad retry band kar dein taake loop na bany
+        setTimeout(() => clearInterval(syncRetry), 10000);
+    }
+});
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

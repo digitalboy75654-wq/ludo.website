@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>1vs1 Battle Arena</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7; --gold: #f1c40f; --neon: #00d2d3;
+            --bg: #0f0c29; --card-glass: rgba(255, 255, 255, 0.03);
+            --win-green: #2ecc71;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
+        body {
+            margin: 0; padding: 0; font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at center, #1a1a3a, #050510);
+            height: 100vh; color: white; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            padding: 15px 20px; display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 10;
+        }
+        .page-title { font-family: 'Orbitron'; font-size: 14px; color: var(--gold); letter-spacing: 1px; font-weight: 800; }
+        
+        .wallet-badge {
+            background: rgba(108, 92, 231, 0.15); border: 1px solid rgba(108, 92, 231, 0.5);
+            padding: 6px 14px; border-radius: 30px; font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; gap: 6px; box-shadow: 0 0 10px rgba(108, 92, 231, 0.2);
+        }
+
+        .container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 110px; }
+
+        .hero-text { text-align: center; margin-bottom: 20px; }
+        .hero-text h2 { margin: 0; font-family: 'Orbitron'; font-size: 18px; color: #fff; letter-spacing: 1px; }
+        .hero-text p { font-size: 10px; color: var(--neon); opacity: 0.7; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* SMALLER BET CARDS GRID (3 Columns) */
+        .bet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        
+        .bet-card {
+            background: var(--card-glass); border-radius: 12px; padding: 12px 8px;
+            border: 1px solid rgba(255,255,255,0.08); text-align: center;
+            position: relative; transition: all 0.2s ease; cursor: pointer; overflow: hidden;
+        }
+        
+        /* Professional Selection Effect */
+        .bet-card.selected {
+            background: linear-gradient(135deg, rgba(241, 196, 15, 0.1), rgba(0,0,0,0));
+            border: 1px solid var(--gold);
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .bet-card.disabled { opacity: 0.4; filter: grayscale(1); cursor: not-allowed; }
+
+        .entry-label { font-size: 8px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .entry-amount { font-family: 'Orbitron'; font-size: 16px; font-weight: 900; color: #fff; margin: 4px 0; }
+        
+        .win-box {
+            background: rgba(46, 204, 113, 0.08); border-radius: 8px; padding: 6px 4px;
+            margin-top: 8px; border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+        .win-text { font-size: 7px; color: var(--win-green); font-weight: 800; text-transform: uppercase; }
+        .win-amount { font-size: 12px; color: var(--win-green); font-weight: 800; font-family: 'Orbitron'; }
+
+        /* PLAY BUTTON */
+        .play-bar {
+            position: fixed; bottom: 85px; left: 0; width: 100%; padding: 0 20px;
+            display: flex; justify-content: center; z-index: 90; pointer-events: none;
+        }
+        .play-btn {
+            width: 100%; max-width: 350px; padding: 14px; border: none; border-radius: 50px;
+            background: linear-gradient(90deg, #f1c40f, #f39c12);
+            color: black; font-family: 'Orbitron'; font-size: 14px; font-weight: 900;
+            letter-spacing: 1px; cursor: pointer; pointer-events: auto;
+            box-shadow: 0 5px 20px rgba(241, 196, 15, 0.4);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            opacity: 0; transform: translateY(30px) scale(0.9);
+        }
+        .play-btn.active { opacity: 1; transform: translateY(0) scale(1); }
+        .play-btn:active { transform: scale(0.95); }
+
+        
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fas fa-arrow-left" onclick="window.location.href='home.html'" style="font-size: 18px; cursor: pointer; opacity: 0.8;"></i>
+        <div class="page-title">BATTLE ARENA</div>
+        <div class="wallet-badge">
+            <i class="fas fa-coins" style="color:var(--gold)"></i>
+            <span id="user-bal" style="font-family:'Orbitron'">0</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="hero-text">
+            <h2>SELECT STAKES</h2>
+            <p>Higher Risk, Higher Reward</p>
+        </div>
+
+        <div class="bet-grid" id="bet-container">
+            </div>
+    </div>
+
+    <div class="play-bar">
+        <button id="play-btn" class="play-btn" onclick="startGame()">SELECT A BET</button>
+    </div>
+
+    
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"; // <--- runTransaction add kiya
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
+        authDomain: "ludo-d46ab.firebaseapp.com", 
+        databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
+        projectId: "ludo-d46ab" 
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let myBalance = 0;
+    let selectedBet = 0;
+    let winningAmount = 0;
+
+    const bets = [
+        { entry: 20, win: 36 }, { entry: 50, win: 90 },
+        { entry: 100, win: 180 }, { entry: 200, win: 360 },
+        { entry: 500, win: 900 }, { entry: 1000, win: 1800 },
+        { entry: 2000, win: 3600 }, { entry: 5000, win: 9000 }
+    ];
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            onValue(ref(db, 'users/' + user.uid), (snap) => {
+                if (snap.exists()) {
+                    myBalance = snap.val().balance || 0;
+                    document.getElementById('user-bal').innerText = myBalance;
+                    renderBets();
+                }
+            });
+        } else { window.location.href = "login.html"; }
+    });
+
+    function renderBets() {
+        const container = document.getElementById('bet-container');
+        container.innerHTML = "";
+        const btn = document.getElementById('play-btn');
+
+        bets.forEach((bet) => {
+            const isDisabled = myBalance < bet.entry;
+            const activeClass = (selectedBet === bet.entry) ? 'selected' : '';
+            const disabledClass = isDisabled ? 'disabled' : '';
+
+            container.innerHTML += `
+                <div class="bet-card ${activeClass} ${disabledClass}" 
+                     onclick="${isDisabled ? '' : `selectBet(${bet.entry}, ${bet.win})`}">
+                    <div class="entry-label">Entry</div>
+                    <div class="entry-amount">₹${bet.entry}</div>
+                    <div class="win-box">
+                        <div class="win-text">WIN</div>
+                        <div class="win-amount">₹${bet.win}</div>
+                    </div>
+                    ${isDisabled ? '<div style="font-size:8px; color:#ff4757; margin-top:4px; font-weight:700;">LOW FUNDS</div>' : ''}
+                </div>
+            `;
+        });
+    }
+
+    window.selectBet = (entry, win) => {
+        selectedBet = entry;
+        winningAmount = win;
+        renderBets();
+        const btn = document.getElementById('play-btn');
+        btn.classList.add('active');
+        btn.innerHTML = `PLAY FOR <span style="font-family:Orbitron">₹${entry}</span>`;
+    };
+
+    // --- FINAL START GAME LOGIC ---
+    window.startGame = async () => {
+        if (selectedBet > 0 && myBalance >= selectedBet) {
+            const btn = document.getElementById('play-btn');
+            btn.innerText = "PROCESSING...";
+            btn.disabled = true;
+
+            const userBalRef = ref(db, `users/${auth.currentUser.uid}/balance`);
+
+            try {
+                const result = await runTransaction(userBalRef, (currentBalance) => {
+                    // Firebase balance ko number mein convert karein
+                    const bal = (currentBalance === null) ? 0 : Number(currentBalance);
+                    if (bal >= selectedBet) {
+                        return bal - selectedBet;
+                    }
+                    return; // Abort agar balance kam ho
+                });
+
+                if (result.committed) {
+                    // Paisa kat gaya, ab Radar page par bhejein
+                    window.location.href = `match2.html?entry=${selectedBet}`;
+                } else {
+                    alert("Low Balance! Please recharge.");
+                    btn.disabled = false;
+                    btn.innerText = "TRY AGAIN";
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Database Error! Refresh and try again.");
+                btn.disabled = false;
+            }
+        } else {
+            alert("Select a bet first!");
+        }
+    };
+</script>
+<script type="module" src="globalManager.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

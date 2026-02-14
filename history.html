@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Transaction History</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0c29;
+            --card-glass: rgba(255, 255, 255, 0.03);
+            --win: #00e676; --loss: #ff1744; --gold: #f1c40f;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        body {
+            margin: 0; padding: 0; font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at top, #24243e, #0f0c29);
+            height: 100vh; color: white; display: flex; flex-direction: column;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            padding: 20px; display: flex; align-items: center; justify-content: space-between;
+            background: rgba(15, 12, 41, 0.8); backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 10;
+        }
+        .back-btn { 
+            width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.05);
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;
+        }
+        .back-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
+        .page-title { font-family: 'Orbitron'; font-size: 18px; letter-spacing: 1px; color: white; }
+        .dummy { width: 40px; } 
+
+        /* --- FILTERS --- */
+        .filter-bar {
+            display: flex; gap: 10px; padding: 15px 20px;
+            overflow-x: auto; scrollbar-width: none;
+        }
+        .filter-btn {
+            padding: 8px 20px; border-radius: 30px; font-size: 12px; font-weight: 600;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #aaa; cursor: pointer; transition: 0.3s; white-space: nowrap;
+        }
+        .filter-btn.active {
+            background: var(--gold); color: black; border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.3);
+        }
+
+        /* --- LIST CONTAINER --- */
+        .history-list { 
+            flex: 1; overflow-y: auto; padding: 10px 20px; padding-bottom: 30px; 
+        }
+
+        /* --- PROFESSIONAL CARD DESIGN --- */
+        .tx-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+            border-radius: 16px; padding: 16px; margin-bottom: 12px;
+            display: flex; align-items: center; justify-content: space-between;
+            border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden;
+            animation: slideUp 0.4s ease forwards; opacity: 0; transform: translateY(20px);
+        }
+
+        /* Left Border Indicator */
+        .tx-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+        }
+        .type-win::before { background: var(--win); box-shadow: 0 0 10px var(--win); }
+        .type-loss::before { background: var(--loss); box-shadow: 0 0 10px var(--loss); }
+
+        .tx-left { display: flex; align-items: center; gap: 15px; }
+        .tx-icon {
+            width: 45px; height: 45px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .bg-win { background: rgba(0, 230, 118, 0.1); color: var(--win); }
+        .bg-loss { background: rgba(255, 23, 68, 0.1); color: var(--loss); }
+
+        .tx-info h4 { margin: 0; font-size: 14px; color: white; font-weight: 600; }
+        .tx-info span { font-size: 11px; color: rgba(255,255,255,0.4); display: block; margin-top: 3px; }
+
+        .tx-right { text-align: right; }
+        .tx-amount { font-family: 'Orbitron'; font-size: 16px; font-weight: bold; }
+        .tx-status { font-size: 10px; font-weight: 700; text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px; }
+        
+        .val-win { color: var(--win); text-shadow: 0 0 10px rgba(0,230,118,0.3); }
+        .val-loss { color: var(--loss); text-shadow: 0 0 10px rgba(255,23,68,0.3); }
+
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* EMPTY STATE */
+        .empty-state {
+            margin-top: 100px; text-align: center; opacity: 0.4;
+        }
+        .empty-state i { font-size: 40px; margin-bottom: 15px; display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="back-btn" onclick="window.location.href='profile.html'"> <i class="fas fa-chevron-left"></i>
+        </div>
+        <div class="page-title">HISTORY</div>
+        <div class="dummy"></div>
+    </div>
+
+    <div class="filter-bar">
+        <div class="filter-btn active" onclick="filterGames('all', this)">All Games</div>
+        <div class="filter-btn" onclick="filterGames('win', this)">Wins</div>
+        <div class="filter-btn" onclick="filterGames('loss', this)">Losses</div>
+    </div>
+
+    <div class="history-list" id="history-container">
+        <div class="empty-state">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <p>Loading History...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
+            authDomain: "ludo-d46ab.firebaseapp.com", 
+            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
+            projectId: "ludo-d46ab" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let allGames = []; // Global Store
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Real-time listener start karo
+                fetchHistory(user.uid);
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        function fetchHistory(uid) {
+            const container = document.getElementById('history-container');
+            // Last 50 transactions uthayega
+            const historyRef = query(ref(db, `users/${uid}/gameHistory`), limitToLast(50));
+
+            onValue(historyRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    allGames = [];
+                    snapshot.forEach(child => {
+                        allGames.push(child.val());
+                    });
+                    
+                    // Firebase ascending (purana pehle) deta hai, humein reverse karna hai (naya pehle)
+                    allGames.reverse(); 
+                    
+                    // Default view: All
+                    renderGames(allGames);
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-folder-open"></i>
+                            <p>No Game History Found</p>
+                        </div>`;
+                }
+            });
+        }
+
+        // Global function banaya taake HTML onclick isay call kar sake
+        window.filterGames = (type, btn) => {
+            // UI Update
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Filtering Logic
+            if(type === 'all') {
+                renderGames(allGames);
+            } else if (type === 'win') {
+                const wins = allGames.filter(g => g.amount > 0);
+                renderGames(wins);
+            } else if (type === 'loss') {
+                const losses = allGames.filter(g => g.amount < 0);
+                renderGames(losses);
+            }
+        }
+
+        function renderGames(games) {
+            const container = document.getElementById('history-container');
+            container.innerHTML = "";
+
+            if(games.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-filter"></i>
+                        <p>No records in this filter</p>
+                    </div>`;
+                return;
+            }
+
+            games.forEach((game, index) => {
+                const isWin = game.amount > 0;
+                const typeClass = isWin ? 'type-win' : 'type-loss';
+                const bgClass = isWin ? 'bg-win' : 'bg-loss';
+                const valClass = isWin ? 'val-win' : 'val-loss';
+                const icon = isWin ? 'fa-trophy' : 'fa-skull';
+                const sign = isWin ? '+' : ''; 
+                const statusText = isWin ? 'WON' : 'LOST';
+                
+                // Date formatting
+                const date = new Date(game.timestamp).toLocaleString('en-US', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'
+                });
+
+                // Animation delay (Card slide effect)
+                const delay = index * 0.05; 
+
+                const html = `
+                    <div class="tx-card ${typeClass}" style="animation-delay: ${delay}s">
+                        <div class="tx-left">
+                            <div class="tx-icon ${bgClass}">
+                                <i class="fas ${icon}"></i>
+                            </div>
+                            <div class="tx-info">
+                                <h4>${game.type || "Ludo Match"}</h4>
+                                <span>${date}</span>
+                            </div>
+                        </div>
+                        <div class="tx-right">
+                            <div class="tx-amount ${valClass}">${sign}${game.amount}</div>
+                            <div class="tx-status ${valClass}">${statusText}</div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+    </script>
+    <script type="module" src="globalManager.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

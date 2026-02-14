@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta property="og:title" content="Ludo Pro - Play & Win">
+<meta property="og:image" content="https://ludo.website/icon1.png">
+<meta property="og:description" content="Click karke join karein aur jeetein!">
+    <title>Ludo Pro - Elite Lobby</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- ELITE CSS STYLES --- */
+        :root {
+            --primary: #6c5ce7; --gold: #f1c40f; --neon-blue: #00d2d3;
+            --bg-dark: #0f0c29; --card-bg: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        
+        body {
+            margin: 0; padding: 0; font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at top, #1a1a2e, #0f0c29, #000000);
+            height: 100vh; color: white; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(15, 12, 41, 0.85); backdrop-filter: blur(15px); z-index: 50;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .profile-sec { display: flex; align-items: center; gap: 12px; }
+        .avatar { 
+            width: 45px; height: 45px; border-radius: 50%; background-size: cover; background-position: center;
+            border: 2px solid var(--gold); background-color: #333;
+        }
+        .u-det { line-height: 1.3; }
+        .u-name { font-weight: 700; font-size: 15px; color: white; }
+        .u-id { font-size: 10px; color: var(--neon-blue); font-family: 'Orbitron'; letter-spacing: 1px; }
+
+        .coin-pill {
+            background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 30px;
+            border: 1px solid var(--gold); color: var(--gold); font-weight: 800; font-size: 14px;
+            display: flex; align-items: center; gap: 8px; box-shadow: 0 0 10px rgba(241,196,15,0.2);
+            transition: 0.3s; cursor: pointer;
+        }
+
+        /* SCROLL AREA */
+        .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 100px; }
+        
+        /* BRANDING */
+        .app-branding { text-align: center; margin: 25px 0 15px 0; }
+        .brand-title {
+            font-family: 'Orbitron'; font-size: 30px; font-weight: 900;
+            background: linear-gradient(to right, #f1c40f, #ffffff, #f1c40f);
+            -webkit-background-clip: text; color: transparent;
+            text-shadow: 0 0 15px rgba(241, 196, 15, 0.3);
+        }
+
+        /* BANNER */
+        /* --- 📢 INVITE BANNER DESIGN --- */
+.banner-wrapper { 
+    padding: 0 20px; 
+    margin-bottom: 25px; 
+}
+
+.invite-banner {
+    width: 100%; 
+    height: 130px; 
+    border-radius: 25px; 
+    position: relative; 
+    overflow: hidden;
+    /* Beautiful Emerald Gradient */
+    background: linear-gradient(135deg, #00b894, #006266);
+    box-shadow: 0 10px 25px rgba(0, 184, 148, 0.4);
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 0 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.invite-banner:active { transform: scale(0.97); }
+
+.banner-info { z-index: 2; }
+
+.banner-info h3 { 
+    margin: 0; 
+    font-family: 'Orbitron'; 
+    font-size: 20px; 
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.banner-info p { 
+    margin: 4px 0 10px; 
+    font-size: 12px; 
+    color: #ffeaa7; /* Soft Gold color */
+    font-weight: 600;
+}
+
+/* --- 🔘 MINI BUTTON INSIDE BANNER --- */
+.invite-btn {
+    display: inline-block;
+    background: #fff;
+    color: #006266;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    font-family: 'Orbitron';
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* --- 💰 ANIMATED ICONS --- */
+.banner-icon-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-icon {
+    font-size: 60px;
+    color: #fff;
+    opacity: 0.2;
+    transform: rotate(-15deg);
+}
+
+.coin-float {
+    position: absolute;
+    color: #f1c40f;
+    font-size: 20px;
+    filter: drop-shadow(0 0 5px rgba(241, 196, 15, 0.5));
+}
+
+.c1 { top: -10px; right: 10px; animation: floatAnim 2s infinite ease-in-out; }
+.c2 { bottom: -5px; left: -10px; animation: floatAnim 2.5s infinite ease-in-out reverse; }
+
+@keyframes floatAnim {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-15px) rotate(20deg); }
+}
+
+        /* FINANCE BAR */
+        .fin-bar { padding: 0 20px; display: flex; gap: 15px; margin-bottom: 30px; }
+        .fin-btn {
+            flex: 1; padding: 15px; border: none; border-radius: 16px; color: white;
+            font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 10px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .btn-dep { background: linear-gradient(135deg, #00b09b, #96c93d); }
+        .btn-wit { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+
+        /* GAME GRID */
+        .grid {
+    display: grid;
+    /* Yeh line 2 barabar columns banaye gi */
+    grid-template-columns: repeat(2, 1fr); 
+    /* Cards ke darmiyan fasla (Gap) */
+    gap: 20px; 
+    /* Screen ke darmiyan alignment */
+    padding: 20px;
+    max-width: 400px; /* Aapki screen ke mutabiq adjust karein */
+    margin: 0 auto;
+}
+
+/* Mobile responsive banane ke liye (Optional) */
+@media (max-width: 350px) {
+    .grid {
+        grid-template-columns: 1fr; /* Choti screen par 1 column ho jaye ga */
+    }
+}
+        .game-card:active { transform: scale(0.96); border-color: var(--gold); }
+        .g-icon { font-size: 45px; margin-bottom: 10px; z-index: 2; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+        .g-title { font-size: 15px; font-weight: 800; font-family: 'Orbitron'; z-index: 2; }
+        .g-sub { font-size: 10px; color: #aaa; margin-top: 5px; z-index: 2; }
+
+        /* --- FLOATING COMMAND DOCK --- */
+/* --- FLOATING COMMAND DOCK --- */
+.navigation-dock {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%; /* Mobile par zyada jagah mile */
+    max-width: 450px;
+    height: 75px; /* Height thodi badhai taake text fit ho */
+    background: rgba(20, 20, 35, 0.95);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+    z-index: 1000;
+}
+
+/* Normal Nav Items (Icon + Text) */
+.nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* ✨ Icon upar, Text niche */
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #777; 
+    cursor: pointer;
+    transition: all 0.3s ease;
+    gap: 4px; /* Icon aur text ke beech gap */
+}
+
+.nav-item i {
+    font-size: 20px; /* Icon size thoda chota kiya */
+    margin-bottom: 2px;
+    transition: 0.3s;
+}
+
+.nav-label {
+    font-size: 10px; /* Text size */
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Active State (Glow & Color) */
+.nav-item.active {
+    color: #f1c40f; /* Gold Text */
+    transform: translateY(-2px);
+}
+
+.nav-item.active i {
+    text-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
+    transform: scale(1.1);
+}
+
+/* --- CENTER FLOATING BUTTON (FAB) --- */
+.center-fab-container {
+    position: relative;
+    width: 80px;
+    height: 100%; /* Full height container */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; /* Text bottom par */
+    margin-top: -35px; /* Button ko upar uthane ke liye */
+}
+
+.center-fab {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #f1c40f, #e67e22);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #1a1a2e;
+    font-size: 24px;
+    box-shadow: 0 0 0 8px rgba(20, 20, 35, 1); /* Cutout effect */
+    cursor: pointer;
+    transition: 0.3s;
+    z-index: 10;
+}
+
+/* Home Label (Button ke niche) */
+.home-label {
+    font-size: 10px;
+    color: #777;
+    margin-top: 5px; /* Button aur text ka gap */
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* Home Active State */
+.center-fab.active {
+    background: #fff;
+    color: #f1c40f;
+    box-shadow: 0 0 20px #fff;
+}
+/* Jab Home active ho to niche text bhi gold ho */
+.center-fab.active ~ .home-label {
+    color: #f1c40f;
+}
+
+.center-fab:active {
+    transform: scale(0.95);
+}
+/* --- 💎 CARD DESIGN --- */
+.mini-battle-box {
+    position: relative;
+    width: 170px; /* Chota aur compact size */
+    height: 210px;
+    background: linear-gradient(135deg, #0f0c29, #302b63); /* Deep Premium Blue */
+    border-radius: 25px;
+    margin: 20px auto;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    transition: 0.3s ease;
+    /* overflow: hidden NAHI lagaya taake goti bahar nikle */
+}
+
+.mini-battle-box:active { transform: scale(0.95); }
+
+/* --- 🟢 LIVE TAG (Top Left) --- */
+.status-badge {
+    position: absolute;
+    top: 15px; left: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: #00ff88; /* Neon Green */
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    font-weight: bold;
+    display: flex; align-items: center; gap: 6px;
+    z-index: 10;
+}
+
+.pulse-dot {
+    width: 6px; height: 6px;
+    background: #00ff88;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #00ff88;
+    animation: livePulse 1.2s infinite;
+}
+
+@keyframes livePulse {
+    50% { opacity: 0.2; transform: scale(1.2); }
+}
+
+/* --- 🔵🔴 GOTI CLASH (Pop-out Animation) --- */
+.clash-zone {
+    position: relative;
+    height: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.token-v {
+    font-size: 65px; /* Gotiyon ka size bada hai */
+    position: absolute;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+    z-index: 5;
+}
+
+.blue-v {
+    color: #00d2d3; /* Neon Blue */
+    left: -20px; /* Card ke left edge se bahar */
+    animation: moveBlue 3s infinite alternate cubic-bezier(.17,.67,.83,.67);
+}
+
+.red-v {
+    color: #ff4757; /* Neon Red */
+    right: -20px; /* Card ke right edge se bahar */
+    animation: moveRed 3s infinite alternate cubic-bezier(.17,.67,.83,.67);
+}
+
+.clash-impact {
+    position: absolute;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle, #fff 0%, transparent 70%);
+    opacity: 0;
+    animation: flashImpact 3s infinite alternate;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes moveBlue {
+    from { left: -25px; transform: scale(1); }
+    to { left: 40px; transform: scale(1.1); }
+}
+
+@keyframes moveRed {
+    from { right: -25px; transform: scale(1); }
+    to { right: 40px; transform: scale(1.1); }
+}
+
+@keyframes flashImpact {
+    0%, 80% { opacity: 0; }
+    100% { opacity: 0.8; transform: scale(1.3); }
+}
+
+/* --- 📝 SOLID FOOTER AREA --- */
+.card-footer-solid {
+    position: absolute;
+    bottom: 0; width: 100%;
+    background: #6c5ce7; /* Beautiful Solid Purple Fill */
+    padding: 15px 0;
+    border-radius: 0 0 25px 25px;
+    text-align: center;
+}
+
+.card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    margin: 0; color: #fff;
+    letter-spacing: 1px;
+}
+
+.card-sub {
+    font-size: 9px;
+    color: #f1c40f;
+    font-weight: bold;
+    margin: 4px 0 0 0;
+}
+/* --- ❤️ FRIEND LIVE CARD STYLE --- */
+.friend-live-card {
+    position: relative;
+    width: 170px;
+    height: 210px;
+    background: linear-gradient(135deg, #00b894, #00cec9); /* Fresh Teal/Green Gradient */
+    border-radius: 25px;
+    margin: 20px auto;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 184, 148, 0.4);
+    transition: 0.3s ease;
+}
+
+.friend-live-card:active { transform: scale(0.95); }
+
+/* --- 🟢 LIVE TAG (Top Left) --- */
+.status-badge {
+    position: absolute;
+    top: 15px; left: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: #00ff88; /* Neon Green */
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    font-weight: bold;
+    display: flex; align-items: center; gap: 6px;
+    z-index: 10;
+}
+
+/* --- ❤️ HEART ANIMATION ZONE --- */
+.clash-zone {
+    position: relative;
+    height: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.heart {
+    font-size: 55px; /* Big Hearts */
+    position: absolute;
+    filter: drop-shadow(0 5px 15px rgba(255, 255, 255, 0.3));
+    z-index: 5;
+}
+
+.h-left {
+    color: #fd79a8; /* Soft Pink Heart */
+    left: -15px;
+    animation: moveHeartLeft 5s infinite alternate ease-in-out;
+}
+
+.h-right {
+    color: #fab1a0; /* Peach Heart */
+    right: -15px;
+    animation: moveHeartRight 5s infinite alternate ease-in-out;
+}
+
+.heart-glow {
+    position: absolute;
+    width: 70px; height: 70px;
+    background: radial-gradient(circle, #fff 0%, transparent 75%);
+    opacity: 0;
+    animation: heartMerge 5s infinite alternate;
+}
+
+/* --- ANIMATIONS: Dil Ka Milna --- */
+@keyframes moveHeartLeft {
+    from { left: -20px; transform: scale(1) rotate(-10deg); }
+    to { left: 45px; transform: scale(1.1) rotate(0deg); }
+}
+
+@keyframes moveHeartRight {
+    from { right: -20px; transform: scale(1) rotate(10deg); }
+    to { right: 45px; transform: scale(1.1) rotate(0deg); }
+}
+
+@keyframes heartMerge {
+    0%, 70% { opacity: 0; transform: scale(0.5); }
+    100% { opacity: 1; transform: scale(1.5); }
+}
+
+/* --- 📝 SOLID FOOTER --- */
+.friend-footer {
+    background: #009688 !important; /* Solid Dark Teal Fill */
+}
+
+.card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    color: #fff;
+}
+
+.card-sub {
+    font-size: 9px;
+    color: #ffeaa7; /* Soft Yellow */
+    font-weight: bold;
+}
+/* --- 🎲 MULTIPLAYER CARD STYLE --- */
+.multiplayer-card {
+    position: relative;
+    width: 170px;
+    height: 210px;
+    background: linear-gradient(135deg, #ff7675, #d63031); /* Beautiful Red/Orange Energy */
+    border-radius: 25px;
+    margin: 20px auto;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(214, 48, 49, 0.4);
+    transition: 0.03s ease;
+}
+
+/* --- 🟢 LIVE TAG (Top Left) --- */
+.status-badge {
+    position: absolute;
+    top: 15px; left: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: #00ff88; /* Neon Green */
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    font-weight: bold;
+    display: flex; align-items: center; gap: 6px;
+    z-index: 10;
+}
+
+/* --- 🎲 4-WAY CLASH ZONE --- */
+.clash-zone-4p {
+    position: relative;
+    height: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.goti-4 {
+    font-size: 50px; /* Thoda chota size taake 4 fit ho sakein */
+    position: absolute;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+    z-index: 5;
+}
+
+/* Charon Gotiyon ki Positions aur Animations */
+.p-blue   { color: #0984e3; top: -15px; animation: moveDown 3s infinite alternate; }
+.p-red    { color: #ffffff; bottom: -15px; animation: moveUp 3s infinite alternate; }
+.p-green  { color: #00b894; left: -25px; animation: moveRightMulti 3s infinite alternate; }
+.p-yellow { color: #f1c40f; right: -25px; animation: moveLeftMulti 3s infinite alternate; }
+
+/* --- MULTIPLAYER ANIMATIONS --- */
+@keyframes moveDown { from { top: -25px; } to { top: 30px; } }
+@keyframes moveUp   { from { bottom: -25px; } to { bottom: 30px; } }
+@keyframes moveRightMulti { from { left: -30px; } to { left: 45px; } }
+@keyframes moveLeftMulti  { from { right: -30px; } to { right: 45px; } }
+
+.multi-impact {
+    position: absolute;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle, #fff 0%, transparent 75%);
+    opacity: 0;
+    animation: multiFlash 0.7s infinite alternate;
+}
+
+@keyframes multiFlash {
+    0%, 75% { opacity: 0; transform: scale(0.5); }
+    100% { opacity: 0.8; transform: scale(1.4); }
+}
+
+/* --- 📝 MULTI FOOTER --- */
+.multi-footer {
+    background: #c0392b !important; /* Solid Deep Red Fill */
+}
+
+.card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    color: #fff;
+    margin: 0;
+}
+
+.card-sub {
+    font-size: 9px;
+    color: #fab1a0;
+    font-weight: bold;
+    margin-top: 4px;
+}
+/* --- 🏆 TOURNAMENT CARD STYLE --- */
+.tournament-card {
+    position: relative;
+    width: 170px;
+    height: 210px;
+    background: linear-gradient(135deg, #f39c12, #e67e22); /* Royal Gold Gradient */
+    border-radius: 25px;
+    margin: 20px auto;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(230, 126, 34, 0.4);
+    transition: 0.3s ease;
+}
+
+/* --- 🟢 TOURNEY LIVE TAG --- */
+.tourney-live {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid #fff !important;
+    color: #fff !important;
+}
+
+/* --- 🏆 TROPHY ANIMATION ZONE --- */
+.clash-zone-tourney {
+    position: relative;
+    height: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.trophy-v {
+    font-size: 70px; /* Badi Trophy */
+    color: #fff;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+    z-index: 6;
+    animation: trophyBounce 1.5s infinite ease-in-out;
+}
+
+/* Sitaron ki Animation (Stars) */
+.star {
+    position: absolute;
+    color: #f1c40f;
+    font-size: 15px;
+    z-index: 5;
+}
+
+.s1 { top: 10px; left: 30px; animation: starFlicker 1s infinite; }
+.s2 { bottom: 20px; right: 30px; animation: starFlicker 1.2s infinite; }
+
+.winner-glow {
+    position: absolute;
+    width: 100px; height: 100px;
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+    opacity: 0.5;
+    animation: glowRotate 3s infinite linear;
+}
+
+/* --- TOURNAMENT ANIMATIONS --- */
+@keyframes trophyBounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.15); } /* Card ke upar se bahar niklegi */
+}
+
+@keyframes starFlicker {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.5); }
+}
+
+@keyframes glowRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* --- 📝 TOURNAMENT FOOTER --- */
+.tourney-footer {
+    background: #d35400 !important; /* Deep Burnt Orange Fill */
+}
+
+.card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    color: #fff;
+    margin: 0;
+}
+
+.card-sub {
+    font-size: 10px;
+    color: #f1c40f;
+    font-weight: bold;
+    margin-top: 4px;
+}
+/* Popup Overlay */
+.popup-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: none; /* Default hidden */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(8px);
+}
+
+/* Popup Box */
+.popup-content {
+    width: 85%;
+    max-width: 350px;
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    border: 2px solid var(--gold);
+    border-radius: 20px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(241, 196, 15, 0.3);
+    animation: popupScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popupScale {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.popup-header i {
+    font-size: 40px;
+    color: var(--gold);
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 10px rgba(241, 196, 15, 0.5));
+}
+
+.popup-header h3 {
+    margin: 0;
+    font-family: 'Orbitron';
+    letter-spacing: 2px;
+    color: white;
+}
+
+.popup-body p {
+    color: #ccc;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 20px 0;
+}
+
+/* Buttons */
+.popup-footer {
+    display: flex;
+    gap: 10px;
+}
+
+.skip-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #aaa;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.action-btn {
+    flex: 2;
+    background: var(--gold);
+    border: none;
+    color: #000;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 900;
+    font-family: 'Orbitron';
+    box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
+}
+/* Font import zaroori hai futuristic look ke liye */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap');
+
+.brand-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 42px; /* Aap size adjust kar sakte hain */
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-align: center;
+    background: #0f0c29; /* Dark background jo image mein hai */
+    padding: 20px;
+    border-radius: 15px;
+    display: inline-block;
+}
+
+/* LUDO part ka gradient aur glow */
+.ludo-text {
+    background: linear-gradient(to right, #0061ff, #60efff, #a1ffce);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(96, 239, 255, 0.5));
+}
+
+/* PRO part ka white glow effect */
+.pro-text {
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 
+                 0 0 30px rgba(255, 255, 255, 0.4);
+    margin-left: 10px;
+}
+    </style>
+</head>
+<body>
+    
+
+    <div class="header">
+        <div class="profile-sec" onclick="window.location.href='profile.html'">
+            <div id="u-photo" class="avatar"></div>
+            <div class="u-det">
+                <div class="u-name" id="u-name">Loading...</div>
+                <div class="u-id" id="u-id" onclick="copyUID(this, event)" style="cursor: pointer; font-size: 9px; display: flex; align-items: center; gap: 4px; margin-top: 3px; position: relative; z-index: 100;" title="Click to copy">
+    ID: <span id="full-uid-val">Loading...</span> 
+    <i class="far fa-copy" style="color: var(--gold); font-size: 10px;"></i>
+</div>
+            </div>
+        </div>
+        <div class="coin-pill" onclick="window.location.href='deposit.html'">
+            <i class="fas fa-wallet"></i> <span id="u-balance">...</span>
+        </div>
+    </div>
+
+    <div class="scroll-area">
+        <div class="app-branding">
+            <div class="brand-title">
+    <span class="ludo-text">LUDO</span> <span class="pro-text">.Website</span>
+</div>
+        </div>
+
+        <div class="banner-wrapper">
+    <div class="banner invite-banner" onclick="window.location.href='social.html'">
+        <div class="banner-info">
+            <h3>INVITE & EARN</h3>
+            <p>Get ₹50 for every friend!</p>
+            <div class="invite-btn">INVITE NOW <i class="fas fa-share-alt"></i></div>
+        </div>
+        
+        <div class="banner-icon-box">
+            <i class="fas fa-users-cog main-icon"></i>
+            <div class="coin-float c1"><i class="fas fa-coins"></i></div>
+            <div class="coin-float c2"><i class="fas fa-coins"></i></div>
+        </div>
+    </div>
+</div>
+
+        <div class="fin-bar">
+            <button class="fin-btn btn-dep" onclick="window.location.href='deposit.html'">
+                <i class="fas fa-wallet"></i> DEPOSIT
+            </button>
+            <button class="fin-btn btn-wit" onclick="window.location.href='withdraw.html'">
+                <i class="fas fa-university"></i> WITHDRAW
+            </button>
+        </div>
+
+        <div class="grid">
+    <div class="mini-battle-box" onclick="window.location.href='1vs1.html'">
+        <div class="status-badge"><span class="pulse-dot"></span> LIVE</div>
+        <div class="clash-zone">
+            <div class="token-v blue-v"><i class="fas fa-chess-pawn"></i></div>
+            <div class="token-v red-v"><i class="fas fa-chess-pawn"></i></div>
+            <div class="clash-impact"></div>
+        </div>
+        <div class="card-footer-solid">
+            <h3 class="card-title">2 Player</h3>
+            <p class="card-sub">Rendom</p>
+        </div>
+    </div>
+
+    <div class="mini-battle-box multiplayer-card" onclick="window.location.href='4vs4.html'">
+        <div class="status-badge multi-live"><span class="pulse-dot"></span>LIVE</div>
+        <div class="clash-zone-4p">
+            <div class="goti-4 p-blue"><i class="fas fa-chess-pawn"></i></div>
+            <div class="goti-4 p-red"><i class="fas fa-chess-pawn"></i></div>
+            <div class="goti-4 p-green"><i class="fas fa-chess-pawn"></i></div>
+            <div class="goti-4 p-yellow"><i class="fas fa-chess-pawn"></i></div>
+            <div class="multi-impact"></div>
+        </div>
+        <div class="card-footer-solid multi-footer">
+            <h3 class="card-title">4 PLAYER</h3>
+            <p class="card-sub">Multiplayer Fun</p>
+        </div>
+    </div>
+
+    <div class="mini-battle-box friend-live-card" onclick="window.location.href='friend_challenge.html'">
+        <div class="status-badge friend-live-tag"><span class="pulse-dot"></span> LIVE</div>
+        <div class="clash-zone">
+            <div class="heart h-left"><i class="fas fa-heart"></i></div>
+            <div class="heart h-right"><i class="fas fa-heart"></i></div>
+            <div class="heart-glow"></div>
+        </div>
+        <div class="card-footer-solid friend-footer">
+            <h3 class="card-title">Play With FRIENDS</h3>
+            <p class="card-sub">Private Room</p>
+        </div>
+    </div>
+
+    <div class="mini-battle-box tournament-card" onclick="window.location.href='4vs4.html'">
+        <div class="status-badge tourney-live">BIG PRIZES</div>
+        <div class="clash-zone-tourney">
+            <div class="trophy-v"><i class="fas fa-trophy"></i></div>
+            <div class="winner-glow"></div>
+        </div>
+        <div class="card-footer-solid tourney-footer">
+            <h3 class="card-title">EVENTS</h3>
+            <p class="card-sub">Join & Win</p>
+        </div>
+    </div>
+</div>
+
+    
+
+    <div class="navigation-dock">
+    <div class="nav-item" id="nav-social" onclick="window.location.href='social.html'">
+        <i class="fas fa-share-alt"></i>
+        <span class="nav-label">Share</span>
+    </div>
+    
+    <div class="nav-item" id="nav-rank" onclick="window.location.href='ranking.html'">
+        <i class="fas fa-chart-bar"></i>
+        <span class="nav-label">Rank</span>
+    </div>
+
+    <div class="center-fab-container">
+        <div class="center-fab" onclick="window.location.href='home.html'">
+            <div class="fab-icon">
+                <i class="fas fa-home"></i>
+            </div>
+        </div>
+        <span class="home-label">Home</span>
+    </div>
+
+    <div class="nav-item" id="nav-friends" onclick="window.location.href='friend_challenge.html'">
+        <i class="fas fa-user-friends"></i>
+        <span class="nav-label">Friends</span>
+    </div>
+    
+    <div class="nav-item" id="nav-profile" onclick="window.location.href='profile.html'">
+        <i class="fas fa-user"></i>
+        <span class="nav-label">Profile</span>
+    </div>
+</div>
+<div id="adminPopup" class="popup-overlay">
+    <div class="popup-content">
+        <div class="popup-header">
+            <i class="fas fa-bullhorn"></i>
+            <h3>ANNOUNCEMENT</h3>
+        </div>
+        <div class="popup-body">
+            <p id="popupMessage">Loading message...</p>
+        </div>
+        <div class="popup-footer">
+            <button class="skip-btn" onclick="closePopup()">SKIP</button>
+            <button class="action-btn" onclick="closePopup()">OKAY</button>
+        </div>
+    </div>
+</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+
+        // APP CONFIGURATION
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
+            authDomain: "ludo-d46ab.firebaseapp.com", 
+            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
+            projectId: "ludo-d46ab" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        let currentUser = null;
+
+        // 1. LOGIN CHECK
+        onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        console.log("Logged in:", user.uid);
+        
+        // 1. Name Set Karo
+        document.getElementById('u-name').innerText = user.displayName || "Elite Player";
+        
+        // 2. ✨ FULL UID Set Karo (Pura ID dikhega)
+        document.getElementById('full-uid-val').innerText = user.uid;
+
+        // 3. Photo Set Karo (Existing logic)
+        if(user.photoURL) {
+            document.getElementById('u-photo').style.backgroundImage = `url('${user.photoURL}')`;
+        }
+
+        // 4. Balance Listen Karo (Existing logic)
+        initRealtimeBalance(user);
+        
+    } else {
+        window.location.href = "login.html";
+    }
+});
+
+// --- 📋 INLINE COPY FUNCTION ---
+// Isay script tag ke end mein (onAuthStateChanged se bahar) paste karein
+window.copyUID = (el) => {
+    const id = document.getElementById('full-uid-val').innerText;
+    if (!id || id === "Loading...") return;
+
+    navigator.clipboard.writeText(id).then(() => {
+        const originalContent = el.innerHTML;
+        // Visual Feedback: Text change ho kar feedback dega
+        el.innerHTML = `<span style="color: #2ecc71; font-weight: bold; font-size: 10px;">ID COPIED!</span>`;
+        
+        // 1.5 second baad wapas original UI le aayega
+        setTimeout(() => { el.innerHTML = originalContent; }, 1500);
+    }).catch(err => {
+        console.error("Copy failed", err);
+    });
+};
+
+        // 2. REALTIME BALANCE (FIXED: Now using 'balance' instead of 'coins')
+        function initRealtimeBalance(user) {
+            const userRef = ref(db, 'users/' + user.uid);
+            
+            // onValue: Database mein kuch bhi change hoga to yahan foran chalega
+            onValue(userRef, (snapshot) => {
+                const data = snapshot.val();
+
+                if (data && data.balance !== undefined) {
+                    // Agar balance hai, to show karo
+                    updateCoinUI(data.balance);
+                } else {
+                    // ALERT: Agar coins nahi mile (New User), to 0 balance daal do
+                    console.log("Balance not found! Creating default balance...");
+                    update(userRef, {
+                        balance: 0,
+                        gamesPlayed: 0,
+                        gamesWon: 0,
+                        name: user.displayName || "Player",
+                        email: user.email
+                    });
+                }
+            });
+        }
+
+        function updateCoinUI(amount) {
+    const el = document.getElementById('u-balance');
+    const pill = document.querySelector('.coin-pill');
+    
+    // ✨ Math.floor point aur uske baad wale saare hindsay hata dega
+    // Example: 100.99 ko ye sirf 100 bana dega
+    const cleanAmount = Math.floor(amount || 0);
+    
+    // Sirf tab update karo jab value farq ho
+    if(el.innerText != cleanAmount) {
+        el.innerText = cleanAmount;
+
+        // Visual Feedback (Flash Effect)
+        pill.style.background = "rgba(46, 204, 113, 0.5)";
+        pill.style.borderColor = "#2ecc71";
+        pill.style.transform = "scale(1.1)";
+        setTimeout(() => {
+            pill.style.background = "rgba(0,0,0,0.6)";
+            pill.style.borderColor = "#f1c40f";
+            pill.style.transform = "scale(1)";
+        }, 400);
+    }
+}
+
+        // 3. GAME LOGIC
+        window.openEntryModal = () => document.getElementById('entry-modal').style.display = 'flex';
+        
+        window.closeModal = (e) => {
+            if(e.target.id === 'entry-modal') document.getElementById('entry-modal').style.display = 'none';
+        }
+
+        // --- NEW MATCHMAKING LOGIC FOR HOME PAGE ---
+        window.startGame = async (fee) => {
+            const currentBalance = parseInt(document.getElementById('u-balance').innerText);
+
+            // 1. Balance Check
+            if (currentBalance < fee) {
+                if(confirm("Low Balance! Go to Deposit?")) {
+                    window.location.href = "deposit.html";
+                }
+                return;
+            }
+
+            // Button ko 'Searching' state mein dalein
+            const btn = event.target.closest('.game-card'); 
+            if(btn) btn.style.opacity = "0.5";
+
+            // 2. EXISTING ROOM DHOONDO (Ye hai asli Jadoo 🪄)
+            try {
+                // Pehle check karo uss fee wale pool mein koi room hai?
+                const poolRef = ref(db, `matchmaking_pool/${fee}`);
+                const snapshot = await get(poolRef);
+                
+                let foundRoomId = null;
+
+                if (snapshot.exists()) {
+                    const rooms = snapshot.val();
+                    // Har room ko check karo
+                    for (const [roomId, roomData] of Object.entries(rooms)) {
+                        // Agar room mein players hain, aur 2 se kam hain (yani 1 banda wait kar raha hai)
+                        if (roomData.players && Object.keys(roomData.players).length < 2) {
+                            foundRoomId = roomId;
+                            break; // Room mil gaya! Loop roko.
+                        }
+                    }
+                }
+
+                // 3. DECISION TIME
+                if (foundRoomId) {
+                    // Agar room mila, to wahi join karo
+                    console.log("Joining existing room:", foundRoomId);
+                } else {
+                    // Agar koi room nahi mila, tab naya banao
+                    foundRoomId = 'room_' + Math.floor(Math.random() * 999999);
+                    console.log("Creating new room:", foundRoomId);
+                }
+
+                // 4. Game Page par bhejo
+                window.location.href = `game.html?entry=${fee}&gameId=${foundRoomId}`;
+
+            } catch (error) {
+                console.error("Matchmaking error:", error);
+                alert("Network Error! Try again.");
+                if(btn) btn.style.opacity = "1";
+            }
+        }
+        // --- 🚀 ADVANCED NAVIGATION LOGIC ---
+
+window.navigate = (page, index) => {
+    // Page redirect hone se pehle indicator ko move karein (Visual feel)
+    const indicator = document.getElementById('nav-indicator');
+    const itemWidth = document.querySelector('.bottom-nav').offsetWidth / 5;
+    const offset = (itemWidth * index) + (itemWidth / 2) - 22.5;
+    
+    indicator.style.left = `${offset}px`;
+    
+    // Thoda sa delay taake user animation dekh sake phir page change ho
+    setTimeout(() => {
+        window.location.href = page;
+    }, 1500); // 150ms delay
+};
+
+function initNavigation() {
+    const path = window.location.pathname;
+    const indicator = document.getElementById('nav-indicator');
+    
+    // Identify current page index
+    let index = 2; // Default Home (Center)
+    if (path.includes('social.html')) index = 0;
+    else if (path.includes('ranking.html')) index = 1;
+    else if (path.includes('home.html')) index = 2;
+    else if (path.includes('friend_challenge.html')) index = 3;
+    else if (path.includes('profile.html')) index = 4;
+
+    // Show and position indicator
+    indicator.style.display = 'block';
+    const navBar = document.querySelector('.bottom-nav');
+    if(navBar) {
+        const itemWidth = navBar.offsetWidth / 5;
+        const offset = (itemWidth * index) + (itemWidth / 2) - 22.5;
+        indicator.style.left = `${offset}px`;
+        
+        // Glow Active Class
+        const items = document.querySelectorAll('.nav-item');
+        if(items[index]) items[index].classList.add('active');
+    }
+}
+
+// Page load hote hi chalayein
+window.addEventListener('load', initNavigation);
+    </script>
+    <script type="module" src="globalManager.js"></script>
+    <script src="navigation.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

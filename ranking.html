@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta property="og:title" content="Ludo Pro - Play & Win">
+<meta property="og:image" content="https://ludo.website/icon1.png">
+<meta property="og:description" content="Click karke join karein aur jeetein!">
+    <title>Global Ranking</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #6c5ce7; --gold: #f1c40f; --neon: #00d2d3; --bg: #050510; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        body {
+            margin: 0; padding: 0; font-family: 'Poppins', sans-serif;
+            background: var(--bg); color: white; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+        .header { padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; background: #0f0f1e; border-bottom: 2px solid var(--primary); z-index: 10; }
+        .page-title { font-family: 'Orbitron'; font-size: 16px; font-weight: 800; color: var(--gold); letter-spacing: 1px; }
+        .container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 100px; background: linear-gradient(to bottom, #16162d, #050510); }
+
+        /* MY RANK CARD */
+        .my-rank-wrapper {
+            position: sticky; top: 0; z-index: 50; background: #16162d;
+            padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px;
+        }
+        .my-card {
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.4), rgba(241, 196, 15, 0.2));
+            padding: 15px; border-radius: 20px; border: 2px solid var(--gold);
+            display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* RANK LIST ITEM */
+        .rank-card {
+            background: rgba(255, 255, 255, 0.03); padding: 12px 15px; border-radius: 15px;
+            display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05); transition: 0.2s;
+        }
+        .rank-card.top-1 { border: 1px solid gold; background: linear-gradient(90deg, rgba(255,215,0,0.1), transparent); }
+        .rank-card.top-2 { border: 1px solid silver; }
+        .rank-card.top-3 { border: 1px solid #cd7f32; }
+
+        .rank-num { font-family: 'Orbitron'; font-size: 14px; width: 40px; color: #555; font-weight: 900; text-align: center; }
+        .top-1 .rank-num { color: gold; font-size: 20px; }
+        .top-2 .rank-num { color: silver; font-size: 18px; }
+        .top-3 .rank-num { color: #cd7f32; font-size: 18px; }
+
+        .avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #333; background-size: cover; background-position: center; background-color: #222; }
+        
+        .info { flex: 1; }
+        .name { font-size: 14px; font-weight: 600; color: #eee; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+        .tier { font-size: 10px; color: #777; text-transform: uppercase; letter-spacing: 1px; }
+        .score-box { background: rgba(241, 196, 15, 0.1); color: var(--gold); padding: 5px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; font-family: 'Orbitron'; }
+
+        /* --- FLOATING COMMAND DOCK --- */
+.navigation-dock {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%; /* Mobile par zyada jagah mile */
+    max-width: 450px;
+    height: 75px; /* Height thodi badhai taake text fit ho */
+    background: rgba(20, 20, 35, 0.95);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+    z-index: 1000;
+}
+
+/* Normal Nav Items (Icon + Text) */
+.nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* ✨ Icon upar, Text niche */
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #777; 
+    cursor: pointer;
+    transition: all 0.3s ease;
+    gap: 4px; /* Icon aur text ke beech gap */
+}
+
+.nav-item i {
+    font-size: 20px; /* Icon size thoda chota kiya */
+    margin-bottom: 2px;
+    transition: 0.3s;
+}
+
+.nav-label {
+    font-size: 10px; /* Text size */
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Active State (Glow & Color) */
+.nav-item.active {
+    color: #f1c40f; /* Gold Text */
+    transform: translateY(-2px);
+}
+
+.nav-item.active i {
+    text-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
+    transform: scale(1.1);
+}
+
+/* --- CENTER FLOATING BUTTON (FAB) --- */
+.center-fab-container {
+    position: relative;
+    width: 80px;
+    height: 100%; /* Full height container */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; /* Text bottom par */
+    margin-top: -35px; /* Button ko upar uthane ke liye */
+}
+
+.center-fab {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #f1c40f, #e67e22);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #1a1a2e;
+    font-size: 24px;
+    box-shadow: 0 0 0 8px rgba(20, 20, 35, 1); /* Cutout effect */
+    cursor: pointer;
+    transition: 0.3s;
+    z-index: 10;
+}
+
+/* Home Label (Button ke niche) */
+.home-label {
+    font-size: 10px;
+    color: #777;
+    margin-top: 5px; /* Button aur text ka gap */
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* Home Active State */
+.center-fab.active {
+    background: #fff;
+    color: #f1c40f;
+    box-shadow: 0 0 20px #fff;
+}
+/* Jab Home active ho to niche text bhi gold ho */
+.center-fab.active ~ .home-label {
+    color: #f1c40f;
+}
+
+.center-fab:active {
+    transform: scale(0.95);
+}
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fas fa-arrow-left" onclick="window.location.href='home.html'"></i>
+        <div class="page-title">TOP PLAYERS</div>
+        <i class="fas fa-crown" style="color:var(--gold)"></i>
+    </div>
+
+    <div class="container">
+        <div class="my-rank-wrapper">
+            <div id="my-card-container">
+                <div style="text-align:center; padding:10px; font-size:12px; opacity:0.5;">Syncing Profile Data...</div>
+            </div>
+        </div>
+
+        <div style="margin-top:5px; margin-bottom:10px; font-size:10px; color:#555; text-align:center; letter-spacing: 1px;">GLOBAL LEADERBOARD</div>
+        <div id="leaderboard-list">
+            <div style="text-align:center; padding:20px; color:#555;"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>
+        </div>
+    </div>
+
+    <div class="navigation-dock">
+    <div class="nav-item" id="nav-social" onclick="window.location.href='social.html'">
+        <i class="fas fa-share-alt"></i>
+        <span class="nav-label">Share</span>
+    </div>
+    
+    <div class="nav-item" id="nav-rank" onclick="window.location.href='ranking.html'">
+        <i class="fas fa-chart-bar"></i>
+        <span class="nav-label">Rank</span>
+    </div>
+
+    <div class="center-fab-container">
+        <div class="center-fab" onclick="window.location.href='home.html'">
+            <div class="fab-icon">
+                <i class="fas fa-home"></i>
+            </div>
+        </div>
+        <span class="home-label">Home</span>
+    </div>
+
+    <div class="nav-item" id="nav-friends" onclick="window.location.href='friend_challenge.html'">
+        <i class="fas fa-user-friends"></i>
+        <span class="nav-label">Friends</span>
+    </div>
+    
+    <div class="nav-item" id="nav-profile" onclick="window.location.href='profile.html'">
+        <i class="fas fa-user"></i>
+        <span class="nav-label">Profile</span>
+    </div>
+</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
+            authDomain: "ludo-d46ab.firebaseapp.com", 
+            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
+            projectId: "ludo-d46ab" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { 
+                forceSyncProfile(user); // STEP 1: Pehle data fix karo
+                loadLeaderboard(user);  // STEP 2: Phir list dikhao
+            }
+            else { window.location.href = "login.html"; }
+        });
+
+        // --- ⚡ MAGIC FUNCTION: FIX PROFILE & WINS ---
+        function forceSyncProfile(user) {
+            const userRef = ref(db, `users/${user.uid}`);
+            onValue(userRef, (snap) => {
+                if(snap.exists()) {
+                    const data = snap.val();
+                    
+                    // 1. Calculate Wins form History
+                    let calculatedWins = 0;
+                    if(data.gameHistory) {
+                        Object.values(data.gameHistory).forEach(g => {
+                            if(g.result === 'win') calculatedWins++;
+                        });
+                    }
+
+                    // 2. Get Real Google Photo (Login Data se)
+                    const realPhoto = user.photoURL || data.photoURL || null;
+                    const realName = user.displayName || data.username || "Player";
+
+                    // 3. Prepare Updates
+                    let updates = {};
+                    let needsUpdate = false;
+
+                    // Agar Database mein Wins galat hain
+                    if ((data.gamesWon || 0) !== calculatedWins) {
+                        updates.gamesWon = calculatedWins;
+                        needsUpdate = true;
+                    }
+
+                    // Agar Database mein Photo nahi hai ya purani hai
+                    if (realPhoto && data.photoURL !== realPhoto) {
+                        updates.photoURL = realPhoto;
+                        needsUpdate = true;
+                    }
+                    
+                    // Agar Name update chahiye
+                    if (data.username !== realName) {
+                        updates.username = realName;
+                        needsUpdate = true;
+                    }
+
+                    // 4. Update Database Instantly
+                    if (needsUpdate) {
+                        update(userRef, updates);
+                        console.log("Profile Synced!", updates);
+                    }
+                }
+            }, { onlyOnce: true });
+        }
+
+        // --- RENDER LIST ---
+        function loadLeaderboard(currentUser) {
+            const list = document.getElementById('leaderboard-list');
+            const myCard = document.getElementById('my-card-container');
+            const usersRef = ref(db, 'users');
+
+            onValue(usersRef, (snapshot) => {
+                if (!snapshot.exists()) return;
+
+                let allUsers = [];
+                snapshot.forEach(child => {
+                    const u = child.val();
+                    if (u.username || u.name) {
+                        allUsers.push({
+                            id: child.key,
+                            name: u.username || u.name || "Player",
+                            // Yahan hum Database wala photo uthayenge jo abhi sync hua hai
+                            photo: u.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${child.key}`,
+                            wins: u.gamesWon || 0
+                        });
+                    }
+                });
+
+                allUsers.sort((a, b) => b.wins - a.wins);
+
+                // Find My Rank
+                const myIndex = allUsers.findIndex(u => u.id === currentUser.uid);
+                const myRank = myIndex + 1;
+                // Agar list mein data update nahi hua to turant Login data use karo fallback ke liye
+                const myData = myIndex !== -1 ? allUsers[myIndex] : {
+                    name: currentUser.displayName,
+                    photo: currentUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.uid}`,
+                    wins: 0
+                };
+
+                // Render My Card
+                myCard.innerHTML = `
+                    <div class="my-card">
+                        <div class="rank-num" style="color:white; font-size:24px;">#${myRank > 0 ? myRank : '-'}</div>
+                        <div class="avatar" style="background-image: url('${myData.photo}')"></div>
+                        <div class="info">
+                            <span class="name">${myData.name} (You)</span>
+                            <span class="tier" style="color:var(--neon)">MY RANKING</span>
+                        </div>
+                        <div class="score-box" style="font-size:16px;">${myData.wins} Wins</div>
+                    </div>`;
+
+                // Render List
+                list.innerHTML = "";
+                allUsers.slice(0, 50).forEach((u, index) => {
+                    const rank = index + 1;
+                    let rankIcon = `#${rank}`;
+                    let specialClass = "";
+
+                    if (rank === 1) { rankIcon = "👑"; specialClass = "top-1"; }
+                    else if (rank === 2) { rankIcon = "🥈"; specialClass = "top-2"; }
+                    else if (rank === 3) { rankIcon = "🥉"; specialClass = "top-3"; }
+
+                    const html = `
+                        <div class="rank-card ${specialClass}" style="${u.id === currentUser.uid ? 'border:1px solid #00d2d3;' : ''}">
+                            <div class="rank-num">${rankIcon}</div>
+                            <div class="avatar" style="background-image: url('${u.photo}')"></div>
+                            <div class="info">
+                                <span class="name" style="${u.id === currentUser.uid ? 'color:#00d2d3' : ''}">
+                                    ${u.name}
+                                </span>
+                                <span class="tier">${getTier(u.wins)}</span>
+                            </div>
+                            <div class="score-box">${u.wins}</div>
+                        </div>`;
+                    list.innerHTML += html;
+                });
+            });
+        }
+
+        function getTier(wins) {
+            if (wins >= 100) return "Grandmaster";
+            if (wins >= 50) return "Master";
+            if (wins >= 20) return "Elite";
+            if (wins >= 5) return "Pro";
+            return "Rookie";
+        }
+        // --- 🚀 ADVANCED NAVIGATION LOGIC ---
+
+window.navigate = (page, index) => {
+    // Page redirect hone se pehle indicator ko move karein (Visual feel)
+    const indicator = document.getElementById('nav-indicator');
+    const itemWidth = document.querySelector('.bottom-nav').offsetWidth / 5;
+    const offset = (itemWidth * index) + (itemWidth / 2) - 22.5;
+    
+    indicator.style.left = `${offset}px`;
+    
+    // Thoda sa delay taake user animation dekh sake phir page change ho
+    setTimeout(() => {
+        window.location.href = page;
+    }, 1500); // 150ms delay
+};
+
+function initNavigation() {
+    const path = window.location.pathname;
+    const indicator = document.getElementById('nav-indicator');
+    
+    // Identify current page index
+    let index = 2; // Default Home (Center)
+    if (path.includes('social.html')) index = 0;
+    else if (path.includes('ranking.html')) index = 1;
+    else if (path.includes('home.html')) index = 2;
+    else if (path.includes('friend_challenge.html')) index = 3;
+    else if (path.includes('profile.html')) index = 4;
+
+    // Show and position indicator
+    indicator.style.display = 'block';
+    const navBar = document.querySelector('.bottom-nav');
+    if(navBar) {
+        const itemWidth = navBar.offsetWidth / 5;
+        const offset = (itemWidth * index) + (itemWidth / 2) - 22.5;
+        indicator.style.left = `${offset}px`;
+        
+        // Glow Active Class
+        const items = document.querySelectorAll('.nav-item');
+        if(items[index]) items[index].classList.add('active');
+    }
+}
+
+// Page load hote hi chalayein
+window.addEventListener('load', initNavigation);
+    </script>
+    <script type="module" src="globalManager.js"></script>
+    <script src="navigation.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

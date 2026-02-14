@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Global Verification</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7; --gold: #f1c40f; --bg: #0f0c29;
+            --glass: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            margin: 0; font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at top, #1e1e3f, #000000);
+            color: white; min-height: 100vh;
+        }
+        .header {
+            padding: 20px; display: flex; align-items: center; gap: 15px;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: white; }
+        .title { font-family: 'Orbitron'; font-size: 16px; color: var(--gold); letter-spacing: 1px; }
+
+        .container { padding: 20px; max-width: 500px; margin: 0 auto; }
+        
+        .info-card {
+            background: rgba(108, 92, 231, 0.15); padding: 15px;
+            border-radius: 12px; border: 1px solid var(--primary);
+            font-size: 12px; margin-bottom: 25px; line-height: 1.6;
+            display: flex; gap: 10px; align-items: start;
+        }
+
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; font-size: 12px; margin-bottom: 6px; color: #ccc; font-weight: 600; }
+        
+        .input-box {
+            width: 100%; padding: 14px; background: var(--glass);
+            border: 1px solid var(--border); border-radius: 10px;
+            color: white; outline: none; transition: 0.3s; font-family: 'Poppins';
+        }
+        .input-box:focus { border-color: var(--gold); background: rgba(255,255,255,0.1); }
+        .input-box:read-only { cursor: pointer; background: rgba(255,255,255,0.08); }
+
+        /* --- PHONE & COUNTRY --- */
+        .phone-wrapper { display: flex; gap: 10px; }
+        .country-trigger {
+            width: 110px; padding: 14px; background: var(--glass);
+            border: 1px solid var(--border); border-radius: 10px;
+            color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+            font-size: 14px;
+        }
+
+        /* --- MODAL --- */
+        .custom-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999;
+            display: none; flex-direction: column; animation: slideUp 0.3s ease-out;
+        }
+        .cm-header {
+            padding: 20px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 15px; background: #1a1a2e;
+        }
+        .cm-search {
+            flex: 1; padding: 12px; border-radius: 8px; border: none;
+            background: rgba(255,255,255,0.1); color: white; outline: none;
+        }
+        .cm-list { flex: 1; overflow-y: auto; padding: 15px; }
+        
+        .country-item, .doc-item {
+            display: flex; align-items: center; gap: 15px; padding: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer;
+        }
+        .country-item:active, .doc-item:active { background: rgba(255,255,255,0.1); }
+        .c-flag, .doc-icon { font-size: 24px; color: var(--gold); }
+        .c-name h4, .doc-info h4 { margin: 0; font-size: 16px; color: white; font-weight: 500; }
+        .c-name p, .doc-info p { margin: 0; font-size: 12px; color: #aaa; }
+        .c-code { color: var(--gold); font-weight: bold; }
+
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .submit-btn {
+            width: 100%; padding: 16px; background: linear-gradient(135deg, #f1c40f, #e67e22);
+            border: none; border-radius: 12px; color: black; font-weight: 800;
+            font-size: 16px; margin-top: 20px; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3);
+        }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+        #status-badge {
+            display: none; text-align: center; padding: 10px; margin-bottom: 20px;
+            border-radius: 8px; font-weight: bold; font-size: 14px;
+        }
+        .st-verified { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+        .st-pending { background: rgba(255, 165, 2, 0.2); color: orange; border: 1px solid orange; }
+    </style>
+</head>
+<body>
+
+    <div id="country-modal" class="custom-modal">
+        <div class="cm-header">
+            <i class="fas fa-arrow-left" onclick="toggleModal('country-modal', false)" style="font-size: 20px; cursor: pointer;"></i>
+            <input type="text" class="cm-search" id="country-search" placeholder="Search Country..." onkeyup="filterCountries()">
+        </div>
+        <div class="cm-list" id="country-list"></div>
+    </div>
+
+    <div id="doc-modal" class="custom-modal">
+        <div class="cm-header">
+            <i class="fas fa-arrow-left" onclick="toggleModal('doc-modal', false)" style="font-size: 20px; cursor: pointer;"></i>
+            <span style="color:var(--gold); font-weight:bold;">SELECT ID TYPE</span>
+        </div>
+        <div class="cm-list">
+            <div class="doc-item" onclick="selectDoc('National ID Card')">
+                <i class="fas fa-id-card doc-icon"></i>
+                <div class="doc-info"><h4>National ID Card</h4><p>Government Issued ID</p></div>
+            </div>
+            <div class="doc-item" onclick="selectDoc('Passport')">
+                <i class="fas fa-passport doc-icon"></i>
+                <div class="doc-info"><h4>Passport</h4><p>International Travel ID</p></div>
+            </div>
+            <div class="doc-item" onclick="selectDoc('Driving License')">
+                <i class="fas fa-car doc-icon"></i>
+                <div class="doc-info"><h4>Driving License</h4><p>Vehicle Permit</p></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header">
+        <i class="fas fa-arrow-left back-btn" onclick="window.history.back()"></i>
+        <div class="title">INSTANT VERIFICATION</div>
+    </div>
+
+    <div class="container">
+        <div id="status-badge"></div>
+        <div class="container">
+    <div id="status-badge"></div>
+    
+    <button id="edit-btn" onclick="enableEditing()" style="display:none; width:100%; padding:10px; background:rgba(255,255,255,0.1); border:1px solid var(--gold); border-radius:8px; color:var(--gold); margin-bottom:15px; font-weight:bold; cursor:pointer;">
+        <i class="fas fa-edit"></i> EDIT INFORMATION
+    </button>
+
+    <div class="info-card">
+        </div>
+    
+    </div>
+
+        <div class="info-card">
+            <i class="fas fa-shield-alt" style="font-size: 20px; margin-top: 2px;"></i> 
+            <div>
+                <b>"Secure Identity Verification"</b><br>
+                "Your details are being encrypted and verified through our secure gateway for instant account activation."
+            </div>
+        </div>
+
+        <div id="kyc-form">
+            <div class="input-group">
+                <label>Country & Phone</label>
+                <div class="phone-wrapper">
+                    <div class="country-trigger" onclick="toggleModal('country-modal', true)">
+                        <span id="selected-flag">🌍</span>
+                        <span id="selected-code">Code</span>
+                    </div>
+                    <input type="number" id="phone-number" class="input-box" placeholder="Mobile Number">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Country</label>
+                <input type="text" id="country" class="input-box" placeholder="Auto-selected" readonly>
+            </div>
+
+            <div class="input-group">
+                <label>Legal Full Name</label>
+                <input type="text" id="full-name" class="input-box" placeholder="e.g. John Doe">
+            </div>
+
+            <div class="input-group">
+                <label>Date of Birth (18+)</label>
+                <input type="date" id="dob" class="input-box" style="color-scheme: dark;">
+            </div>
+
+            <div class="input-group">
+                <label>Document Type</label>
+                <input type="text" id="doc-type" class="input-box" placeholder="Select Type" readonly onclick="toggleModal('doc-modal', true)">
+            </div>
+
+            <div class="input-group">
+                <label>ID Number</label>
+                <input type="text" id="doc-number" class="input-box" placeholder="Enter ID Number">
+            </div>
+
+            <button class="submit-btn" id="submit-btn">VERIFY NOW</button>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getDatabase, ref, update, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
+        authDomain: "ludo-d46ab.firebaseapp.com", 
+        databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
+        projectId: "ludo-d46ab" 
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+    let currentUser = null;
+
+    // --- COUNTRIES DATA (Shortened for example, add more if needed) ---
+    // --- FULL WORLD COUNTRY LIST (190+) ---
+
+    const allCountries = [
+
+        {n:"Afghanistan",c:"+93",f:"🇦🇫"},{n:"Albania",c:"+355",f:"🇦🇱"},{n:"Algeria",c:"+213",f:"🇩🇿"},{n:"Argentina",c:"+54",f:"🇦🇷"},
+
+        {n:"Australia",c:"+61",f:"🇦🇺"},{n:"Austria",c:"+43",f:"🇦🇹"},{n:"Azerbaijan",c:"+994",f:"🇦🇿"},{n:"Bahrain",c:"+973",f:"🇧🇭"},
+
+        {n:"Bangladesh",c:"+880",f:"🇧🇩"},{n:"Belarus",c:"+375",f:"🇧🇾"},{n:"Belgium",c:"+32",f:"🇧🇪"},{n:"Bhutan",c:"+975",f:"🇧🇹"},
+
+        {n:"Bolivia",c:"+591",f:"🇧🇴"},{n:"Brazil",c:"+55",f:"🇧🇷"},{n:"Bulgaria",c:"+359",f:"🇧🇬"},{n:"Cambodia",c:"+855",f:"🇰🇭"},
+
+        {n:"Cameroon",c:"+237",f:"🇨🇲"},{n:"Canada",c:"+1",f:"🇨🇦"},{n:"Chile",c:"+56",f:"🇨🇱"},{n:"China",c:"+86",f:"🇨🇳"},
+
+        {n:"Colombia",c:"+57",f:"🇨🇴"},{n:"Costa Rica",c:"+506",f:"🇨🇷"},{n:"Croatia",c:"+385",f:"🇭🇷"},{n:"Cuba",c:"+53",f:"🇨🇺"},
+
+        {n:"Cyprus",c:"+357",f:"🇨🇾"},{n:"Czech Republic",c:"+420",f:"🇨🇿"},{n:"Denmark",c:"+45",f:"🇩🇰"},{n:"Dominican Republic",c:"+1",f:"🇩🇴"},
+
+        {n:"Ecuador",c:"+593",f:"🇪🇨"},{n:"Egypt",c:"+20",f:"🇪🇬"},{n:"El Salvador",c:"+503",f:"🇸🇻"},{n:"Estonia",c:"+372",f:"🇪🇪"},
+
+        {n:"Ethiopia",c:"+251",f:"🇪🇹"},{n:"Fiji",c:"+679",f:"🇫🇯"},{n:"Finland",c:"+358",f:"🇫🇮"},{n:"France",c:"+33",f:"🇫🇷"},
+
+        {n:"Georgia",c:"+995",f:"🇬🇪"},{n:"Germany",c:"+49",f:"🇩🇪"},{n:"Ghana",c:"+233",f:"🇬🇭"},{n:"Greece",c:"+30",f:"🇬🇷"},
+
+        {n:"Guatemala",c:"+502",f:"🇬🇹"},{n:"Hong Kong",c:"+852",f:"🇭🇰"},{n:"Hungary",c:"+36",f:"🇭🇺"},{n:"Iceland",c:"+354",f:"🇮🇸"},
+
+        {n:"India",c:"+91",f:"🇮🇳"},{n:"Indonesia",c:"+62",f:"🇮🇩"},{n:"Iran",c:"+98",f:"🇮🇷"},{n:"Iraq",c:"+964",f:"🇮🇶"},
+
+        {n:"Ireland",c:"+353",f:"🇮🇪"},{n:"Israel",c:"+972",f:"🇮🇱"},{n:"Italy",c:"+39",f:"🇮🇹"},{n:"Jamaica",c:"+1",f:"🇯🇲"},
+
+        {n:"Japan",c:"+81",f:"🇯🇵"},{n:"Jordan",c:"+962",f:"🇯🇴"},{n:"Kazakhstan",c:"+7",f:"🇰🇿"},{n:"Kenya",c:"+254",f:"🇰🇪"},
+
+        {n:"Kuwait",c:"+965",f:"🇰🇼"},{n:"Kyrgyzstan",c:"+996",f:"🇰🇬"},{n:"Laos",c:"+856",f:"🇱🇦"},{n:"Latvia",c:"+371",f:"🇱🇻"},
+
+        {n:"Lebanon",c:"+961",f:"🇱🇧"},{n:"Libya",c:"+218",f:"🇱🇾"},{n:"Liechtenstein",c:"+423",f:"🇱🇮"},{n:"Lithuania",c:"+370",f:"🇱🇹"},
+
+        {n:"Luxembourg",c:"+352",f:"🇱🇺"},{n:"Malaysia",c:"+60",f:"🇲🇾"},{n:"Maldives",c:"+960",f:"🇲🇻"},{n:"Malta",c:"+356",f:"🇲🇹"},
+
+        {n:"Mexico",c:"+52",f:"🇲🇽"},{n:"Moldova",c:"+373",f:"🇲🇩"},{n:"Monaco",c:"+377",f:"🇲🇨"},{n:"Mongolia",c:"+976",f:"🇲🇳"},
+
+        {n:"Montenegro",c:"+382",f:"🇲🇪"},{n:"Morocco",c:"+212",f:"🇲🇦"},{n:"Myanmar",c:"+95",f:"🇲🇲"},{n:"Nepal",c:"+977",f:"🇳🇵"},
+
+        {n:"Netherlands",c:"+31",f:"🇳🇱"},{n:"New Zealand",c:"+64",f:"🇳🇿"},{n:"Nigeria",c:"+234",f:"🇳🇬"},{n:"North Korea",c:"+850",f:"🇰🇵"},
+
+        {n:"Norway",c:"+47",f:"🇳🇴"},{n:"Oman",c:"+968",f:"🇴🇲"},{n:"Pakistan",c:"+92",f:"🇵🇰"},{n:"Panama",c:"+507",f:"🇵🇦"},
+
+        {n:"Paraguay",c:"+595",f:"🇵🇾"},{n:"Peru",c:"+51",f:"🇵🇪"},{n:"Philippines",c:"+63",f:"🇵🇭"},{n:"Poland",c:"+48",f:"🇵🇱"},
+
+        {n:"Portugal",c:"+351",f:"🇵🇹"},{n:"Qatar",c:"+974",f:"🇶🇦"},{n:"Romania",c:"+40",f:"🇷🇴"},{n:"Russia",c:"+7",f:"🇷🇺"},
+
+        {n:"Saudi Arabia",c:"+966",f:"🇸🇦"},{n:"Serbia",c:"+381",f:"🇷🇸"},{n:"Singapore",c:"+65",f:"🇸🇬"},{n:"Slovakia",c:"+421",f:"🇸🇰"},
+
+        {n:"Slovenia",c:"+386",f:"🇸🇮"},{n:"South Africa",c:"+27",f:"🇿🇦"},{n:"South Korea",c:"+82",f:"🇰🇷"},{n:"Spain",c:"+34",f:"🇪🇸"},
+
+        {n:"Sri Lanka",c:"+94",f:"🇱🇰"},{n:"Sweden",c:"+46",f:"🇸🇪"},{n:"Switzerland",c:"+41",f:"🇨🇭"},{n:"Syria",c:"+963",f:"🇸🇾"},
+
+        {n:"Taiwan",c:"+886",f:"🇹🇼"},{n:"Tajikistan",c:"+992",f:"🇹🇯"},{n:"Thailand",c:"+66",f:"🇹🇭"},{n:"Tunisia",c:"+216",f:"🇹🇳"},
+
+        {n:"Turkey",c:"+90",f:"🇹🇷"},{n:"Turkmenistan",c:"+993",f:"🇹🇲"},{n:"Uganda",c:"+256",f:"🇺🇬"},{n:"Ukraine",c:"+380",f:"🇺🇦"},
+
+        {n:"UAE",c:"+971",f:"🇦🇪"},{n:"United Kingdom",c:"+44",f:"🇬🇧"},{n:"USA",c:"+1",f:"🇺🇸"},{n:"Uruguay",c:"+598",f:"🇺🇾"},
+
+        {n:"Uzbekistan",c:"+998",f:"🇺🇿"},{n:"Venezuela",c:"+58",f:"🇻🇪"},{n:"Vietnam",c:"+84",f:"🇻🇳"},{n:"Yemen",c:"+967",f:"🇾🇪"},
+
+        {n:"Zambia",c:"+260",f:"🇿🇲"},{n:"Zimbabwe",c:"+263",f:"🇿🇼"}
+
+    ];
+
+
+
+    // --- UI HELPERS ---
+    window.toggleModal = (id, show) => {
+        document.getElementById(id).style.display = show ? 'flex' : 'none';
+        if(id === 'country-modal' && show) renderCountries(allCountries);
+    };
+
+    window.selectCountry = (index) => {
+        const c = allCountries[index];
+        document.getElementById('selected-flag').innerText = c.f;
+        document.getElementById('selected-code').innerText = c.c;
+        document.getElementById('country').value = c.n;
+        toggleModal('country-modal', false);
+    };
+
+    window.selectDoc = (type) => {
+        document.getElementById('doc-type').value = type;
+        toggleModal('doc-modal', false);
+    };
+
+    window.filterCountries = () => {
+        const query = document.getElementById('country-search').value.toLowerCase();
+        const filtered = allCountries.filter(c => c.n.toLowerCase().includes(query));
+        renderCountries(filtered);
+    };
+
+    function renderCountries(list) {
+        const container = document.getElementById('country-list');
+        container.innerHTML = "";
+        list.forEach((c) => {
+            const originalIndex = allCountries.findIndex(item => item.n === c.n);
+            container.innerHTML += `
+                <div class="country-item" onclick="selectCountry(${originalIndex})">
+                    <div class="c-flag">${c.f}</div>
+                    <div class="c-name"><h4>${c.n}</h4></div>
+                    <div class="c-code">${c.c}</div>
+                </div>`;
+        });
+    }
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            checkStatus(user.uid);
+            document.getElementById('submit-btn').onclick = submitAutoVerify;
+        } else {
+            window.location.href = "index.html";
+        }
+    });
+
+    // --- 📝 EDIT & DISABLE LOGIC ---
+
+// 1. checkStatus function ko update karein
+async function checkStatus(uid) {
+    const snap = await get(ref(db, `users/${uid}/kyc`));
+    if (snap.exists()) {
+        const data = snap.val();
+        const badge = document.getElementById('status-badge');
+        const editBtn = document.getElementById('edit-btn'); // Edit button pakrein
+        
+        badge.style.display = 'block';
+        
+        if(data.status === 'verified') {
+            badge.className = 'st-verified';
+            badge.innerHTML = '<i class="fas fa-check-circle"></i> VERIFIED INSTANTLY';
+            editBtn.style.display = 'block'; // ✨ Verified user ko Edit button dikhao
+            disableForm(data);
+        } else {
+            badge.className = 'st-pending';
+            badge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> VERIFICATION FAILED';
+            editBtn.style.display = 'block'; // Re-submit ke liye bhi edit allow karein
+        }
+    }
+}
+
+// 2. Form ko dobara kholne (Edit) ka function
+window.enableEditing = () => {
+    if(confirm("Are you sure you want to edit your verified details? You will need to re-verify.")) {
+        // Form khol do
+        document.querySelectorAll('.input-box').forEach(el => {
+            if(el.id !== 'country' && el.id !== 'doc-type') { // Readonly fields ko chhor kar
+                el.disabled = false;
+            }
+        });
+        
+        // Buttons switch karein
+        document.getElementById('submit-btn').style.display = 'block';
+        document.getElementById('submit-btn').innerText = "RE-VERIFY NOW";
+        document.getElementById('edit-btn').style.display = 'none';
+        document.querySelector('.country-trigger').style.pointerEvents = 'auto';
+        
+        // Badge hata dein taake fresh feel aaye
+        document.getElementById('status-badge').style.display = 'none';
+    }
+};
+
+// 3. disableForm function (Wahi purana magar confirm karein)
+function disableForm(data) {
+    document.getElementById('submit-btn').style.display = 'none';
+    document.querySelectorAll('.input-box').forEach(el => el.disabled = true);
+    document.querySelector('.country-trigger').style.pointerEvents = 'none';
+    
+    // Fill Data
+    document.getElementById('full-name').value = data.fullName;
+    document.getElementById('phone-number').value = data.phone;
+    document.getElementById('selected-code').innerText = data.phoneCode || "+";
+    document.getElementById('dob').value = data.dob;
+    document.getElementById('country').value = data.country;
+    document.getElementById('doc-type').value = data.docType;
+    document.getElementById('doc-number').value = data.docNumber;
+}
+
+    // --- 🤖 AUTO VERIFY LOGIC ---
+    async function submitAutoVerify() {
+        const name = document.getElementById('full-name').value.trim();
+        const dob = document.getElementById('dob').value;
+        const country = document.getElementById('country').value.trim();
+        const docType = document.getElementById('doc-type').value;
+        const docNum = document.getElementById('doc-number').value.trim().toUpperCase();
+        const phone = document.getElementById('phone-number').value.trim();
+        const phoneCode = document.getElementById('selected-code').innerText;
+
+        // 1. Empty Check
+        if(!name || !dob || !country || !docNum || !phone || !docType || phoneCode === 'Code') 
+            return alert("Please fill all fields!");
+
+        // 2. Age Check
+        const birthDate = new Date(dob);
+        const age = new Date().getFullYear() - birthDate.getFullYear();
+        if(age < 18) return alert("Security Alert: Minimum age is 18.");
+
+        const btn = document.getElementById('submit-btn');
+        btn.innerText = "Analyzing Data...";
+        btn.disabled = true;
+
+        try {
+            // 3. DUPLICATE CHECK (Global Scan)
+            const usersRef = ref(db, 'users');
+            const snapshot = await get(usersRef);
+            let isDuplicate = false;
+
+            if (snapshot.exists()) {
+                const allUsers = snapshot.val();
+                for (let userId in allUsers) {
+                    if (userId !== currentUser.uid && allUsers[userId].kyc && allUsers[userId].kyc.docNumber === docNum) {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+            }
+
+            if (isDuplicate) {
+                alert("FRAUD DETECTED: This ID number is already in use!");
+                btn.innerText = "VERIFY NOW";
+                btn.disabled = false;
+                return;
+            }
+
+            // 4. FORMAT CHECK (Basic Logic)
+            // Passport > 6 chars, ID > 8 chars etc.
+            if (docNum.length < 5) {
+                alert("Invalid ID Format: Number is too short.");
+                btn.innerText = "VERIFY NOW";
+                btn.disabled = false;
+                return;
+            }
+
+            // 5. IF ALL PASS -> AUTO VERIFY
+            // Hum status ko seedha 'verified' set kar rahe hain
+            const kycData = {
+                fullName: name,
+                dob: dob,
+                country: country,
+                phoneCode: phoneCode,
+                phone: phone,
+                docType: docType,
+                docNumber: docNum,
+                status: "verified", // <--- AUTO APPROVE HERE
+                verifiedAt: Date.now()
+            };
+
+            // Fake Delay to look like server processing (2 seconds)
+            setTimeout(async () => {
+                await update(ref(db, `users/${currentUser.uid}/kyc`), kycData);
+                alert("SUCCESS: Your identity has been verified automatically!");
+                location.reload();
+            }, 2000);
+
+        } catch (e) {
+            console.error(e);
+            alert("Connection Error. Try again.");
+            btn.disabled = false;
+            btn.innerText = "VERIFY NOW";
+        }
+    }
+</script>
+<script type="module" src="globalManager.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

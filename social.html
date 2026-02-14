@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta property="og:title" content="Ludo Pro - Play & Win">
+<meta property="og:image" content="https://ludo.website/icon1.png">
+<meta property="og:description" content="Click karke join karein aur jeetein!">
+    <title>Share & Earn - Ludo Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c5ce7; --gold: #f1c40f; --neon: #00d2d3;
+            --bg-dark: #0f0c29; --card-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        body {
+            margin: 0; padding: 0; font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            height: 100vh; color: white; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            padding: 15px 20px; display: flex; align-items: center; gap: 15px;
+            background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: white; }
+        .page-title { font-family: 'Orbitron'; font-size: 16px; font-weight: 700; color: var(--gold); }
+
+        .container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 100px; text-align: center; }
+
+        /* REWARD BANNER */
+        .reward-banner {
+            background: linear-gradient(135deg, rgba(241, 196, 15, 0.2), rgba(108, 92, 231, 0.2));
+            padding: 20px; border-radius: 20px; border: 1px solid var(--gold);
+            margin-bottom: 25px; position: relative;
+        }
+        .reward-banner i { font-size: 40px; color: var(--gold); margin-bottom: 10px; }
+        .reward-banner h2 { margin: 5px 0; font-size: 24px; color: #fff; }
+        .reward-amount { font-size: 32px; font-weight: 800; color: var(--gold); font-family: 'Orbitron'; }
+
+        /* REFERRAL BOX */
+        .refer-card {
+            background: var(--card-bg); border-radius: 20px; padding: 25px;
+            border: 1px solid var(--glass-border); backdrop-filter: blur(10px);
+        }
+        .link-label { font-size: 11px; color: var(--neon); letter-spacing: 1px; font-weight: 600; }
+        .link-box {
+            background: rgba(0,0,0,0.4); padding: 12px; border-radius: 12px;
+            border: 1px dashed var(--neon); margin: 15px 0;
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        }
+        #refer-url { font-size: 12px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; text-align: left; opacity: 0.8; }
+        .copy-btn { background: var(--neon); color: black; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer; }
+
+        /* STEPS */
+        .steps-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 25px; }
+        .step-box { background: rgba(255,255,255,0.03); padding: 15px 5px; border-radius: 15px; border: 1px solid var(--glass-border); }
+        .step-box i { font-size: 20px; color: var(--gold); margin-bottom: 8px; }
+        .step-box p { font-size: 9px; margin: 0; line-height: 1.3; opacity: 0.8; }
+
+        /* SHARE BUTTONS */
+        .share-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
+        .share-btn {
+            padding: 15px; border: none; border-radius: 15px; color: white;
+            font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .btn-whatsapp { background: #25D366; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3); }
+        .btn-facebook { background: #1877F2; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3); }
+        .btn-main { background: var(--primary); grid-column: span 2; margin-top: 5px; }
+
+       .bottom-nav {
+    position: fixed; bottom: 20px; left: 20px; right: 20px; height: 70px;
+    background: rgba(25, 25, 45, 0.95); backdrop-filter: blur(20px);
+    border-radius: 35px; display: flex; justify-content: space-around;
+    align-items: center; z-index: 1000; border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* --- FLOATING COMMAND DOCK --- */
+.navigation-dock {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%; /* Mobile par zyada jagah mile */
+    max-width: 450px;
+    height: 75px; /* Height thodi badhai taake text fit ho */
+    background: rgba(20, 20, 35, 0.95);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+    z-index: 1000;
+}
+
+/* Normal Nav Items (Icon + Text) */
+.nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* ✨ Icon upar, Text niche */
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: #777; 
+    cursor: pointer;
+    transition: all 0.3s ease;
+    gap: 4px; /* Icon aur text ke beech gap */
+}
+
+.nav-item i {
+    font-size: 20px; /* Icon size thoda chota kiya */
+    margin-bottom: 2px;
+    transition: 0.3s;
+}
+
+.nav-label {
+    font-size: 10px; /* Text size */
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Active State (Glow & Color) */
+.nav-item.active {
+    color: #f1c40f; /* Gold Text */
+    transform: translateY(-2px);
+}
+
+.nav-item.active i {
+    text-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
+    transform: scale(1.1);
+}
+
+/* --- CENTER FLOATING BUTTON (FAB) --- */
+.center-fab-container {
+    position: relative;
+    width: 80px;
+    height: 100%; /* Full height container */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; /* Text bottom par */
+    margin-top: -35px; /* Button ko upar uthane ke liye */
+}
+
+.center-fab {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #f1c40f, #e67e22);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #1a1a2e;
+    font-size: 24px;
+    box-shadow: 0 0 0 8px rgba(20, 20, 35, 1); /* Cutout effect */
+    cursor: pointer;
+    transition: 0.3s;
+    z-index: 10;
+}
+
+/* Home Label (Button ke niche) */
+.home-label {
+    font-size: 10px;
+    color: #777;
+    margin-top: 5px; /* Button aur text ka gap */
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* Home Active State */
+.center-fab.active {
+    background: #fff;
+    color: #f1c40f;
+    box-shadow: 0 0 20px #fff;
+}
+/* Jab Home active ho to niche text bhi gold ho */
+.center-fab.active ~ .home-label {
+    color: #f1c40f;
+}
+
+.center-fab:active {
+    transform: scale(0.95);
+}
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fas fa-arrow-left back-btn" onclick="window.location.href='home.html'"></i>
+        <div class="page-title">REFER & EARN</div>
+    </div>
+
+    <div class="container">
+        <div class="reward-banner">
+            <i class="fas fa-hand-holding-usd"></i>
+            <h2>Get Instant Reward</h2>
+            <div class="reward-amount">Rs. 50.00</div>
+            <p style="font-size: 11px; margin-top: 10px; opacity: 0.9;">For every successful referral deposit!</p>
+        </div>
+
+        <div class="refer-card">
+            <span class="link-label">YOUR PERSONAL INVITE LINK</span>
+            <div class="link-box">
+                <span id="refer-url">Loading link...</span>
+                <button class="copy-btn" onclick="copyLink()">COPY</button>
+            </div>
+
+            <div class="steps-container">
+                <div class="step-box">
+                    <i class="fas fa-share-nodes"></i>
+                    <p><b>STEP 1</b><br>Share Link</p>
+                </div>
+                <div class="step-box">
+                    <i class="fas fa-user-check"></i>
+                    <p><b>STEP 2</b><br>Friend Joins</p>
+                </div>
+                <div class="step-box">
+                    <i class="fas fa-wallet"></i>
+                    <p><b>STEP 3</b><br>Get Rs. 50</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="share-actions">
+            <button class="share-btn btn-whatsapp" onclick="shareWA()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+            <button class="share-btn btn-facebook" onclick="shareFB()"><i class="fab fa-facebook-f"></i> Facebook</button>
+            <button class="share-btn btn-main" onclick="nativeShare()"><i class="fas fa-share-nodes"></i> Share More Options</button>
+        </div>
+
+        <div style="margin-top: 25px; font-size: 10px; opacity: 0.5; line-height: 1.5;">
+            *Reward will be credited automatically once your referred friend completes their first deposit successfully.
+        </div>
+    </div>
+
+    <div class="navigation-dock">
+    <div class="nav-item" id="nav-social" onclick="window.location.href='social.html'">
+        <i class="fas fa-share-alt"></i>
+        <span class="nav-label">Share</span>
+    </div>
+    
+    <div class="nav-item" id="nav-rank" onclick="window.location.href='ranking.html'">
+        <i class="fas fa-chart-bar"></i>
+        <span class="nav-label">Rank</span>
+    </div>
+
+    <div class="center-fab-container">
+        <div class="center-fab" onclick="window.location.href='home.html'">
+            <div class="fab-icon">
+                <i class="fas fa-home"></i>
+            </div>
+        </div>
+        <span class="home-label">Home</span>
+    </div>
+
+    <div class="nav-item" id="nav-friends" onclick="window.location.href='friend_challenge.html'">
+        <i class="fas fa-user-friends"></i>
+        <span class="nav-label">Friends</span>
+    </div>
+    
+    <div class="nav-item" id="nav-profile" onclick="window.location.href='profile.html'">
+        <i class="fas fa-user"></i>
+        <span class="nav-label">Profile</span>
+    </div>
+</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        // Firebase Config (Must match your app)
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
+            authDomain: "ludo-d46ab.firebaseapp.com", 
+            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
+            projectId: "ludo-d46ab" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let myReferralLink = "";
+        const shareText = "Ludo Pro khelein aur Real Cash jeetein! 🎲 Mere link se join karein aur games shuru karein: ";
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Generate link with UID as referral parameter
+                myReferralLink = window.location.origin + "/login.html?ref=" + user.uid;
+                document.getElementById('refer-url').innerText = myReferralLink;
+
+                // Support Notification Listener
+                onValue(ref(db, 'support_tickets'), (snap) => {
+                    let showDot = false;
+                    if(snap.exists()){
+                        Object.values(snap.val()).forEach(t => {
+                            if(t.userId === user.uid && t.reply && t.userRead !== true) showDot = true;
+                        });
+                    }
+                    document.getElementById('sup-dot').style.display = showDot ? 'block' : 'none';
+                });
+            } else { window.location.href = "login.html"; }
+        });
+
+        window.copyLink = () => {
+            navigator.clipboard.writeText(myReferralLink);
+            alert("Referral link copied!");
+        };
+
+        window.shareWA = () => {
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + myReferralLink)}`);
+        };
+
+        window.shareFB = () => {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(myReferralLink)}`);
+        };
+
+        window.nativeShare = async () => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: 'Ludo Pro', text: shareText, url: myReferralLink });
+                } catch (err) {}
+            } else { alert("Please copy the link manually."); }
+        };
+        // --- 🚀 ADVANCED NAVIGATION LOGIC ---
+
+window.navigate = (page, index) => {
+    // Page redirect hone se pehle indicator ko move karein (Visual feel)
+    const indicator = document.getElementById('nav-indicator');
+    const itemWidth = document.querySelector('.bottom-nav').offsetWidth / 5;
+    const offset = (itemWidth * index) + (itemWidth / 2) - 22.5;
+    
+    indicator.style.left = `${offset}px`;
+    
+    // Thoda sa delay taake user animation dekh sake phir page change ho
+    setTimeout(() => {
+        window.location.href = page;
+    }, 1500); // 150ms delay
+};
+
+function initNavigation() {
+    const path = window.location.pathname;
+    const indicator = document.getElementById('nav-indicator');
+    
+    // Identify current page index
+    let index = 2; // Default Home (Center)
+    if (path.includes('social.html')) index = 0;
+    else if (path.includes('ranking.html')) index = 1;
+    else if (path.includes('home.html')) index = 2;
+    else if (path.includes('friend_challenge.html')) index = 3;
+    else if (path.includes('profile.html')) index = 4;
+
+    // Show and position indicator
+    indicator.style.display = 'block';
+    const navBar = document.querySelector('.bottom-nav');
+    if(navBar) {
+        const itemWidth = navBar.offsetWidth / 5;
+        const offset = (itemWidth * index) + (itemWidth / 2) - 22.5;
+        indicator.style.left = `${offset}px`;
+        
+        // Glow Active Class
+        const items = document.querySelectorAll('.nav-item');
+        if(items[index]) items[index].classList.add('active');
+    }
+}
+
+// Page load hote hi chalayein
+window.addEventListener('load', initNavigation);
+    </script>
+    <script type="module" src="globalManager.js"></script>
+    <script src="navigation.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

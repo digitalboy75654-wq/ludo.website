@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Advanced Withdraw - Ludo Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0c29;
+            --primary: #6c5ce7;
+            --gold: #f1c40f;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --danger: #ff4757;
+            --success: #2ecc71;
+            --neon-blue: #00d2d3;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at top, #1e1e3f, #000000);
+            min-height: 100vh; color: white; display: flex; flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            padding: 15px 20px; display: flex; align-items: center; gap: 15px;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100;
+        }
+        .back-btn { 
+            width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; transition:0.2s;
+        }
+        .back-btn:active { transform: scale(0.9); }
+        .page-title { font-family: 'Orbitron'; font-size: 16px; font-weight: 700; color: var(--gold); letter-spacing: 1px; }
+
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; width: 100%; }
+
+        /* --- BALANCE CARD --- */
+        .balance-card {
+            background: linear-gradient(135deg, #1e272e, #2d3436);
+            padding: 20px; border-radius: 20px; text-align: center;
+            border: 1px solid var(--gold);
+            box-shadow: 0 10px 30px rgba(241, 196, 15, 0.15); margin-bottom: 25px;
+            color: white; position: relative; overflow: hidden;
+        }
+        .balance-label { font-size: 12px; font-weight: 600; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+        .balance-amount { font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 700; margin-top: 5px; color: var(--gold); }
+        .balance-card::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(to bottom right, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg); pointer-events: none;
+        }
+
+        /* --- METHOD SELECTION --- */
+        .section-label { font-size: 12px; color: #a29bfe; margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+        .methods-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
+            gap: 12px; margin-bottom: 20px; 
+        }
+        
+        .method-card {
+            background: var(--glass); padding: 15px 10px; border-radius: 15px;
+            border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; 
+            gap: 8px; cursor: pointer; transition: 0.3s; position: relative;
+        }
+        
+        .method-icon {
+            font-size: 30px; margin-bottom: 5px;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.1));
+            transition: 0.3s;
+        }
+
+        .method-card span { font-size: 11px; font-weight: 600; text-transform: uppercase; text-align: center; color: #efefef;}
+        
+        .method-card.active { 
+            background: rgba(108, 92, 231, 0.2); 
+            border-color: var(--primary); box-shadow: 0 0 15px rgba(108, 92, 231, 0.3); 
+        }
+        .method-card.active .method-icon { transform: scale(1.1); filter: drop-shadow(0 0 12px currentColor); }
+
+        /* --- INPUT FORM --- */
+        .input-group { margin-bottom: 15px; }
+        .input-field {
+            width: 100%; padding: 16px; background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border); border-radius: 12px;
+            color: white; font-size: 15px; outline: none; transition: 0.3s; font-family: 'Poppins';
+        }
+        .input-field:focus { border-color: var(--gold); background: rgba(255,255,255,0.05); }
+        .input-field::placeholder { color: rgba(255,255,255,0.3); }
+
+        /* --- RECEIPT BOX (FEE CALCULATION) --- */
+        .receipt-box {
+            background: rgba(0,0,0,0.4); border: 1px dashed var(--border);
+            border-radius: 12px; padding: 15px; margin-bottom: 20px;
+            display: none; /* Hidden by default until amount is typed */
+            animation: fadeIn 0.3s ease;
+        }
+        .receipt-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: #ccc; }
+        .receipt-row.total { font-size: 16px; font-weight: bold; color: var(--success); margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 10px; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .submit-btn {
+            width: 100%; padding: 16px; background: linear-gradient(135deg, #f1c40f, #e67e22);
+            border: none; border-radius: 12px; color: black; font-weight: 800;
+            font-size: 16px; text-transform: uppercase; cursor: pointer; 
+            box-shadow: 0 5px 20px rgba(241, 196, 15, 0.3); transition: 0.2s;
+        }
+        .submit-btn:active { transform: scale(0.98); }
+
+        /* --- HISTORY --- */
+        .history-list { margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px; padding-bottom: 50px; }
+        .history-item {
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .h-left { display: flex; flex-direction: column; gap: 4px; }
+        .h-amt { font-weight: 700; color: var(--success); font-size: 15px; }
+        .h-date { font-size: 11px; opacity: 0.6; }
+        
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .b-pending { background: rgba(241, 196, 15, 0.15); color: var(--gold); border: 1px solid rgba(241, 196, 15, 0.3); }
+        .b-approved { background: rgba(46, 204, 113, 0.15); color: var(--success); border: 1px solid rgba(46, 204, 113, 0.3); }
+        .b-rejected { background: rgba(231, 76, 60, 0.15); color: var(--danger); border: 1px solid rgba(231, 76, 60, 0.3); }
+
+        /* --- KYC ERROR POPUP --- */
+        .popup-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+            display: none; justify-content: center; align-items: center; z-index: 999;
+        }
+        .popup-content {
+            width: 85%; max-width: 350px; background: linear-gradient(145deg, #1a1a2e, #16213e);
+            border: 2px solid var(--danger); border-radius: 20px; padding: 25px; text-align: center;
+            box-shadow: 0 0 30px rgba(255, 71, 87, 0.3);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="back-btn" onclick="window.location.href='home.html'">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+        <span class="page-title">FUNDS WITHDRAWAL</span>
+    </div>
+
+    <div class="container">
+        
+        <div class="balance-card">
+            <div class="balance-label">Wallet Balance</div>
+            <div class="balance-amount">Rs. <span id="current-bal">Loading...</span></div>
+        </div>
+
+        <div class="section-label">1. Choose Withdrawal Method</div>
+        <div class="methods-grid">
+            <div class="method-card" onclick="selectMethod('easypaisa', this)">
+                <i class="fas fa-mobile-alt method-icon" style="color: #37d67a;"></i>
+                <span>Easypaisa</span>
+            </div>
+            <div class="method-card" onclick="selectMethod('jazzcash', this)">
+                <i class="fas fa-wallet method-icon" style="color: #ffca28;"></i>
+                <span>JazzCash</span>
+            </div>
+            <div class="method-card" onclick="selectMethod('trc20', this)">
+                <i class="fas fa-coins method-icon" style="color: #00ffa3;"></i>
+                <span>TRC-20 (USDT)</span>
+            </div>
+        </div>
+
+        <div class="section-label">2. Enter Payment Details</div>
+        <div class="input-group">
+            <input type="text" id="acc-num" class="input-field" placeholder="Account Number / Wallet ID">
+        </div>
+        <div class="input-group">
+            <input type="text" id="acc-name" class="input-field" placeholder="Account Holder Name (Optional for Crypto)">
+        </div>
+        
+        <div class="section-label">3. Enter Amount</div>
+        <div class="input-group">
+            <input type="number" id="amount" class="input-field" placeholder="Minimum Rs. 200" oninput="calculateFee()">
+        </div>
+
+        <div class="receipt-box" id="receipt-box">
+            <div class="receipt-row">
+                <span>Withdrawal Amount:</span>
+                <span id="r-amount">Rs. 0</span>
+            </div>
+            <div class="receipt-row">
+                <span>Network / Platform Fee:</span>
+                <span style="color: var(--danger); font-weight: bold;">- Rs. 100</span>
+            </div>
+            <div class="receipt-row total">
+                <span>You Will Receive:</span>
+                <span id="r-receive">Rs. 0</span>
+            </div>
+        </div>
+
+        <button class="submit-btn" onclick="submitWithdraw()">Confirm Withdrawal</button>
+
+        <div class="history-list">
+            <div class="section-label">Recent Withdrawals</div>
+            <div id="history-container">
+                <div style="text-align:center; opacity:0.5; font-size:12px; padding:20px;">Loading Data...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="kycPopup" class="popup-overlay">
+        <div class="popup-content">
+            <i class="fas fa-id-card" style="font-size: 45px; color: var(--danger); margin-bottom: 15px;"></i>
+            <h3 style="margin: 0; font-family: 'Orbitron'; letter-spacing: 1px; color: white;">KYC REQUIRED</h3>
+            <p style="color: #ccc; font-size: 13px; margin: 15px 0 25px 0; line-height: 1.5;">
+                Your account is not verified yet. Please complete your Global Identity Verification to unlock withdrawals.
+            </p>
+            <div style="display: flex; gap: 10px;">
+                <button style="flex: 1; padding: 12px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer;" onclick="document.getElementById('kycPopup').style.display='none'">Cancel</button>
+                <button style="flex: 2; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;" onclick="window.location.href='kyc.html'">Verify Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+        import { getDatabase, ref, push, set, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY",
+            authDomain: "ludo-d46ab.firebaseapp.com",
+            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com",
+            projectId: "ludo-d46ab"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUser = null;
+        let selectedMethod = "";
+        let currentBalance = 0;
+        let isKycApproved = false;
+
+        const WITHDRAW_FEE = 100;
+        const MIN_WITHDRAW = 200; // Total 200, user gets 100.
+
+        // --- 1. AUTH & DATA LOAD ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                
+                // Real-time Check for Balance & New KYC System
+                onValue(ref(db, `users/${user.uid}`), (snap) => {
+                    if (snap.exists()) {
+                        const userData = snap.val();
+                        currentBalance = userData.balance || 0;
+                        document.getElementById('current-bal').innerText = currentBalance;
+                        
+                        // New KYC Logic Check (Checking users/uid/kyc/status)
+                        if (userData.kyc && userData.kyc.status === 'verified') {
+                            isKycApproved = true;
+                        } else {
+                            isKycApproved = false;
+                        }
+                    }
+                });
+
+                loadHistory(user.uid);
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        // --- 2. UI LOGIC & FEE CALCULATOR ---
+        window.selectMethod = function(method, el) {
+            selectedMethod = method;
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+
+            const numInput = document.getElementById('acc-num');
+            if (method === 'trc20') {
+                numInput.placeholder = "TRC-20 Wallet Address (e.g. T...)";
+            } else {
+                numInput.placeholder = "Mobile Account Number";
+            }
+        }
+
+        window.calculateFee = function() {
+            const amount = Number(document.getElementById('amount').value);
+            const box = document.getElementById('receipt-box');
+            
+            if(amount > 0) {
+                box.style.display = 'block';
+                document.getElementById('r-amount').innerText = 'Rs. ' + amount;
+                
+                let receive = amount - WITHDRAW_FEE;
+                document.getElementById('r-receive').innerText = 'Rs. ' + (receive > 0 ? receive : 0);
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        // --- 3. SUBMIT WITHDRAWAL (WITH FEE & KYC) ---
+        window.submitWithdraw = function() {
+            if(!currentUser) return alert("Please Login First.");
+
+            // Check KYC
+            if (!isKycApproved) {
+                document.getElementById('kycPopup').style.display = 'flex';
+                return;
+            }
+
+            const accNum = document.getElementById('acc-num').value.trim();
+            const accName = document.getElementById('acc-name').value.trim() || "No Name";
+            const requestedAmount = Number(document.getElementById('amount').value);
+
+            // Validation
+            if(!selectedMethod) return alert("Please choose a withdrawal method.");
+            if(!accNum) return alert("Account details are required.");
+            if(requestedAmount < MIN_WITHDRAW) return alert(`Minimum withdrawal is Rs. ${MIN_WITHDRAW} (Due to platform fees).`);
+            if(requestedAmount > currentBalance) return alert("Insufficient Wallet Balance!");
+
+            const receiveAmount = requestedAmount - WITHDRAW_FEE;
+            if(!confirm(`Rs. ${requestedAmount} will be deducted from your wallet.\nYou will receive Rs. ${receiveAmount} after fees.\n\nProceed?`)) return;
+
+            // ATOMIC TRANSACTION
+            const userRef = ref(db, `users/${currentUser.uid}/balance`);
+            
+            runTransaction(userRef, (currentData) => {
+                if (currentData >= requestedAmount) {
+                    return currentData - requestedAmount; // Deduct FULL requested amount
+                } else {
+                    return; // Abort
+                }
+            })
+            .then((result) => {
+                if (result.committed) {
+                    // Send EXACT amount admin needs to pay to the withdrawal table
+                    const reqRef = push(ref(db, 'withdraw_requests'));
+                    set(reqRef, {
+                        userId: currentUser.uid,
+                        method: selectedMethod,
+                        account: `${accNum} (${accName})`,
+                        amount: receiveAmount,       // Admin sees this and sends this (E.g. 400)
+                        deducted: requestedAmount,   // Record of what user typed (E.g. 500)
+                        fee: WITHDRAW_FEE,           // Record of fee (E.g. 100)
+                        status: "Pending",
+                        timestamp: Date.now()
+                    });
+
+                    alert(`Success! Rs. ${requestedAmount} deducted. You will receive Rs. ${receiveAmount} soon.`);
+                    document.getElementById('amount').value = "";
+                    document.getElementById('acc-num').value = "";
+                    document.getElementById('receipt-box').style.display = "none";
+                } else {
+                    alert("Transaction Failed. Check Balance.");
+                }
+            })
+            .catch((err) => {
+                alert("Error: " + err.message);
+            });
+        }
+
+        // --- 4. LOAD HISTORY ---
+        function loadHistory(uid) {
+            const wRef = ref(db, 'withdraw_requests');
+            onValue(wRef, (snap) => {
+                const container = document.getElementById('history-container');
+                container.innerHTML = "";
+                let hasData = false;
+
+                if(snap.exists()) {
+                    const allReqs = Object.entries(snap.val()).reverse();
+                    
+                    allReqs.forEach(([key, val]) => {
+                        if(val.userId === uid) {
+                            hasData = true;
+                            const date = new Date(val.timestamp).toLocaleDateString();
+                            
+                            // History mein wo amount dikhaye jo user ko receive hui/hogi
+                            container.innerHTML += `
+                                <div class="history-item">
+                                    <div class="h-left">
+                                        <div class="h-amt">Rs. ${val.amount} <small style="color:#aaa; font-size:9px;">(Received)</small></div>
+                                        <div class="h-date">${val.method.toUpperCase()} • ${date}</div>
+                                        <div style="font-size:9px; opacity:0.7">${val.account}</div>
+                                    </div>
+                                    <div class="badge b-${val.status.toLowerCase()}">${val.status}</div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                
+                if(!hasData) container.innerHTML = "<div style='text-align:center; opacity:0.5; font-size:12px; padding:20px;'>No History Found</div>";
+            });
+        }
+    </script>
+    <script type="module" src="globalManager.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

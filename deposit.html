@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Deposit Funds - Ludo Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #130f40;
+            --primary: #4834d4;
+            --gold: #f9ca24;
+            --glass: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.15);
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --neon-blue: #00d2d3;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Poppins', sans-serif;
+            background: radial-gradient(circle at center, #2e1463, #0f0529);
+            min-height: 100vh; color: white; display: flex; flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            padding: 15px 20px; display: flex; align-items: center; gap: 15px;
+            background: rgba(20, 20, 35, 0.8); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100;
+        }
+        .back-btn { 
+            width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; transition: 0.2s;
+        }
+        .back-btn:active { transform: scale(0.9); }
+        .page-title { font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; width: 100%; }
+
+        /* --- METHOD SELECTION --- */
+        .section-label { font-size: 12px; color: #a29bfe; margin-bottom: 10px; font-weight: 600; text-transform: uppercase; }
+
+        /* Update to 3 columns for 3 methods on wider screens, or flex wrap for mobile */
+        .methods-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); 
+            gap: 12px; margin-bottom: 20px; 
+        }
+        
+        .method-card {
+            background: var(--glass); padding: 15px 10px; border-radius: 15px;
+            border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; 
+            gap: 8px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
+        }
+        
+        .logo-img {
+            width: 50px; height: 35px; object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+        
+        /* Specific styling for crypto icon if image not available */
+        .crypto-icon {
+            font-size: 30px;
+            color: var(--success);
+            margin-bottom: 5px;
+        }
+
+        .method-card span { font-size: 11px; font-weight: 600; text-align: center; }
+        
+        .method-card.active { 
+            background: linear-gradient(135deg, rgba(72, 52, 212, 0.4), rgba(104, 109, 224, 0.4)); 
+            border-color: var(--gold); box-shadow: 0 0 15px rgba(249, 202, 36, 0.2); 
+        }
+
+        /* --- ADMIN ACCOUNT DISPLAY --- */
+        .account-box {
+            background: linear-gradient(to right, #2c3e50, #000000);
+            border: 1px solid var(--gold); border-radius: 12px; padding: 20px;
+            text-align: center; margin-bottom: 25px; display: none; 
+            animation: slideDown 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        @keyframes slideDown { from {opacity: 0; transform: translateY(-10px);} to {opacity: 1; transform: translateY(0);} }
+
+        .acc-number { 
+            font-family: 'Orbitron', sans-serif; font-size: 20px; color: var(--gold); 
+            letter-spacing: 1px; margin: 10px 0; user-select: text; word-break: break-all;
+        }
+        .acc-title { font-size: 13px; color: #dfe6e9; margin-bottom: 5px; }
+        
+        .copy-btn {
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 8px 20px;
+            border-radius: 20px; font-size: 11px; cursor: pointer; transition: 0.2s; margin-top: 10px; display: inline-block;
+        }
+        .copy-btn:active { background: var(--gold); color: black; }
+
+        /* --- INPUT FORM --- */
+        .input-group { margin-bottom: 15px; }
+        .input-field {
+            width: 100%; padding: 16px; background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border); border-radius: 12px;
+            color: white; font-size: 15px; outline: none; transition: 0.3s;
+        }
+        .input-field:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
+        .input-field::placeholder { color: rgba(255,255,255,0.3); }
+
+        .submit-btn {
+            width: 100%; padding: 16px; background: linear-gradient(135deg, #f1c40f, #e67e22);
+            border: none; border-radius: 50px; color: #2d3436; font-weight: 800;
+            font-size: 16px; text-transform: uppercase; cursor: pointer; box-shadow: 0 5px 20px rgba(241, 196, 15, 0.4);
+            margin-top: 10px; transition: 0.2s;
+        }
+        .submit-btn:active { transform: scale(0.98); }
+
+        /* --- HISTORY --- */
+        .history-list { margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px; padding-bottom: 50px; }
+        .history-item {
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid transparent;
+        }
+        .h-left { display: flex; flex-direction: column; gap: 4px; }
+        .h-amt { font-weight: 700; color: var(--success); font-size: 15px; }
+        .h-date { font-size: 11px; opacity: 0.6; }
+        
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .b-pending { background: rgba(241, 196, 15, 0.15); color: var(--gold); border: 1px solid rgba(241, 196, 15, 0.3); }
+        .b-approved { background: rgba(46, 204, 113, 0.15); color: var(--success); border: 1px solid rgba(46, 204, 113, 0.3); }
+        .b-rejected { background: rgba(231, 76, 60, 0.15); color: var(--danger); border: 1px solid rgba(231, 76, 60, 0.3); }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="back-btn" onclick="window.location.href='home.html'">
+            <i class="fas fa-chevron-left"></i>
+        </div>
+        <span class="page-title">Add Funds</span>
+    </div>
+
+    <div class="container">
+        
+        <div class="methods-grid">
+    <div class="method-card" onclick="selectMethod('easypaisa', this)">
+        <i class="fas fa-mobile-alt method-icon" style="color: #37d67a;"></i>
+        <span>Easypaisa</span>
+    </div>
+
+    <div class="method-card" onclick="selectMethod('jazzcash', this)">
+        <i class="fas fa-wallet method-icon" style="color: #ffca28;"></i>
+        <span>JazzCash</span>
+    </div>
+
+    <div class="method-card" onclick="selectMethod('trc20', this)">
+        <i class="fas fa-coins method-icon" style="color: #00ffa3;"></i>
+        <span>TRC-20 (USDT)</span>
+    </div>
+</div>
+
+        <div class="account-box" id="admin-box">
+            <div class="acc-title" id="instruction-text">Please send money to:</div>
+            <div class="acc-title" id="acc-name" style="color:var(--neon-blue); font-weight:bold; font-size:15px; margin-top:5px;">...</div>
+            <div class="acc-number" id="acc-num">Loading...</div>
+            
+            <div class="copy-btn" onclick="copyText()">Copy Account / Address</div>
+        </div>
+
+        <div class="section-label">Transaction Details</div>
+        <div class="input-group">
+            <input type="number" id="amount" class="input-field" placeholder="Enter Amount (e.g. 500)">
+        </div>
+        <div class="input-group">
+            <input type="text" id="sender" class="input-field" placeholder="Your Sender Account Number / Wallet ID">
+        </div>
+        <div class="input-group">
+            <input type="text" id="trx" class="input-field" placeholder="TRX ID (Transaction Hash / ID)">
+        </div>
+
+        <button class="submit-btn" onclick="submitDeposit()">Confirm Deposit</button>
+
+        <div class="history-list">
+            <div class="section-label">Transaction History</div>
+            <div id="history-container">
+                <div style="text-align:center; opacity:0.5; font-size:12px; padding:20px;">Loading History...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+        import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+        // --- Firebase Config (ludo-d46ab) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY",
+            authDomain: "ludo-d46ab.firebaseapp.com",
+            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com",
+            projectId: "ludo-d46ab",
+            storageBucket: "ludo-d46ab.firebasestorage.app",
+            messagingSenderId: "1010090202600",
+            appId: "1:1010090202600:web:baf24ee749f9cf4ce1c05d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUser = null;
+        let selectedMethod = "";
+        let adminAccounts = {};
+
+        // --- 1. AUTH CHECK & LOAD DATA ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                loadHistory(user.uid);
+            } else {
+                window.location.href = "login.html";
+            }
+        });
+
+        // --- 2. REAL-TIME ADMIN ACCOUNTS FETCH ---
+        const accRef = ref(db, 'admin_accounts');
+        onValue(accRef, (snap) => {
+            if(snap.exists()) {
+                adminAccounts = snap.val();
+                // Agar user ne pehle se koi method select kiya hua hai to display update karein
+                if(selectedMethod) {
+                    updateDisplay(selectedMethod);
+                }
+            }
+        });
+
+        // --- 3. UI FUNCTIONS ---
+        function updateDisplay(method) {
+            const numEl = document.getElementById('acc-num');
+            const nameEl = document.getElementById('acc-name');
+            const instEl = document.getElementById('instruction-text');
+
+            if(method === 'easypaisa' && adminAccounts.easypaisa) {
+                numEl.innerText = adminAccounts.easypaisa.number || "Not Set";
+                nameEl.innerText = adminAccounts.easypaisa.name || "Account Name Not Set";
+                instEl.innerText = "Please send money to Easypaisa account:";
+            } else if(method === 'jazzcash' && adminAccounts.jazzcash) {
+                numEl.innerText = adminAccounts.jazzcash.number || "Not Set";
+                nameEl.innerText = adminAccounts.jazzcash.name || "Account Name Not Set";
+                instEl.innerText = "Please send money to JazzCash account:";
+            } else if (method === 'trc20' && adminAccounts.trc20) {
+                 numEl.innerText = adminAccounts.trc20.address || "Not Set";
+                 numEl.style.fontSize = "14px"; // TRC address lamba hota hai isliye chhota kiya
+                 nameEl.innerText = adminAccounts.trc20.name || "USDT (TRC-20)";
+                 instEl.innerText = "Please send USDT (TRC-20) to this address:";
+            } else {
+                numEl.innerText = "Not Available";
+                nameEl.innerText = "";
+                instEl.innerText = "Method unavailable right now. Contact Support.";
+                numEl.style.fontSize = "20px";
+            }
+        }
+
+        window.selectMethod = function(method, el) {
+            selectedMethod = method;
+            
+            // Highlight Card
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+
+            // Show Account Box
+            const box = document.getElementById('admin-box');
+            box.style.display = 'block';
+
+            // Font size default (in case TRC-20 se change hua tha)
+            document.getElementById('acc-num').style.fontSize = "20px";
+
+            updateDisplay(method);
+        }
+
+        window.copyText = function() {
+            const txt = document.getElementById('acc-num').innerText;
+            if (txt === "Not Available" || txt === "Not Set" || txt === "Loading...") return;
+
+            navigator.clipboard.writeText(txt).then(() => {
+                alert("Copied successfully!");
+            }).catch(err => {
+                alert("Failed to copy text: ", err);
+            });
+        }
+
+        window.submitDeposit = function() {
+            const amt = document.getElementById('amount').value;
+            const snd = document.getElementById('sender').value;
+            const trx = document.getElementById('trx').value;
+
+            if(!currentUser) return alert("Please Login First");
+            if(!selectedMethod) return alert("Please select a Payment Method first.");
+            if(!amt || !snd || !trx) return alert("Please fill all details to proceed.");
+
+            const reqRef = push(ref(db, 'deposit_requests'));
+            set(reqRef, {
+                userId: currentUser.uid,
+                method: selectedMethod,
+                amount: amt,
+                sender: snd,
+                trxID: trx,
+                status: "Pending",
+                timestamp: Date.now()
+            }).then(() => {
+                alert("Deposit Request Sent Successfully! Admin will verify and approve shortly.");
+                document.getElementById('amount').value = "";
+                document.getElementById('trx').value = "";
+                document.getElementById('sender').value = "";
+            }).catch(e => alert("Error processing request: " + e.message));
+        }
+
+        // --- 4. LOAD HISTORY ---
+        function loadHistory(uid) {
+            const depRef = ref(db, 'deposit_requests');
+            onValue(depRef, (snap) => {
+                const container = document.getElementById('history-container');
+                container.innerHTML = "";
+                let hasData = false;
+
+                if(snap.exists()) {
+                    const allReqs = Object.entries(snap.val()).reverse();
+                    
+                    allReqs.forEach(([key, val]) => {
+                        if(val.userId === uid) {
+                            hasData = true;
+                            const date = new Date(val.timestamp).toLocaleDateString();
+                            container.innerHTML += `
+                                <div class="history-item">
+                                    <div class="h-left">
+                                        <div class="h-amt">Rs. ${val.amount}</div>
+                                        <div class="h-date">${val.method.toUpperCase()} • ${date}</div>
+                                    </div>
+                                    <div class="badge b-${val.status.toLowerCase()}">${val.status}</div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                
+                if(!hasData) container.innerHTML = "<div style='text-align:center; opacity:0.5; font-size:12px; padding:20px;'>No Recent Transactions Found.</div>";
+            });
+        }
+    </script>
+    <script type="module" src="globalManager.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

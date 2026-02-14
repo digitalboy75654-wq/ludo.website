@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ludo Admin Pro - Master Panel</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #1e1e2f; --card: #27293d; --text: #fff; 
+        --primary: #e14eca; --success: #00f2c3; --danger: #fd5d93; --gold: #f1c40f;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins', sans-serif; }
+    body { background: var(--bg); color: var(--text); display:flex; height:100vh; overflow:hidden; }
+
+    /* SIDEBAR */
+    .sidebar { width:260px; background:var(--card); padding:20px; display:flex; flex-direction:column; gap:10px; box-shadow:5px 0 15px rgba(0,0,0,0.2); z-index:100; }
+    .brand { font-size:22px; font-weight:bold; color:var(--primary); margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+    
+    .menu-item { padding:12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:12px; opacity:0.7; transition:0.3s; font-size:14px; }
+    .menu-item:hover, .menu-item.active { background:linear-gradient(to right, #da4fd5, #9b5cf2); opacity:1; }
+    .badge { background:var(--danger); color:white; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:bold; margin-left:auto; display:none; }
+
+    /* CONTENT */
+    .main { flex:1; padding:20px; overflow-y:auto; position:relative; }
+    .header { display:flex; justify-content:flex-end; padding-bottom:15px; border-bottom:1px solid #333; margin-bottom:20px; align-items:center; }
+    
+    /* NOTIFICATIONS */
+    .notif-btn { position:relative; cursor:pointer; margin-right:20px; font-size:24px; color:#aaa; }
+    .notif-dot { position:absolute; top:-2px; right:-2px; width:10px; height:10px; background:var(--danger); border-radius:50%; display:none; }
+    .notif-box { position:absolute; top:60px; right:20px; width:300px; background:var(--card); border:1px solid #555; border-radius:10px; display:none; z-index:200; max-height:400px; overflow-y:auto; }
+    .n-item { padding:12px; border-bottom:1px solid #444; font-size:12px; }
+
+    /* SECTIONS */
+    .section { display:none; height:100%; animation:fadeIn 0.3s; }
+    .section.active { display:block; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+    /* STATS */
+    .stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-bottom:20px; }
+    .card { background:var(--card); padding:20px; border-radius:15px; border-left:4px solid var(--primary); }
+    .card h1 { font-size:28px; margin-top:5px; }
+
+    /* CHAT INTERFACE */
+    .chat-layout { display:flex; height:80vh; gap:20px; }
+    .chat-list { width:300px; background:var(--card); border-radius:15px; overflow-y:auto; border:1px solid #444; }
+    .chat-user { padding:15px; border-bottom:1px solid #444; cursor:pointer; display:flex; align-items:center; gap:10px; transition:0.2s; position:relative; }
+    .chat-user:hover { background:rgba(255,255,255,0.05); }
+    .chat-user.active { background:var(--primary); }
+    
+    .chat-area { flex:1; background:#151521; border-radius:15px; display:flex; flex-direction:column; border:1px solid #444; }
+    .c-header { padding:15px; border-bottom:1px solid #444; font-weight:bold; background:rgba(0,0,0,0.2); }
+    .c-msgs { flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:15px; }
+    
+    .msg { max-width:75%; padding:12px 15px; border-radius:15px; font-size:13px; line-height:1.4; position:relative; }
+    .msg-in { background:#333; align-self:flex-start; border-top-left-radius:2px; border-left: 3px solid var(--gold); }
+    .msg-out { background:var(--primary); align-self:flex-end; border-bottom-right-radius:2px; }
+    
+    .ticket-label { font-size:10px; color:var(--gold); display:block; margin-bottom:5px; font-weight:bold; text-transform:uppercase; }
+    .c-input { padding:15px; border-top:1px solid #444; display:flex; gap:10px; }
+
+    /* TABLES */
+    table { width:100%; border-collapse:collapse; background:var(--card); border-radius:10px; }
+    th, td { padding:12px; text-align:left; border-bottom:1px solid #444; font-size:13px; }
+    th { color:var(--primary); }
+    .btn { padding:6px 12px; border:none; border-radius:5px; cursor:pointer; font-size:11px; font-weight:bold; margin-right:5px; }
+    .btn-ok { background:rgba(0,242,195,0.2); color:var(--success); border:1px solid var(--success); }
+    .btn-no { background:rgba(253,93,147,0.2); color:var(--danger); border:1px solid var(--danger); }
+    
+    /* MODAL */
+    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; z-index:200; }
+    .m-box { background:var(--card); padding:30px; border-radius:15px; width:400px; border:1px solid var(--primary); text-align:center; }
+    input, textarea { width:100%; background:#2b2b3d; border:1px solid #444; color:white; padding:12px; border-radius:8px; outline:none; margin-bottom: 10px; }
+#tb-with td {
+    vertical-align: middle;
+    padding: 15px 10px;
+}
+
+.btn-ok, .btn-no {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: 0.2s;
+}
+
+.btn-ok:hover { background: var(--success); color: #000; }
+.btn-no:hover { background: var(--danger); color: #fff; }
+</style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand"><i class="fas fa-crown"></i> ADMIN PRO</div>
+        <div class="menu-item active" onclick="tab('dashboard', this)"><i class="fas fa-chart-pie"></i> Dashboard</div>
+        <div class="menu-item" onclick="tab('livechat', this)">
+            <i class="fas fa-comments"></i> Live Chat 
+            <span class="badge" id="chat-badge">0</span>
+        </div>
+        <div class="menu-item" onclick="tab('users', this)"><i class="fas fa-users"></i> Users</div>
+        <div class="menu-item" onclick="tab('deposits', this)">
+            <i class="fas fa-wallet"></i> Deposits 
+            <span class="badge" id="dep-badge">0</span>
+        </div>
+        <div class="menu-item" onclick="tab('withdrawals', this)">
+            <i class="fas fa-hand-holding-usd"></i> Withdrawals 
+            <span class="badge" id="with-badge">0</span>
+        </div>
+        <div class="menu-item" onclick="tab('feedbacks', this)">
+    <i class="fas fa-comment-alt"></i> Feedbacks 
+    <span class="badge" id="feed-badge">0</span>
+</div>
+    </div>
+<div id="feedbacks" class="section">
+    <h2>User Feedbacks</h2>
+    <div class="card" style="padding: 0; overflow: hidden; border-left: 4px solid var(--gold);">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Message</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tb-feedbacks">
+                </tbody>
+        </table>
+    </div>
+</div>
+    <div class="main">
+        <div class="header">
+            <div class="notif-btn" onclick="toggleNotif()">
+                <i class="fas fa-bell"></i>
+                <div class="notif-dot" id="bell-dot"></div>
+            </div>
+            <div>Master Admin</div>
+        </div>
+
+        <div class="notif-box" id="notif-list">
+            <div style="text-align:center; padding:15px; opacity:0.5;">No Alerts</div>
+        </div>
+
+        <div id="dashboard" class="section active">
+            <div class="stats">
+                <div class="card"><h3>Users</h3><h1 id="s-users">0</h1></div>
+                <div class="card"><h3>Revenue</h3><h1 id="s-rev" style="color:var(--success)">0</h1></div>
+                <div class="card"><h3>Pending</h3><h1 id="s-pend" style="color:orange">0</h1></div>
+            </div>
+
+            <div class="card" style="margin-bottom:20px;">
+                <h3>Broadcast Message</h3>
+                <textarea id="broadcast-msg" placeholder="Type message for all users..."></textarea>
+                <button class="btn" style="width:100%; background:var(--primary); padding:12px;" onclick="sendBroadcast()">SEND TO ALL</button>
+            </div>
+
+            <div class="card">
+                <h3>Update Payment Info</h3>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+                    <input type="text" id="ep-name" placeholder="Easypaisa Account Name">
+        <input type="text" id="ep-num" placeholder="Easypaisa Number">
+        
+        <input type="text" id="jc-name" placeholder="JazzCash Account Name">
+        <input type="text" id="jc-num" placeholder="JazzCash Number">
+        
+        <input type="text" id="trc-name" placeholder="TRC20 Wallet Name (e.g. USDT)">
+        <input type="text" id="trc-addr" placeholder="TRC20 Wallet Address">
+                </div>
+                <button class="btn" style="width:100%; background:var(--success); margin-top:10px; padding:12px;" onclick="saveAcc()">UPDATE</button>
+            </div>
+        </div>
+
+        <div id="livechat" class="section">
+            <div class="chat-layout">
+                <div class="chat-list" id="chat-list">
+                    <div style="padding:20px; opacity:0.5; text-align:center">Loading Chats...</div>
+                </div>
+                <div class="chat-area">
+                    <div class="c-header" id="c-name">Select User</div>
+                    <div class="c-msgs" id="c-msgs"></div>
+                    <div class="c-input">
+                        <input type="text" id="c-input" placeholder="Type reply..." disabled>
+                        <button class="btn" style="background:var(--gold); border-radius:50%; width:40px;" onclick="sendReply()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card" style="margin-bottom: 15px; border-left: 4px solid var(--primary);">
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <i class="fas fa-search" style="color: var(--primary); margin-left: 10px;"></i>
+        <input type="text" id="user-search-input" placeholder="Search by Name or UID..." onkeyup="searchUsers()" style="margin-bottom: 0; border: none; background: transparent;">
+    </div>
+</div>
+
+        <div id="users" class="section">
+            <h2>Registered Users</h2>
+            <table><thead><tr><th>Name</th><th>UID</th><th>Bal</th><th>Action</th></tr></thead><tbody id="tb-users"></tbody></table>
+        </div>
+
+        <div id="deposits" class="section">
+            <h2>Deposits</h2>
+            <table><thead><tr><th>User</th><th>Amt</th><th>Method</th><th>TRX</th><th>Action</th></tr></thead><tbody id="tb-dep"></tbody></table>
+        </div>
+
+        <div id="withdrawals" class="section">
+            <h2>Withdrawals</h2>
+            <table><thead><tr><th>User</th><th>Amt</th><th>Acc</th><th>Status</th><th>Action</th></tr></thead><tbody id="tb-with"></tbody></table>
+        </div>
+    </div>
+
+    <div id="uModal" class="modal">
+        <div class="m-box">
+            <h2 id="m-name">User</h2>
+            <p id="m-uid" style="font-size:12px; color:var(--primary); margin-bottom:15px;">...</p>
+            <input type="number" id="m-bal" placeholder="New Balance">
+            <button class="btn" style="width:100%; background:var(--success); margin-top:10px; padding:10px;" onclick="saveBal()">Save Balance</button>
+            <button id="btn-block" class="btn" style="width:100%; background:var(--danger); margin-top:5px; padding:10px;" onclick="toggleBlock()">Block User</button>
+            <button class="btn" style="width:100%; background:#444; margin-top:5px; padding:10px; color:#fff;" onclick="document.getElementById('uModal').style.display='none'">Close</button>
+        </div>
+    </div>
+    <div id="historyModal" class="modal">
+    <div class="m-box" style="width: 95%; max-width: 700px; max-height: 85vh; overflow-y: auto; border-color: var(--gold);">
+        <h2 id="h-name" style="color: var(--gold);">User History</h2>
+        <p id="h-uid" style="font-size: 11px; opacity: 0.6; margin-bottom: 15px;"></p>
+        
+        <div class="stats" style="grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="card" style="padding: 10px; border-left-color: var(--success);">
+                <small>Total Deposits</small>
+                <h3 id="h-total-dep" style="color: var(--success);">0</h3>
+            </div>
+            <div class="card" style="padding: 10px; border-left-color: var(--danger);">
+                <small>Total Withdraws</small>
+                <h3 id="h-total-with" style="color: var(--danger);">0</h3>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: left;">
+            <table style="font-size: 11px;">
+                <thead>
+                    <tr><th>Type</th><th>Amount</th><th>Status</th><th>Details</th></tr>
+                </thead>
+                <tbody id="h-table-body"></tbody>
+            </table>
+        </div>
+        <button class="btn" style="width: 100%; background: #444; margin-top: 20px;" onclick="closeHistoryModal()">CLOSE</button>
+    </div>
+</div>
+<div id="kycModal" class="modal">
+    <div class="m-box" style="width: 90%; max-width: 500px; border-color: var(--gold);">
+        <h2 style="color: var(--gold);"><i class="fas fa-user-shield"></i> KYC Verification Details</h2>
+        <p id="k-uid" style="font-size: 10px; opacity: 0.6; margin-bottom: 20px;"></p>
+        
+        <div id="kyc-content" style="text-align: left; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; line-height: 2;">
+            <p><strong>Full Name:</strong> <span id="k-fullname">---</span></p>
+            <p><strong>Date of Birth:</strong> <span id="k-dob">---</span></p>
+            <p><strong>Country:</strong> <span id="k-country">---</span></p>
+            <p><strong>Phone:</strong> <span id="k-phone">---</span></p>
+            <p><strong>ID Type:</strong> <span id="k-doctype">---</span></p>
+            <p><strong>ID Number:</strong> <span id="k-docnum" style="color: var(--gold); font-weight: bold;">---</span></p>
+            <p><strong>Current Status:</strong> <span id="k-status">---</span></p>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-ok" style="flex:1" onclick="updateKYCStatus('verified')">Approve</button>
+            <button class="btn btn-no" style="flex:1" onclick="updateKYCStatus('failed')">Reject</button>
+        </div>
+        <button class="btn" style="width: 100%; background: #444; margin-top: 10px; color: white;" onclick="closeKycModal()">CLOSE</button>
+    </div>
+</div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update, push, get, onChildAdded } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+import { set } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"; // 'set' import karna lazmi hai
+
+window.sendBroadcast = () => {
+    const msg = document.getElementById('broadcast-msg').value;
+    if(!msg) return alert("Kuch likhen pehle!");
+
+    // 'set' use karein taake purana message overwrite ho jaye
+    set(ref(db, 'broadcast'), {
+        message: msg,
+        timestamp: Date.now() // Ye line sabse zaroori hai
+    }).then(() => {
+        alert("Broadcast Sent!");
+        document.getElementById('broadcast-msg').value = "";
+    });
+};
+        // FIREBASE CONFIG
+        const app = initializeApp({ apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", authDomain: "ludo-d46ab.firebaseapp.com", databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", projectId: "ludo-d46ab" });
+        const db = getDatabase(app);
+        
+        let currentChatUid = null;
+        let currentTicketId = null;
+        let usersData = {};
+        let currentModalUser = null;
+        const startTime = Date.now();
+
+        // SOUND & NOTIFICATION
+        function playSound() { try{ new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3').play(); }catch(e){} }
+        
+        function notify(msg, type) {
+            playSound();
+            document.getElementById('bell-dot').style.display='block';
+            const b = document.getElementById('notif-list');
+            if(b.innerText.includes('No Alerts')) b.innerHTML="";
+            b.innerHTML = `<div class="n-item" style="color:var(--${type})">${msg}</div>` + b.innerHTML;
+        }
+
+        // --- LIVE CHAT ENGINE (SORTED) ---
+        onValue(ref(db, 'support_tickets'), (snap) => {
+            const tickets = snap.val() || {};
+            const userTickets = {};
+            // Group tickets by User
+            Object.entries(tickets).forEach(([tid, t]) => {
+                if(!userTickets[t.userId]) userTickets[t.userId] = [];
+                userTickets[t.userId].push({ ...t, id: tid });
+            });
+
+            const list = document.getElementById('chat-list');
+            list.innerHTML = "";
+            let pendingCount = 0;
+
+            get(ref(db, 'users')).then(usnap => {
+                const users = usnap.val() || {};
+                
+                // Sort users by LATEST ticket timestamp
+                const sortedUids = Object.keys(userTickets).sort((a,b) => {
+                    const lastA = userTickets[a][userTickets[a].length-1].timestamp;
+                    const lastB = userTickets[b][userTickets[b].length-1].timestamp;
+                    return lastB - lastA; // Newest first
+                });
+
+                sortedUids.forEach(uid => {
+                    const tList = userTickets[uid];
+                    const lastT = tList[tList.length-1];
+                    const name = users[uid]?.username || "User";
+                    const isUnread = tList.some(t => t.status === 'Open');
+                    if(isUnread) pendingCount++;
+
+                    const activeClass = uid === currentChatUid ? 'active' : '';
+                    const dot = isUnread ? `<div style="width:10px; height:10px; background:red; border-radius:50%; margin-left:auto;"></div>` : '';
+
+                    list.innerHTML += `
+                        <div class="chat-user ${activeClass}" onclick="loadChat('${uid}', '${name}')">
+                            <i class="fas fa-user-circle" style="font-size:30px; opacity:0.7"></i>
+                            <div>
+                                <div style="font-weight:bold; font-size:13px;">${name}</div>
+                                <div style="font-size:10px; opacity:0.5;">${lastT.subject}</div>
+                            </div>
+                            ${dot}
+                        </div>
+                    `;
+                });
+
+                const bdg = document.getElementById('chat-badge');
+                bdg.innerText = pendingCount;
+                bdg.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+            });
+        });
+let currentKycUid = null;
+
+// KYC View Function
+window.viewKYC = (uid, name) => {
+    currentKycUid = uid;
+    document.getElementById('kycModal').style.display = 'flex';
+    document.getElementById('k-uid').innerText = "User UID: " + uid;
+    document.getElementById('k-fullname').innerText = "Loading...";
+
+    // Firebase path: users/UID/kyc
+    get(ref(db, `users/${uid}/kyc`)).then((snap) => {
+        if (snap.exists()) {
+            const k = snap.val();
+            document.getElementById('k-fullname').innerText = k.fullName || 'N/A';
+            document.getElementById('k-dob').innerText = k.dob || 'N/A';
+            document.getElementById('k-country').innerText = k.country || 'N/A';
+            document.getElementById('k-phone').innerText = (k.phoneCode || '') + " " + (k.phone || '');
+            document.getElementById('k-doctype').innerText = k.docType || 'N/A';
+            document.getElementById('k-docnum').innerText = k.docNumber || 'N/A';
+            document.getElementById('k-status').innerText = (k.status || 'Pending').toUpperCase();
+        } else {
+            document.getElementById('k-fullname').innerText = "KYC Not Submitted";
+            document.getElementById('k-docnum').innerText = "No Data";
+            document.getElementById('k-status').innerText = "---";
+        }
+    });
+};
+
+window.closeKycModal = () => document.getElementById('kycModal').style.display = 'none';
+
+// Status Update (Verified/Failed)
+window.updateKYCStatus = (newStatus) => {
+    if(!currentKycUid) return;
+    update(ref(db, `users/${currentKycUid}/kyc`), {
+        status: newStatus,
+        adminActionAt: Date.now()
+    }).then(() => {
+        alert("KYC marked as " + newStatus);
+        closeKycModal();
+    });
+};
+        window.loadChat = (uid, name) => {
+            currentChatUid = uid;
+            document.getElementById('c-name').innerText = name;
+            document.getElementById('c-input').disabled = false;
+            
+            get(ref(db, 'support_tickets')).then(snap => {
+                const area = document.getElementById('c-msgs');
+                area.innerHTML = "";
+                const tickets = snap.val() || {};
+                
+                const myTickets = Object.entries(tickets)
+                    .filter(([k,v]) => v.userId === uid)
+                    .sort((a,b) => a[1].timestamp - b[1].timestamp);
+
+                currentTicketId = null;
+
+                myTickets.forEach(([tid, t]) => {
+                    area.innerHTML += `
+                        <div class="msg msg-in">
+                            <span class="ticket-label">${t.subject}</span>
+                            ${t.message}
+                        </div>
+                    `;
+                    if(t.reply) {
+                        area.innerHTML += `<div class="msg msg-out">${t.reply}</div>`;
+                    } else {
+                        currentTicketId = tid; // Mark latest open ticket to reply
+                    }
+                });
+                area.scrollTop = area.scrollHeight;
+            });
+        };
+
+        window.sendReply = () => {
+            const txt = document.getElementById('c-input').value;
+            if(!txt || !currentChatUid) return;
+            
+            if(currentTicketId) {
+                update(ref(db, `support_tickets/${currentTicketId}`), {
+                    reply: txt,
+                    status: 'Closed'
+                }).then(() => {
+                    document.getElementById('c-input').value = "";
+                    loadChat(currentChatUid, document.getElementById('c-name').innerText);
+                });
+            } else {
+                alert("This user has no open tickets to reply to.");
+            }
+        };
+
+        // --- GLOBAL LISTENERS (NOTIFICATIONS) ---
+        onChildAdded(ref(db, 'deposit_requests'), s => { if(s.val().timestamp > startTime && s.val().status==='Pending') notify("New Deposit: "+s.val().amount, 'success'); updatePend(); });
+        onChildAdded(ref(db, 'withdraw_requests'), s => { if(s.val().timestamp > startTime && s.val().status==='Pending') notify("New Withdraw: "+s.val().amount, 'danger'); updatePend(); });
+        onChildAdded(ref(db, 'support_tickets'), s => { if(s.val().timestamp > startTime && s.val().status==='Open') notify("New Support Ticket", 'gold'); });
+
+        // --- TABLE LOADERS ---
+        // Registered Users Loader
+onValue(ref(db, 'users'), s => {
+    usersData = s.val() || {}; 
+    const tb = document.getElementById('tb-users'); 
+    tb.innerHTML = "";
+    Object.entries(usersData).forEach(([k, v]) => { 
+        tb.innerHTML += `
+            <tr style="${v.isBlocked ? 'opacity:0.5; color:red;' : ''}">
+                <td><b>${v.username || 'User'}</b></td>
+                <td><small>${k}</small></td> <td style="color:var(--success)">${v.balance || 0}</td>
+                <td>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn" style="background:#555;" onclick="openU('${k}')">Edit</button>
+                        <button class="btn" style="background:var(--gold); color:#000;" onclick="viewUserHistory('${k}', '${v.username}')">
+                            <i class="fas fa-history"></i>
+                        </button>
+<button class="btn" style="background:var(--success); color:#000;" onclick="viewKYC('${k}', '${v.username}')" title="View KYC">
+    <i class="fas fa-id-card"></i> KYC
+</button>
+                    </div>
+                </td>
+            </tr>`; 
+    });
+});
+
+        onValue(ref(db, 'deposit_requests'), (s) => {
+    const tb = document.getElementById('tb-dep');
+    tb.innerHTML = "";
+    let p = 0;
+    let r = 0;
+
+    if (s.exists()) {
+        const deposits = s.val();
+
+        // Realtime Users data fetch kar rahe hain details ke liye
+        get(ref(db, 'users')).then((uSnap) => {
+            const allUsers = uSnap.val() || {};
+
+            Object.entries(deposits).reverse().forEach(([k, v]) => {
+                // Pending requests count aur Approved revenue calculation
+                if (v.status === 'Pending') p++;
+                if (v.status === 'Approved') r += Number(v.amount);
+
+                const userData = allUsers[v.userId] || {};
+                const username = userData.username || "Unknown User";
+
+                tb.innerHTML += `
+    <tr>
+        <td style="line-height:1.2; cursor:pointer;" onclick="viewUserHistory('${v.userId}', '${username}')" title="Click to view full history">
+            <b style="color:var(--primary); text-decoration:underline;">${username}</b><br>
+            <small style="font-size:9px; opacity:0.6">UID: ${v.userId.substring(0, 6)}</small>
+        </td>
+        <td style="color:var(--success); font-weight:bold">Rs. ${v.amount}</td>
+        <td>
+            <span style="text-transform: capitalize; font-size:12px;">
+                <i class="fas fa-wallet" style="font-size:10px; color:var(--gold)"></i> ${v.method}
+            </span>
+        </td>
+        <td style="font-family: monospace; letter-spacing:1px; color:var(--neon-blue)">
+            ${v.trxID}
+        </td>
+        <td>
+            ${v.status === 'Pending' ? `
+                <div style="display:flex; gap:5px;">
+                    <button class="btn btn-ok" onclick="hDep('${k}','Approved','${v.userId}',${v.amount})" title="Approve">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="btn btn-no" onclick="hDep('${k}','Rejected')" title="Reject">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            ` : `
+                <span class="badge" style="background:${v.status === 'Approved' ? 'rgba(0,242,195,0.2)' : 'rgba(253,93,147,0.2)'}; 
+                color:${v.status === 'Approved' ? 'var(--success)' : 'var(--danger)'}; border:1px solid; font-size:10px; padding:2px 8px">
+                    ${v.status}
+                </span>
+            `}
+        </td>
+    </tr>`;
+            });
+
+            // Stats Update
+            document.getElementById('s-rev').innerText = "Rs. " + r;
+            const dbg = document.getElementById('dep-badge');
+            dbg.innerText = p;
+            dbg.style.display = p > 0 ? 'inline' : 'none';
+            updatePend();
+        });
+    }
+});
+
+        onValue(ref(db, 'withdraw_requests'), (s) => {
+    const tb = document.getElementById('tb-with');
+    tb.innerHTML = "";
+    let p = 0;
+
+    if (s.exists()) {
+        const requests = s.val();
+        
+        // Users ka data fetch kar rahe hain taake username mil sake
+        get(ref(db, 'users')).then((uSnap) => {
+            const allUsers = uSnap.val() || {};
+
+            Object.entries(requests).reverse().forEach(([k, v]) => {
+                if (v.status === 'Pending') p++;
+
+                const userData = allUsers[v.userId] || {};
+                const username = userData.username || "Unknown";
+                
+                // Table Row with Full Details
+                tb.innerHTML += `
+                    <tr>
+                        <td style="line-height:1.2">
+                            <b style="color:var(--primary)">${username}</b><br>
+                            <small style="font-size:9px; opacity:0.6">UID: ${v.userId.substring(0, 6)}</small>
+                        </td>
+                        <td style="color:var(--danger); font-weight:bold">Rs. ${v.amount}</td>
+                        <td style="font-size:12px">
+                            <i class="fas fa-university" style="font-size:10px; color:var(--gold)"></i> ${v.account}<br>
+                            <small style="color:#aaa">${v.method || 'Transfer'}</small>
+                        </td>
+                        <td>
+                            <span class="badge" style="background:${v.status === 'Approved' ? 'var(--success)' : v.status === 'Rejected' ? 'var(--danger)' : 'orange'}; font-size:10px; padding:3px 8px">
+                                ${v.status}
+                            </span>
+                        </td>
+                        <td>
+                            ${v.status === 'Pending' ? `
+                                <div style="display:flex; gap:5px;">
+                                    <button class="btn btn-ok" onclick="hWith('${k}','Approved','${v.userId}',${v.amount})" title="Approve">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-no" onclick="hWith('${k}','Rejected','${v.userId}',${v.amount})" title="Reject">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            ` : '<i class="fas fa-lock" style="opacity:0.3"></i>'}
+                        </td>
+                    </tr>`;
+            });
+            
+            const wbg = document.getElementById('with-badge');
+            wbg.innerText = p;
+            wbg.style.display = p > 0 ? 'inline' : 'none';
+            updatePend();
+        });
+    }
+});
+// --- 📩 FEEDBACK LOADER ---
+onValue(ref(db, 'feedbacks'), (snap) => {
+    const tb = document.getElementById('tb-feedbacks');
+    tb.innerHTML = "";
+    let pendingFeed = 0;
+
+    if (snap.exists()) {
+        const feedbacks = snap.val();
+        // Naye feedbacks ko upar dikhane ke liye reverse
+        const keys = Object.keys(feedbacks).reverse();
+
+        keys.forEach(k => {
+            const f = feedbacks[k];
+            if (f.status === 'pending') pendingFeed++;
+
+            tb.innerHTML += `
+                <tr>
+                    <td><small>${new Date(f.timestamp).toLocaleDateString()}</small></td>
+                    <td>
+                        <b style="color:var(--neon)">${f.name}</b><br>
+                        <small style="opacity:0.5">UID: ${f.uid.substring(0,6)}</small>
+                    </td>
+                    <td style="max-width:300px; white-space: normal; line-height:1.4;">${f.message}</td>
+                    <td>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn btn-ok" onclick="replyFeedback('${f.uid}')" title="Reply">
+                                <i class="fas fa-reply"></i>
+                            </button>
+                            <button class="btn btn-no" onclick="deleteFeedback('${k}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+        });
+    } else {
+        tb.innerHTML = "<tr><td colspan='4' style='text-align:center; opacity:0.5;'>No Feedbacks Yet</td></tr>";
+    }
+
+    // Badge update
+    const fbg = document.getElementById('feed-badge');
+    fbg.innerText = pendingFeed;
+    fbg.style.display = pendingFeed > 0 ? 'inline' : 'none';
+});
+
+// Feedback Actions Functions
+import { remove } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+window.deleteFeedback = (key) => {
+    if(confirm("Delete this feedback?")) {
+        remove(ref(db, `feedbacks/${key}`));
+    }
+};
+
+window.replyFeedback = (uid) => {
+    // User ko Live Chat par bhej dein reply karne ke liye
+    const userName = usersData[uid]?.username || "User";
+    tab('livechat', document.querySelector('[onclick*="livechat"]'));
+    loadChat(uid, userName);
+};
+        // --- HELPER FUNCTIONS ---
+        window.tab = (id,el) => { 
+            document.querySelectorAll('.section').forEach(s=>s.classList.remove('active')); 
+            document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active')); 
+            document.getElementById(id).classList.add('active'); 
+            el.classList.add('active'); 
+        };
+        
+        window.toggleNotif = () => { const b=document.getElementById('notif-list'); b.style.display=b.style.display==='block'?'none':'block'; document.getElementById('bell-dot').style.display='none'; };
+        // --- Search Function ---
+window.searchUsers = () => {
+    const input = document.getElementById('user-search-input').value.toUpperCase();
+    const rows = document.querySelectorAll('#tb-users tr');
+    rows.forEach(row => {
+        const text = row.innerText.toUpperCase();
+        row.style.display = text.includes(input) ? "" : "none";
+    });
+};
+
+// --- History Modal Functions ---
+window.viewUserHistory = (uid, name) => {
+    document.getElementById('historyModal').style.display = 'flex';
+    document.getElementById('h-name').innerText = name + "'s History";
+    document.getElementById('h-uid').innerText = "UID: " + uid;
+    const hTable = document.getElementById('h-table-body');
+    hTable.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
+
+    // Deposits aur Withdrawals ka data fetch karna
+    Promise.all([
+        get(ref(db, 'deposit_requests')),
+        get(ref(db, 'withdraw_requests'))
+    ]).then(([dSnap, wSnap]) => {
+        let history = [];
+        let tDep = 0, tWith = 0;
+
+        if(dSnap.exists()) Object.values(dSnap.val()).forEach(d => {
+            if(d.userId === uid) {
+                history.push({...d, type: 'Deposit'});
+                if(d.status === 'Approved') tDep += Number(d.amount);
+            }
+        });
+
+        if(wSnap.exists()) Object.values(wSnap.val()).forEach(w => {
+            if(w.userId === uid) {
+                history.push({...w, type: 'Withdraw'});
+                if(w.status === 'Approved') tWith += Number(w.amount);
+            }
+        });
+
+        // Display results
+        document.getElementById('h-total-dep').innerText = "Rs. " + tDep;
+        document.getElementById('h-total-with').innerText = "Rs. " + tWith;
+        hTable.innerHTML = "";
+        history.sort((a,b) => b.timestamp - a.timestamp).forEach(item => {
+            const isDep = item.type === 'Deposit';
+            hTable.innerHTML += `
+                <tr>
+                    <td style="color:${isDep ? 'var(--success)' : 'var(--danger)'}">${item.type}</td>
+                    <td><b>${item.amount}</b></td>
+                    <td>${item.status}</td>
+                    <td><small>${isDep ? item.trxID : item.account}</small></td>
+                </tr>`;
+        });
+    });
+};
+
+window.closeHistoryModal = () => document.getElementById('historyModal').style.display = 'none';
+       // admin.html ke script section ke andar...
+
+// Pehle wale hDep function ko talash karein aur use is naye code se replace kar dein:
+window.hDep = (k, s, uid, a) => { 
+    // Ticket status update karna (Approved ya Rejected)
+    update(ref(db, `deposit_requests/${k}`), { status: s }); 
+
+    if (s === 'Approved') {
+        // 1. Jis user ne deposit kiya, uska balance update karein
+        get(ref(db, `users/${uid}`)).then(uSnap => {
+            if (uSnap.exists()) {
+                const userData = uSnap.val();
+                const newBal = (userData.balance || 0) + Number(a);
+                update(ref(db, `users/${uid}`), { balance: newBal });
+
+                // 2. REFERRAL LOGIC: Check karein kya is user ko kisi ne refer kiya tha?
+                // Hum check kar rahe hain ke 'referredBy' ID maujood ho aur reward pehle na mila ho
+                if (userData.referredBy && userData.referredBy !== "none" && !userData.rewardClaimed) {
+                    const refId = userData.referredBy;
+                    
+                    // Jisne invite kiya tha (Referrer), uska record talash karein
+                    get(ref(db, `users/${refId}`)).then(rSnap => {
+                        if (rSnap.exists()) {
+                            // Invite karne wale ka balance 50 barha dein
+                            const currentRefBal = rSnap.val().balance || 0;
+                            update(ref(db, `users/${refId}`), { balance: currentRefBal + 50 });
+                            
+                            // Invite karne wale ko notification bhejein
+                            const nKey = push(ref(db, `users/${refId}/notifications`)).key;
+                            set(ref(db, `users/${refId}/notifications/${nKey}`), {
+                                message: "Mubarak ho! Aapke referral ne deposit kiya aur aapko Rs. 50 mil gaye! 🎉",
+                                timestamp: Date.now(),
+                                read: false
+                            });
+                        }
+                    });
+
+                    // Is user ko mark kar dein ke iska referral reward ab mil chuka hai
+                    // Taake ye user jab doosri baar deposit kare, to referrer ko dobara 50 na mil jayein
+                    update(ref(db, `users/${uid}`), { rewardClaimed: true });
+                }
+            }
+        });
+    }
+};
+// --- 💸 WITHDRAWAL HANDLER ---
+window.hWith = (k, s, uid, a) => {
+    // 1. Withdrawal request ka status update karein (Approved/Rejected)
+    update(ref(db, `withdraw_requests/${k}`), { status: s }).then(() => {
+        
+        // 2. Agar Reject hota hai, toh user ko paise wapis (Refund) karein
+        if (s === 'Rejected') {
+            get(ref(db, `users/${uid}`)).then(uSnap => {
+                if (uSnap.exists()) {
+                    const currentBal = uSnap.val().balance || 0;
+                    // User ka balance wapis barha dein kyunke withdraw reject ho gaya
+                    update(ref(db, `users/${uid}`), { balance: currentBal + Number(a) });
+                    
+                    // User ko rejection notification bhejein
+                    const nKey = push(ref(db, `users/${uid}/notifications`)).key;
+                    set(ref(db, `users/${uid}/notifications/${nKey}`), {
+                        message: `Aapka Rs.${a} ka withdrawal reject kar diya gaya hai. Amount wapis balance mein add kar di gayi hai.`,
+                        timestamp: Date.now(),
+                        read: false
+                    });
+                }
+            });
+            alert("Withdrawal Rejected & Refunded");
+        } else {
+            // Agar Approve hota hai
+            alert("Withdrawal Approved Successfully");
+            
+            // User ko approval notification bhejein
+            const nKey = push(ref(db, `users/${uid}/notifications`)).key;
+            set(ref(db, `users/${uid}/notifications/${nKey}`), {
+                message: `Mubarak ho! Aapka Rs.${a} ka withdrawal approve ho gaya hai aur paise bhej diye gaye hain. 🎉`,
+                timestamp: Date.now(),
+                read: false
+            });
+        }
+    }).catch(err => alert("Error: " + err.message));
+};
+        
+        window.saveAcc = () => update(ref(db,'admin_accounts'),{easypaisa:{number:document.getElementById('ep-num').value}, jazzcash:{number:document.getElementById('jc-num').value}}).then(()=>alert("Saved"));
+        function updatePend() { document.getElementById('s-pend').innerText = Number(document.getElementById('dep-badge').innerText) + Number(document.getElementById('with-badge').innerText); }
+        // --- 1. Page Reload Par Data Auto-Refill Karna ---
+get(ref(db, 'admin_accounts')).then((snapshot) => {
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        
+        // Easypaisa load
+        if (data.easypaisa) {
+            if (document.getElementById('ep-name')) document.getElementById('ep-name').value = data.easypaisa.name || "";
+            if (document.getElementById('ep-num')) document.getElementById('ep-num').value = data.easypaisa.number || "";
+        }
+        
+        // JazzCash load
+        if (data.jazzcash) {
+            if (document.getElementById('jc-name')) document.getElementById('jc-name').value = data.jazzcash.name || "";
+            if (document.getElementById('jc-num')) document.getElementById('jc-num').value = data.jazzcash.number || "";
+        }
+        
+        // TRC20 load
+        if (data.trc20) {
+            if (document.getElementById('trc-name')) document.getElementById('trc-name').value = data.trc20.name || "";
+            if (document.getElementById('trc-addr')) document.getElementById('trc-addr').value = data.trc20.address || "";
+        }
+    }
+}).catch(err => console.log("Firebase Load Error: ", err));
+
+// --- 2. Update Button Dabane Par Save Karna ---
+window.saveAcc = () => {
+    const paymentData = {
+        easypaisa: {
+            name: document.getElementById('ep-name') ? document.getElementById('ep-name').value : "",
+            number: document.getElementById('ep-num') ? document.getElementById('ep-num').value : ""
+        },
+        jazzcash: {
+            name: document.getElementById('jc-name') ? document.getElementById('jc-name').value : "",
+            number: document.getElementById('jc-num') ? document.getElementById('jc-num').value : ""
+        },
+        trc20: {
+            name: document.getElementById('trc-name') ? document.getElementById('trc-name').value : "",
+            address: document.getElementById('trc-addr') ? document.getElementById('trc-addr').value : ""
+        },
+        lastUpdated: Date.now()
+    };
+
+    update(ref(db, 'admin_accounts'), paymentData)
+        .then(() => alert("Payment Information Updated Successfully! ✅"))
+        .catch((error) => alert("Error updating info: " + error.message));
+};
+        // MODAL LOGIC
+        let uId=null;
+        window.openU = (id) => { 
+            uId=id; 
+            currentModalUser = usersData[id];
+            document.getElementById('uModal').style.display='flex'; 
+            document.getElementById('m-name').innerText=currentModalUser.username; 
+            document.getElementById('m-uid').innerText=id; 
+            document.getElementById('m-bal').value=currentModalUser.balance; 
+            
+            const btn = document.getElementById('btn-block');
+            if(currentModalUser.isBlocked) { btn.innerText="Unblock User"; btn.style.background="var(--success)"; }
+            else { btn.innerText="Block User"; btn.style.background="var(--danger)"; }
+        };
+        
+        window.saveBal = () => update(ref(db,`users/${uId}`),{balance:Number(document.getElementById('m-bal').value)}).then(()=>alert("Saved"));
+        
+        window.toggleBlock = () => { 
+            const newVal = !usersData[uId].isBlocked;
+            update(ref(db,`users/${uId}`),{isBlocked: newVal}).then(()=>{
+                alert(newVal ? "User Blocked" : "User Unblocked");
+                document.getElementById('uModal').style.display='none';
+            }); 
+        };
+
+    </script>
+</body>
+</html>

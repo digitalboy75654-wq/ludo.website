@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ludo Pro - Real Multiplayer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background: radial-gradient(circle at center, #1e0515, #000000); 
+            color: white; font-family: 'Poppins', sans-serif; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            height: 100vh; margin: 0; overflow: hidden; 
+        }
+        
+        .radar-container { position: relative; width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin-bottom: 25px; }
+        .radar { width: 100%; height: 100%; border: 2px solid #00d2d3; border-radius: 50%; position: absolute; box-shadow: 0 0 30px rgba(0, 210, 211, 0.3); }
+        .radar::after { content: ''; position: absolute; top: 50%; left: 50%; width: 50%; height: 2px; background: #00d2d3; transform-origin: left; animation: scan 1.0s linear infinite; box-shadow: 0 0 10px #00d2d3; }
+        .match-info { z-index: 10; text-align: center; }
+        .count-text { font-family: 'Orbitron'; font-size: 30px; color: white; text-shadow: 0 0 10px #00d2d3; }
+        .room-id-display { font-size: 11px; color: #aaa; margin-top: 5px; font-family: monospace; }
+
+        @keyframes scan { to { transform: rotate(360deg); } }
+        
+        .slots { display: flex; gap: 40px; margin-top: 20px; }
+        .slot { width: 100px; height: 130px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px dashed #555; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.4s; position: relative; }
+        .slot.filled { border: 2px solid #00d2d3; background: rgba(0, 210, 211, 0.1); transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 210, 211, 0.2); }
+        .slot img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #fff; margin-bottom: 10px; object-fit: cover; }
+        .slot-name { font-size: 12px; font-weight: 600; text-align: center; width: 90px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        
+        .vs-text { font-family: 'Orbitron'; font-size: 28px; color: #f1c40f; align-self: center; margin-top: -20px; text-shadow: 0 0 10px #f1c40f; }
+
+        .loader-dots { display: flex; gap: 4px; margin-top: 10px; }
+        .dot { width: 6px; height: 6px; background: #00d2d3; border-radius: 50%; animation: bounce 0.6s infinite alternate; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce { to { transform: translateY(-5px); opacity: 0.3; } }
+
+        .status-box { margin-top: 50px; text-align: center; height: 40px; }
+        .status-text { color: #00d2d3; font-weight: 600; font-size: 16px; letter-spacing: 1.5px; text-transform: uppercase; }
+
+        .cancel-btn { margin-top: 20px; padding: 12px 40px; border: 1px solid #ff4757; color: #ff4757; background: transparent; border-radius: 30px; cursor: pointer; font-size: 12px; font-weight: 700; transition: 0.3s; letter-spacing: 1px; }
+        .cancel-btn:hover { background: #ff4757; color: white; box-shadow: 0 0 15px #ff4757; }
+    </style>
+</head>
+<body>
+
+    <div class="radar-container">
+        <div class="radar"></div>
+        <div class="match-info">
+            <div class="count-text" id="joined-count">0/2</div>
+            <div class="room-id-display" id="room-id-disp">Checking...</div>
+        </div>
+    </div>
+
+    <div class="slots">
+        <div class="slot" id="slot-0"><div class="loader-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+        <div class="vs-text">VS</div>
+        <div class="slot" id="slot-1"><div class="loader-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+    </div>
+
+    <div class="status-box">
+        <div class="status-text" id="status-text">Connecting...</div>
+    </div>
+
+    <button class="cancel-btn" id="cancel-action">CANCEL MATCH</button>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, get, set, runTransaction, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
+            authDomain: "ludo-d46ab.firebaseapp.com", 
+            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
+            projectId: "ludo-d46ab" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const ENTRY_FEE = parseInt(urlParams.get('entry')) || 0; 
+        
+        let currentUser = null;
+        let myRoomId = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = "login.html"; return; }
+            currentUser = user;
+            findStrictMatch();
+        });
+
+        // --- match2.html MEIN REPLACE KAREIN ---
+
+async function findStrictMatch() {
+    document.getElementById('status-text').innerText = "Searching Rooms...";
+    const poolRef = ref(db, `matchmaking_pool/${ENTRY_FEE}`);
+    
+    const snapshot = await get(poolRef);
+    let targetRoomId = null;
+    let maxIndex = 0;
+
+    if (snapshot.exists()) {
+        const rooms = snapshot.val();
+        for (const roomId in rooms) {
+            // 1. Convert ID to lowercase immediately
+            const cleanId = roomId.toLowerCase(); 
+            const idx = parseInt(cleanId.split('_')[1]) || 0;
+            if(idx > maxIndex) maxIndex = idx;
+
+            const room = rooms[roomId];
+            
+            // 2. Agar main pehle se is room mein hoon (Reconnect logic)
+            if (room.players && room.players[currentUser.uid]) {
+                console.log("Rejoining existing room:", cleanId);
+                myRoomId = cleanId; 
+                listenToRoom(cleanId);
+                return; 
+            }
+
+            // 3. Agar room mein jagah hai (Join logic)
+            const pCount = room.players ? Object.keys(room.players).length : 0;
+            if (pCount < 2) {
+                targetRoomId = cleanId; 
+                break; // Room mil gaya! Loop roko.
+            }
+        }
+    }
+
+    // 4. Decision: Ya toh mila hua room join karo, ya naya banao
+    // Yahan ghalti thi, ab theek hai:
+    const finalRoomId = targetRoomId ? targetRoomId : `room_${maxIndex + 1}`;
+    
+    console.log("Joining Room:", finalRoomId);
+    joinRoom(finalRoomId);
+}
+        // --- match2.html mein is function ko paste karein ---
+
+async function joinRoom(roomId) {
+    myRoomId = roomId;
+    document.getElementById('status-text').innerText = `Joining ${roomId}...`;
+    
+    const roomRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}`);
+
+    const result = await runTransaction(roomRef, (roomData) => {
+        // 1. Agar Room exist hi nahi karta, to naya banao (Red Player)
+        if (!roomData) {
+            return {
+                status: 'waiting',
+                createdAt: Date.now(),
+                gameState: { // <--- YAHAN ADD KIYA: Default Reset State
+                    tokens: { red: [0,0,0,0], yellow: [0,0,0,0] },
+                    turn: 'red',
+                    winner: null
+                },
+                players: {
+                    [currentUser.uid]: {
+                        uid: currentUser.uid,
+                        name: currentUser.displayName || "Player",
+                        photo: currentUser.photoURL || "https://i.pravatar.cc/150",
+                        color: 'red'
+                    }
+                }
+            };
+        }
+
+        // 2. Check Duplication (Agar main pehle se hoon)
+        if (roomData.players && roomData.players[currentUser.uid]) {
+            return; 
+        }
+
+        // 3. Join Logic (Agar room mein jagah hai)
+        const pCount = roomData.players ? Object.keys(roomData.players).length : 0;
+        
+        if (pCount < 2) {
+            if (!roomData.players) roomData.players = {};
+
+            // --- FIX START: Game Reset Logic ---
+            // Agar room khali tha aur main pehla banda hoon jo wapis aya hai, 
+            // toh purana Game State delete karke naya banao.
+            if (pCount === 0) {
+                 roomData.gameState = {
+                    tokens: { red: [0,0,0,0], yellow: [0,0,0,0] },
+                    turn: 'red',
+                    winner: null
+                };
+            }
+            // --- FIX END ---
+
+            roomData.players[currentUser.uid] = {
+                uid: currentUser.uid,
+                name: currentUser.displayName || "Player",
+                photo: currentUser.photoURL || "https://i.pravatar.cc/150",
+                // Agar main akela hoon (0 players) toh Red, warna Yellow
+                color: pCount === 0 ? 'red' : 'yellow' 
+            };
+            return roomData;
+        }
+        
+        return; // Room full
+    });
+
+    if (result.committed || result.snapshot.exists()) {
+        document.getElementById('room-id-disp').innerText = `ID: ${roomId}`;
+        
+        // Disconnect logic: Agar lobby se bhaag gaya toh player remove karo
+        const myPlayerRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}`);
+        onDisconnect(myPlayerRef).remove(); 
+
+        listenToRoom(roomId);
+    } else {
+        setTimeout(findStrictMatch, 500);
+    }
+}
+
+        function listenToRoom(roomId) {
+    const roomRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}`);
+    onValue(roomRef, (snap) => {
+        const data = snap.val();
+        if (!data || !data.players) return; 
+
+        const playersList = Object.values(data.players);
+        const count = playersList.length;
+
+        document.getElementById('joined-count').innerText = `${count}/2`;
+        updateSlots(playersList);
+
+        if (count === 2) {
+            document.getElementById('status-text').innerText = "OPPONENT FOUND!";
+            document.getElementById('status-text').style.color = "#f1c40f";
+            document.getElementById('cancel-action').style.display = 'none'; 
+            
+            // --- FIX START: Data Delete hone se bachayein ---
+            // Page change hone par server data delete na kare, isliye purana order cancel karein
+            const myPlayerRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}`);
+            onDisconnect(myPlayerRef).cancel(); 
+            // --- FIX END ---
+
+            setTimeout(() => {
+                window.location.href = `game2.html?gameId=${roomId.toLowerCase()}&entry=${ENTRY_FEE}`;
+            }, 2000);
+        }
+            });
+        }
+
+        function updateSlots(players) {
+            // Sort players to ensure consistent slot positions
+            // (Host hamesha slot 0 mein, Joiner slot 1 mein)
+            players.sort((a,b) => a.color === 'red' ? -1 : 1);
+
+            for(let i=0; i<2; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                if (players[i]) {
+                    slot.innerHTML = `<img src="${players[i].photo}"><div class="slot-name">${players[i].name}</div>`;
+                    slot.classList.add('filled');
+                } else {
+                    slot.innerHTML = '<div class="loader-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+                    slot.classList.remove('filled');
+                }
+            }
+        }
+
+        document.getElementById('cancel-action').onclick = async function() {
+            if (confirm("Cancel and refund?")) {
+                await runTransaction(ref(db, `users/${currentUser.uid}/balance`), (bal) => (bal || 0) + ENTRY_FEE);
+                
+                if (myRoomId) {
+                    await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players/${currentUser.uid}`));
+                    
+                    // Garbage Collection: Agar room khali ho jaye to delete
+                    const snap = await get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players`));
+                    if (!snap.exists()) {
+                        await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}`));
+                    }
+                }
+                window.location.href = "home.html";
+            }
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
