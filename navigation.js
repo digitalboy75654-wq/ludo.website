@@ -30,3 +30,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if(el) el.classList.add('active');
     }
 });
+document.addEventListener('DOMContentLoaded', () => {
+    // ... Aapka purana Active Tab Logic yahan rahega ...
+
+    // --- 🛠️ GLOBAL HIDE FOOTER LOGIC ---
+    const dock = document.querySelector('.navigation-dock');
+    if (!dock) return; // Agar page par dock nahi hai to ruk jao
+
+    // Function jo scroll ko handle karega
+    const handleScroll = (target) => {
+        const scrollHeight = target.scrollHeight || document.documentElement.scrollHeight;
+        const scrollTop = target.scrollTop || window.pageYOffset || document.documentElement.scrollTop;
+        const clientHeight = target.clientHeight || window.innerHeight;
+
+        // Debugging: Console mein check karne ke liye (Optional)
+        // console.log(scrollTop + clientHeight, scrollHeight);
+
+        // Agar user bottom se 20px ke faslay par hai
+        if (scrollTop + clientHeight >= scrollHeight - 20) {
+            dock.style.transform = 'translateX(-50%) translateY(120px)';
+            dock.style.opacity = '0';
+            dock.style.pointerEvents = 'none'; // Buttons click na hon
+        } else {
+            dock.style.transform = 'translateX(-50%) translateY(0)';
+            dock.style.opacity = '1';
+            dock.style.pointerEvents = 'auto';
+        }
+    };
+
+    // Har mumkin scroll hone wali cheez par listener lagao
+    window.addEventListener('scroll', () => handleScroll(document.documentElement), { passive: true });
+    
+    const scrollArea = document.querySelector('.scroll-area');
+    if (scrollArea) {
+        scrollArea.addEventListener('scroll', () => handleScroll(scrollArea), { passive: true });
+    }
+
+    // Kuch pages (jaise Profile) mein poora 'body' scroll hota hai
+    document.body.addEventListener('scroll', () => handleScroll(document.body), { passive: true });
+});
