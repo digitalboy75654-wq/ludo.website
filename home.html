@@ -801,21 +801,25 @@
     
 
     <div class="header">
-        <div class="profile-sec" onclick="window.location.href='profile.html'">
-            <div id="u-photo" class="avatar"></div>
-            <div class="u-det">
-                <div class="u-name" id="u-name">Loading...</div>
-                <div class="u-id" id="u-id" onclick="copyUID(this, event)" style="cursor: pointer; font-size: 9px; display: flex; align-items: center; gap: 4px; margin-top: 3px; position: relative; z-index: 100;" title="Click to copy">
-    ID: <span id="full-uid-val">Loading...</span> 
-    <i class="far fa-copy" style="color: var(--gold); font-size: 10px;"></i>
-</div>
+    <div class="profile-sec">
+        <div id="u-photo" class="avatar"></div>
+        <div class="u-det">
+            <div class="u-name" id="u-name">Loading...</div>
+            <div class="u-id" id="u-id" onclick="copyUID(this, event)" 
+                 style="cursor: pointer; display: flex; align-items: center; gap: 3px; margin-top: 2px; width: fit-content; position: relative; z-index: 100; font-size: 7.5px; opacity: 0.8; letter-spacing: -0.2px; white-space: nowrap;" 
+                 title="Click to copy">
+                <span style="color: var(--gold); font-weight: bold; opacity: 1;">ID:</span>
+                <span id="full-uid-val" style="font-family: monospace;">Loading...</span> 
+                <i class="far fa-copy" style="color: var(--gold); font-size: 8px; margin-left: 2px;"></i>
             </div>
         </div>
-        <div class="coin-pill" onclick="window.location.href='deposit.html'">
-            <i class="fas fa-wallet"></i> <span id="u-balance">...</span>
-        </div>
     </div>
-
+    <div class="coin-pill" onclick="window.location.href='deposit.html'">
+        <i class="fas fa-wallet"></i> <span id="u-balance">...</span>
+    </div>
+</div>
+            </div>
+        
     <div class="scroll-area">
         <div class="app-branding">
             <div class="brand-title">
