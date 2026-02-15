@@ -62,7 +62,6 @@
             animation: slideUp 0.4s ease forwards; opacity: 0; transform: translateY(20px);
         }
 
-        /* Left Border Indicator */
         .tx-card::before {
             content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
         }
@@ -106,7 +105,9 @@
     </div>
 
     <div class="filter-bar">
-        <div class="filter-btn active" onclick="filterGames('all', this)">All Games</div>
+        <div class="filter-btn active" onclick="filterGames('30days', this)">30 Days</div>
+        <div class="filter-btn" onclick="filterGames('7days', this)">7 Days</div>
+        <div class="filter-btn" onclick="filterGames('1day', this)">1 Day</div>
         <div class="filter-btn" onclick="filterGames('win', this)">Wins</div>
         <div class="filter-btn" onclick="filterGames('loss', this)">Losses</div>
     </div>
@@ -121,7 +122,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-        import { getDatabase, ref, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        // 'remove' import kiya gaya hai auto-delete ke liye
+        import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
@@ -135,10 +137,15 @@
         const db = getDatabase(app);
 
         let allGames = []; // Global Store
+        let currentFilter = '30days'; // Default filter state
+
+        // Time limits (in milliseconds)
+        const TIME_1_DAY = 24 * 60 * 60 * 1000;
+        const TIME_7_DAYS = 7 * TIME_1_DAY;
+        const TIME_30_DAYS = 30 * TIME_1_DAY;
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Real-time listener start karo
                 fetchHistory(user.uid);
             } else {
                 window.location.href = "login.html";
@@ -147,21 +154,31 @@
 
         function fetchHistory(uid) {
             const container = document.getElementById('history-container');
-            // Last 50 transactions uthayega
-            const historyRef = query(ref(db, `users/${uid}/gameHistory`), limitToLast(50));
+            // Hum directly gameHistory check kar rahe hain taake purana data delete kar sakein
+            const historyRef = ref(db, `users/${uid}/gameHistory`);
 
             onValue(historyRef, (snapshot) => {
                 if (snapshot.exists()) {
                     allGames = [];
+                    const now = Date.now();
+
                     snapshot.forEach(child => {
-                        allGames.push(child.val());
+                        const game = child.val();
+                        const gameKey = child.key;
+
+                        // ⚡ AUTO-REMOVE LOGIC: Agar 30 din se purani hai toh Firebase se ura do
+                        if (now - game.timestamp > TIME_30_DAYS) {
+                            remove(ref(db, `users/${uid}/gameHistory/${gameKey}`));
+                        } else {
+                            allGames.push(game);
+                        }
                     });
                     
-                    // Firebase ascending (purana pehle) deta hai, humein reverse karna hai (naya pehle)
+                    // Naya pehle dikhane ke liye reverse
                     allGames.reverse(); 
                     
-                    // Default view: All
-                    renderGames(allGames);
+                    // Current filter apply karo
+                    applyCurrentFilter();
                 } else {
                     container.innerHTML = `
                         <div class="empty-state">
@@ -172,24 +189,38 @@
             });
         }
 
-        // Global function banaya taake HTML onclick isay call kar sake
+        // Filter button click logic
         window.filterGames = (type, btn) => {
-            // UI Update
+            currentFilter = type; // State update karo
+            
+            // UI Button Active State Update
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            // Filtering Logic
-            if(type === 'all') {
-                renderGames(allGames);
-            } else if (type === 'win') {
-                const wins = allGames.filter(g => g.amount > 0);
-                renderGames(wins);
-            } else if (type === 'loss') {
-                const losses = allGames.filter(g => g.amount < 0);
-                renderGames(losses);
-            }
+            applyCurrentFilter();
         }
 
+        // List Filter Karne ka Logic
+        function applyCurrentFilter() {
+            const now = Date.now();
+            let filteredGames = [];
+
+            if (currentFilter === '30days') {
+                filteredGames = allGames; // 30 days toh hum pehle hi database se chhan chuke hain
+            } else if (currentFilter === '7days') {
+                filteredGames = allGames.filter(g => (now - g.timestamp) <= TIME_7_DAYS);
+            } else if (currentFilter === '1day') {
+                filteredGames = allGames.filter(g => (now - g.timestamp) <= TIME_1_DAY);
+            } else if (currentFilter === 'win') {
+                filteredGames = allGames.filter(g => g.amount > 0);
+            } else if (currentFilter === 'loss') {
+                filteredGames = allGames.filter(g => g.amount < 0);
+            }
+
+            renderGames(filteredGames);
+        }
+
+        // Draw HTML Cards
         function renderGames(games) {
             const container = document.getElementById('history-container');
             container.innerHTML = "";
