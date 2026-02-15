@@ -402,75 +402,104 @@ window.updateKYCStatus = (newStatus) => {
     });
 };
         // --- 1. LOAD CHAT (Header mein Delete Button aur Image Support ke sath) ---
-        window.loadChat = (uid, name) => {
-            currentChatUid = uid;
-            
-            // Header ko update karna (Naam ke sath Delete button)
-            document.getElementById('c-name').innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <span id="raw-c-name">${name}</span>
-                    <button class="btn btn-no" style="padding: 6px 12px; font-size: 11px; background: rgba(253,93,147,0.2); color: var(--danger); border: 1px solid var(--danger); border-radius: 5px; cursor: pointer;" onclick="deleteAllChats()" title="Delete Full Chat">
-                        <i class="fas fa-trash"></i> Clear Chat
-                    </button>
+        // --- 1. GLOBAL VARIABLES (Inko loadChat se theek upar likhein) ---
+let lastKnownTicketId = null;
+let lastKnownReply = "";
+
+// --- 2. UPDATED LOAD CHAT ---
+window.loadChat = (uid, name) => {
+    currentChatUid = uid;
+    
+    // Header mein Delete All (Clear Chat) Button
+    document.getElementById('c-name').innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <span id="raw-c-name">${name}</span>
+            <button class="btn btn-no" style="padding: 6px 12px; font-size: 11px; background: rgba(253,93,147,0.2); color: var(--danger); border: 1px solid var(--danger); border-radius: 5px; cursor: pointer;" onclick="deleteAllChats()" title="Delete Full Chat">
+                <i class="fas fa-trash"></i> Clear Chat
+            </button>
+        </div>
+    `;
+    
+    document.getElementById('c-input').disabled = false;
+    
+    get(ref(db, 'support_tickets')).then(snap => {
+        const area = document.getElementById('c-msgs');
+        area.innerHTML = "";
+        const tickets = snap.val() || {};
+        
+        const myTickets = Object.entries(tickets)
+            .filter(([k,v]) => v.userId === uid)
+            .sort((a,b) => a[1].timestamp - b[1].timestamp);
+
+        currentTicketId = null;
+        lastKnownTicketId = null;
+        lastKnownReply = "";
+
+        myTickets.forEach(([tid, t]) => {
+            // Har message check karte waqt last ticket aur uske reply ko save kar lein
+            lastKnownTicketId = tid;
+            lastKnownReply = t.reply || "";
+
+            // User ka message padhne par Blue Tick ke liye update karein
+            if(!t.adminRead) update(ref(db, `support_tickets/${tid}`), { adminRead: true });
+
+            let msgContent = t.image ? `<img src="${t.image}" style="max-width: 100%; border-radius: 8px; margin-bottom: 5px; cursor: pointer; border: 1px solid #444;" onclick="window.open('${t.image}')"><br>` : "";
+            msgContent += t.message !== "📷 Photo Attached" ? t.message : "";
+
+            // User ka message print karein
+            area.innerHTML += `
+                <div class="msg msg-in">
+                    <span class="ticket-label">${t.subject}</span>
+                    ${msgContent}
                 </div>
             `;
             
-            document.getElementById('c-input').disabled = false;
-            
-            get(ref(db, 'support_tickets')).then(snap => {
-                const area = document.getElementById('c-msgs');
-                area.innerHTML = "";
-                const tickets = snap.val() || {};
-                
-                const myTickets = Object.entries(tickets)
-                    .filter(([k,v]) => v.userId === uid)
-                    .sort((a,b) => a[1].timestamp - b[1].timestamp);
-
-                currentTicketId = null;
-
-                myTickets.forEach(([tid, t]) => {
-                    // Agar admin chat khol le, toh user ko Blue Tick mil jaye (adminRead: true)
-                    if(!t.adminRead) update(ref(db, `support_tickets/${tid}`), { adminRead: true });
-
-                    // Image dikhane ka logic
-                    let msgContent = t.image ? `<img src="${t.image}" style="max-width: 100%; border-radius: 8px; margin-bottom: 5px; cursor: pointer; border: 1px solid #444;" onclick="window.open('${t.image}')"><br>` : "";
-                    msgContent += t.message !== "📷 Photo Attached" ? t.message : "";
-
-                    area.innerHTML += `
-                        <div class="msg msg-in">
-                            <span class="ticket-label">${t.subject}</span>
-                            ${msgContent}
-                        </div>
-                    `;
-                    if(t.reply) {
-                        area.innerHTML += `<div class="msg msg-out">${t.reply}</div>`;
-                    } else {
-                        currentTicketId = tid; // Mark latest open ticket to reply
-                    }
-                });
-                area.scrollTop = area.scrollHeight;
-            });
-        };
-
-        // --- 2. SEND REPLY LOGIC ---
-        window.sendReply = () => {
-            const txt = document.getElementById('c-input').value;
-            if(!txt || !currentChatUid) return;
-            
-            if(currentTicketId) {
-                update(ref(db, `support_tickets/${currentTicketId}`), {
-                    reply: txt,
-                    status: 'Closed',
-                    adminRead: true // Reply karne par bhi Blue Tick lag jaye
-                }).then(() => {
-                    document.getElementById('c-input').value = "";
-                    const rawName = document.getElementById('raw-c-name').innerText;
-                    loadChat(currentChatUid, rawName);
+            // Admin ka reply print karein
+            if(t.reply) {
+                // Agar Admin ne lagataar messages bheje hain, toh unko alag alag bubbles mein dikhayein
+                const adminMessages = t.reply.split("<br><br>");
+                adminMessages.forEach(msg => {
+                    area.innerHTML += `<div class="msg msg-out">${msg}</div>`;
                 });
             } else {
-                alert("This user has no open tickets to reply to.");
+                currentTicketId = tid; // Mark latest open ticket to reply
             }
-        };
+        });
+        area.scrollTop = area.scrollHeight;
+    });
+};
+
+// --- 3. UPDATED SEND REPLY (Jitne chaho messages bhejo) ---
+window.sendReply = () => {
+    const txt = document.getElementById('c-input').value;
+    if(!txt || !currentChatUid) return;
+    
+    // Agar open ticket nahi hai, toh aakhri message ko select karein
+    let targetTicketId = currentTicketId || lastKnownTicketId;
+
+    if(targetTicketId) {
+        let finalReply = txt;
+        
+        // Agar Admin pehle hi ek reply bhej chuka hai aur ab doosra bhej raha hai
+        if (!currentTicketId && lastKnownReply !== "") {
+            // Purane messages ke sath naya message jor (append) dein
+            finalReply = lastKnownReply + "<br><br>" + txt;
+        }
+
+        update(ref(db, `support_tickets/${targetTicketId}`), {
+            reply: finalReply,
+            status: 'Closed',
+            adminRead: true,
+            userRead: false // Taake user ko naye message ka notification jaye
+        }).then(() => {
+            document.getElementById('c-input').value = "";
+            const rawName = document.getElementById('raw-c-name') ? document.getElementById('raw-c-name').innerText : "User";
+            loadChat(currentChatUid, rawName);
+        });
+    } else {
+        alert("Is user ki pehle se koi chat nahi hai.");
+    }
+};
 
         // --- 3. SARI CHAT DELETE KARNE KA FUNCTION ---
         window.deleteAllChats = () => {
