@@ -3,199 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Support Center - Ludo Pro</title>
+    <title>Live Support - Ludo Pro</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --primary: #6c5ce7; --gold: #f1c40f; --neon: #00d2d3; 
-            --bg: #0f0c29; --card: rgba(255, 255, 255, 0.07);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --wa-bg: #0b141a; 
+            --wa-header: #202c33; 
+            --user-bubble: #005c4b; 
+            --admin-bubble: #202c33; 
+            --text-main: #e9edef;
+            --gold: #f1c40f;
         }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
+        
         body { 
-            margin:0; font-family:'Poppins', sans-serif; 
-            background: radial-gradient(circle at top, #1e1e3f, #111122, #000000); 
-            color:white; height:100vh; display:flex; flex-direction:column; overflow: hidden; 
+            font-family: 'Poppins', sans-serif; 
+            background-color: var(--wa-bg); 
+            color: var(--text-main); 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
         }
-        
-        /* HEADER */
+
+        /* --- WHATSAPP HEADER --- */
         .header { 
-            padding:15px 20px; background:rgba(0,0,0,0.3); display:flex; align-items:center; gap:15px; 
-            border-bottom:1px solid var(--glass-border); backdrop-filter: blur(10px);
+            padding: 12px 15px; 
+            background: var(--wa-header); 
+            display: flex; 
+            align-items: center; 
+            gap: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
         }
-        .back-btn { font-size:20px; cursor:pointer; color: white; }
-        .page-title { font-family: 'Orbitron'; font-size: 14px; font-weight: 700; color: var(--gold); }
+        .back-btn { font-size: 20px; color: #aebac1; cursor: pointer; }
+        .header img { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
+        .header-info { display: flex; flex-direction: column; }
+        .header-info h2 { font-size: 15px; font-weight: 600; color: white; margin: 0; }
+        /* Dynamic Status Text */
+        #admin-status { font-size: 11px; font-weight: 500; transition: color 0.3s; }
 
-        .container { flex:1; overflow-y:auto; padding:20px; padding-bottom: 110px; }
-        
-        /* TICKET FORM */
-        .card { 
-            background: var(--card); padding:22px; border-radius:25px; 
-            border:1px solid var(--glass-border); margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .card h3 { margin: 0 0 18px 0; font-size: 15px; font-weight: 600; color: var(--gold); }
-        
-        label { font-size:10px; color:#888; display:block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
-        select, textarea { 
-            width:100%; padding:14px; background:rgba(0,0,0,0.4); border:1px solid #444; 
-            border-radius:15px; color:white; font-size:13px; margin-bottom: 15px;
-        }
-        
-        .submit-btn { 
-            width:100%; padding:15px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); 
-            border:none; border-radius:50px; color:white; font-weight:700; font-size: 14px;
-            cursor:pointer; box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
+        /* --- CHAT AREA --- */
+        .chat-area { 
+            flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 15px;
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+            background-blend-mode: overlay; background-color: rgba(11, 20, 26, 0.93); scroll-behavior: smooth;
         }
 
-        /* CHAT STYLE */
-        .section-label { font-size: 12px; color: var(--neon); font-weight: 700; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
-        .ticket-item { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 20px; border: 1px solid var(--glass-border); }
-        .ticket-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .status-tag { font-size: 9px; padding: 4px 10px; border-radius: 50px; font-weight: 800; }
-        .status-replied { background: rgba(0, 210, 211, 0.15); color: var(--neon); }
-        .status-pending { background: rgba(241, 196, 15, 0.15); color: var(--gold); }
-        
-        .chat-container { display: flex; flex-direction: column; gap: 12px; }
-        .msg-bubble { max-width: 85%; padding: 12px 16px; font-size: 13px; line-height: 1.5; border-radius: 15px; }
-        .user-msg { align-self: flex-start; background: rgba(255,255,255,0.05); color: #ddd; border-bottom-left-radius: 2px; }
-        .admin-msg { align-self: flex-end; background: rgba(108, 92, 231, 0.2); color: #d1d1ff; border-bottom-right-radius: 2px; border-left: 3px solid var(--primary); }
+        .chat-date { text-align: center; margin: 10px 0; }
+        .chat-date span { background: #182229; font-size: 10px; padding: 5px 12px; border-radius: 10px; color: #8696a0; }
 
-        .close-btn { width: 100%; margin-top: 18px; background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.2); color: #ff4757; padding: 10px; border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer; }
-
-        /* --- FOOTER NAV (SYNCED) --- */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 75px;
-            background: rgba(20, 20, 35, 0.95); backdrop-filter: blur(20px);
-            display: flex; justify-content: space-around; align-items: center;
-            border-top: 1px solid var(--glass-border); border-radius: 20px 20px 0 0;
-            padding-bottom: 10px; z-index: 100;
+        /* --- BUBBLES --- */
+        .bubble { 
+            max-width: 80%; padding: 8px 12px 20px 12px; border-radius: 12px; 
+            font-size: 13.5px; position: relative; line-height: 1.4; word-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #888; font-size: 10px; position: relative; width: 50px; cursor: pointer; }
-        .nav-item.active { color: var(--gold); }
-        .nav-item i { font-size: 18px; }
-        .play-btn-outer { width: 60px; height: 60px; border-radius: 50%; background: #1a1a2e; display: flex; align-items: center; justify-content: center; margin-top: -35px; border: 4px solid #1a1a2e; }
-        .play-btn-inner { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #f1c40f, #e67e22); display: flex; align-items: center; justify-content: center; color: black; font-size: 24px; box-shadow: 0 0 15px rgba(241,196,15,0.4); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(241,196,15, 0.4);} 70% {box-shadow: 0 0 0 10px rgba(241,196,15, 0);} 100% {box-shadow: 0 0 0 0 rgba(241,196,15, 0);} }
-        .red-dot { position: absolute; top: -3px; right: 10px; width: 9px; height: 9px; background: #ff4757; border-radius: 50%; border: 1px solid #1a1a2e; display: none; }
+        .user { align-self: flex-end; background: var(--user-bubble); border-top-right-radius: 0; }
+        .admin { align-self: flex-start; background: var(--admin-bubble); border-top-left-radius: 0; }
+        
+        .chat-img { width: 100%; max-height: 250px; border-radius: 8px; margin-bottom: 5px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+        .time { font-size: 9px; color: rgba(255,255,255,0.6); position: absolute; bottom: 5px; right: 10px; display: flex; align-items: center; gap: 4px; }
+        
+        /* Ticks Style */
+        .tick { font-size: 10px; }
+        .tick-grey { color: #8696a0; }
+        .tick-blue { color: #53bdeb; }
+
+        /* --- INPUT AREA --- */
+        .input-container { background: var(--wa-header); padding: 10px 15px; display: flex; align-items: flex-end; gap: 10px; position: relative; }
+        .preview-box { position: absolute; bottom: 70px; left: 15px; background: var(--wa-header); padding: 10px; border-radius: 15px; display: none; border: 1px solid #333; box-shadow: 0 5px 15px rgba(0,0,0,0.5); text-align: center; }
+        .preview-box img { max-width: 150px; max-height: 150px; border-radius: 8px; }
+        .cancel-img { position: absolute; top: -10px; right: -10px; background: #ff4757; color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 12px; }
+
+        .attach-btn { color: #8696a0; font-size: 22px; cursor: pointer; padding-bottom: 8px; }
+        .input-box { flex: 1; background: #2a3942; border-radius: 20px; display: flex; align-items: center; padding: 0 15px; min-height: 40px; }
+        #msg-input { width: 100%; background: transparent; border: none; color: white; font-size: 14px; padding: 10px 0; outline: none; font-family: 'Poppins'; }
+
+        .send-btn { 
+            width: 42px; height: 42px; background: #00a884; border: none; border-radius: 50%; 
+            color: white; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;
+        }
+        .send-btn:active { transform: scale(0.9); }
+        #file-input { display: none; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <i class="fas fa-arrow-left back-btn" onclick="window.location.href='home.html'"></i>
-        <div class="page-title">SUPPORT CENTER</div>
-    </div>
-
-    <div class="container">
-        <div class="card" id="new-ticket-form">
-            <h3>Open New Ticket</h3>
-            <label>Issue Category</label>
-            <select id="subject">
-                <option value="Deposit Problem">Deposit Problem</option>
-                <option value="Withdraw Problem">Withdraw Problem</option>
-                <option value="Account Issue">Account Issue</option>
-                <option value="Game Lag/Bug">Game Lag/Bug</option>
-            </select>
-            <label>Describe Your Problem</label>
-            <textarea id="message" rows="4" placeholder="Type your message here..."></textarea>
-            <button class="submit-btn" onclick="submitTicket()">SUBMIT TICKET</button>
+        <i class="fas fa-arrow-left back-btn" onclick="window.history.back()"></i>
+        <img src="https://cdn-icons-png.flaticon.com/512/2206/2206368.png" alt="Support Admin">
+        <div class="header-info">
+            <h2>Official Support</h2>
+            <span id="admin-status" style="color: #8696a0;">Reply within 1 hour</span>
         </div>
-
-        <div class="section-label">Active Conversations</div>
-        <div id="ticket-list"></div>
     </div>
 
-    
+    <div class="chat-area" id="chat-screen">
+        <div class="chat-date"><span>Today</span></div>
+        <div class="bubble admin">
+            Welcome to Ludo Pro! 🎲<br>How can we help you today?
+            <span class="time">System</span>
+        </div>
+    </div>
+
+    <div class="preview-box" id="img-preview-box">
+        <div class="cancel-img" onclick="cancelImage()"><i class="fas fa-times"></i></div>
+        <img id="img-preview-tag" src="" alt="Preview">
+    </div>
+
+    <div class="input-container">
+        <label for="file-input" class="attach-btn"><i class="fas fa-paperclip"></i></label>
+        <input type="file" id="file-input" accept="image/*" onchange="previewSelectedImage()">
+        <div class="input-box"><input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off"></div>
+        <button class="send-btn" id="send-btn-ui" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-        import { getDatabase, ref, push, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getDatabase, ref, push, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-storage.js";
 
         const firebaseConfig = { 
             apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
             authDomain: "ludo-d46ab.firebaseapp.com", 
             databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
-            projectId: "ludo-d46ab" 
+            projectId: "ludo-d46ab",
+            storageBucket: "ludo-d46ab.appspot.com"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
+        const storage = getStorage(app);
         let currentUser = null;
+        let hasPreviousMessages = false;
 
         onAuthStateChanged(auth, (user) => {
-            if(user) {
-                currentUser = user;
-                loadTickets();
-                checkSupportNotif();
-            } else { window.location.href = "login.html"; }
+            if(user) { 
+                currentUser = user; 
+                loadChat(); 
+                listenAdminStatus(); // Live Online/Offline check
+            } else { 
+                window.location.href="login.html"; 
+            }
         });
 
-        window.submitTicket = () => {
-            const sub = document.getElementById('subject').value;
-            const msg = document.getElementById('message').value;
-            if(!msg.trim()) return alert("Message likhein!");
+        
 
-            const ticketRef = push(ref(db, 'support_tickets'));
-            set(ticketRef, {
-                userId: currentUser.uid,
-                subject: sub,
-                message: msg,
-                status: 'Open',
-                timestamp: Date.now(),
-                reply: "",
-                userRead: false
-            }).then(() => {
-                alert("Ticket bhej di gayi hai!");
-                document.getElementById('message').value = "";
-            });
+        // --- UI IMAGE FUNCTIONS ---
+        const screen = document.getElementById('chat-screen');
+        const scrollToBottom = () => { setTimeout(() => { screen.scrollTop = screen.scrollHeight; }, 100); };
+
+        window.previewSelectedImage = () => {
+            const file = document.getElementById('file-input').files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('img-preview-tag').src = e.target.result;
+                    document.getElementById('img-preview-box').style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
         };
 
-        function loadTickets() {
-            onValue(ref(db, 'support_tickets'), (snap) => {
-                const list = document.getElementById('ticket-list');
-                list.innerHTML = "";
-                if(snap.exists()){
-                    Object.entries(snap.val()).reverse().forEach(([key, t]) => {
-                        if(t.userId === currentUser.uid) {
-                            if(t.reply && !t.userRead) update(ref(db, `support_tickets/${key}`), { userRead: true });
+        window.cancelImage = () => {
+            document.getElementById('file-input').value = "";
+            document.getElementById('img-preview-box').style.display = 'none';
+        };
 
-                            list.innerHTML += `
-                                <div class="ticket-item">
-                                    <div class="ticket-header">
-                                        <span class="subject-tag">${t.subject}</span>
-                                        <span class="status-tag ${t.reply ? 'status-replied' : 'status-pending'}">${t.reply ? 'Replied' : 'Pending'}</span>
+        // --- 2. SEND MESSAGE & UPLOAD FIX ---
+        window.sendMessage = async () => {
+            const msgInput = document.getElementById('msg-input');
+            const fileInput = document.getElementById('file-input');
+            const btn = document.getElementById('send-btn-ui');
+            
+            const msg = msgInput.value.trim();
+            const file = fileInput.files[0];
+
+            if(!msg && !file) return;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                let imageUrl = "";
+                
+                // Photo Uploading Process
+                if(file) {
+                    // Unique name taake error na aye
+                    const storageRef = sRef(storage, `support_images/${Date.now()}_${file.name}`);
+                    await uploadBytes(storageRef, file);
+                    imageUrl = await getDownloadURL(storageRef);
+                }
+
+                // Database mein Save
+                const ticketRef = push(ref(db, 'support_tickets'));
+                const ticketKey = ticketRef.key;
+                
+                await set(ticketRef, {
+                    userId: currentUser.uid,
+                    subject: "Live Chat", 
+                    message: msg || "📷 Photo Attached",
+                    image: imageUrl,
+                    timestamp: Date.now(),
+                    status: 'Open',
+                    reply: "", 
+                    userRead: true,
+                    adminRead: false // YE FIELD BLUE TICK KE LIYE HAI
+                });
+
+                msgInput.value = "";
+                cancelImage();
+                scrollToBottom();
+
+                // AUTO REPLY
+                if (!hasPreviousMessages) {
+                    hasPreviousMessages = true; 
+                    setTimeout(() => {
+                        update(ref(db, `support_tickets/${ticketKey}`), {
+                            reply: "Aapka message mil gaya hai. Hamara assistant kuch hi der mein aapko reply karega. Baraye meharbani intazar karein. 🕒",
+                            userRead: false
+                        });
+                        scrollToBottom();
+                    }, 1500); 
+                }
+
+            } catch (error) {
+                console.error("Upload Error:", error);
+                alert("Upload failed! ❌ Firebase Storage Rules check karein. Error: " + error.message);
+            }
+
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            btn.disabled = false;
+        };
+
+        // --- 3. LOAD CHAT & REAL-TIME BLUE TICK ---
+        function loadChat() {
+            onValue(ref(db, 'support_tickets'), (snap) => {
+                document.querySelectorAll('.bubble:not(:first-child)').forEach(e => e.remove());
+                let msgCount = 0;
+
+                if(snap.exists()){
+                    const tickets = Object.values(snap.val()).sort((a, b) => a.timestamp - b.timestamp);
+                    
+                    tickets.forEach(t => {
+                        if(t.userId === currentUser.uid) {
+                            msgCount++;
+                            const timeStr = new Date(t.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                            // TICK LOGIC (Grey ya Blue)
+                            let tickHtml = '<i class="fas fa-check-double tick tick-grey"></i>'; // Default Grey
+                            if (t.adminRead === true) {
+                                tickHtml = '<i class="fas fa-check-double tick tick-blue"></i>'; // Blue if read by admin
+                            }
+
+                            screen.innerHTML += `
+                                <div class="bubble user">
+                                    ${t.image ? `<img src="${t.image}" class="chat-img" onclick="window.open('${t.image}')">` : ''}
+                                    ${t.message !== "📷 Photo Attached" ? t.message : ''}
+                                    <span class="time">${timeStr} ${tickHtml}</span>
+                                </div>
+                            `;
+
+                            if(t.reply) {
+                                screen.innerHTML += `
+                                    <div class="bubble admin">
+                                        ${t.reply}
+                                        <span class="time">Admin</span>
                                     </div>
-                                    <div class="chat-container">
-                                        <div class="msg-bubble user-msg"><b>You:</b><br>${t.message}</div>
-                                        ${t.reply ? `<div class="msg-bubble admin-msg"><b>Admin:</b><br>${t.reply}</div>` : ''}
-                                    </div>
-                                    <button class="close-btn" onclick="closeTicket('${key}')">CLOSE TICKET</button>
-                                </div>`;
+                                `;
+                            }
                         }
                     });
                 }
+                
+                if (msgCount > 0) hasPreviousMessages = true;
+                scrollToBottom();
             });
         }
 
-        function checkSupportNotif() {
-            onValue(ref(db, 'support_tickets'), (snap) => {
-                let show = false;
-                if(snap.exists()){
-                    Object.values(snap.val()).forEach(t => { if(t.userId === currentUser.uid && t.reply && !t.userRead) show = true; });
-                }
-                document.getElementById('sup-dot').style.display = show ? 'block' : 'none';
-            });
-        }
-
-        window.closeTicket = (key) => {
-            if(confirm("Delete ticket?")) remove(ref(db, `support_tickets/${key}`));
-        };
+        document.getElementById("msg-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") { event.preventDefault(); sendMessage(); }
+        });
     </script>
-    <script type="module" src="globalManager.js"></script>
-    <script src="script.js"></script>
 </body>
 </html>
