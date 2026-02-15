@@ -542,31 +542,37 @@ window.sendReply = () => {
 
         // --- TABLE LOADERS ---
         // Registered Users Loader
+// --- 1. REGISTERED USERS LOADER ---
 onValue(ref(db, 'users'), s => {
     usersData = s.val() || {}; 
     const tb = document.getElementById('tb-users'); 
     tb.innerHTML = "";
     Object.entries(usersData).forEach(([k, v]) => { 
+        // 🌟 SMART NAME FALLBACK
+        const displayName = v.username || v.fullName || v.name || "User_" + k.substring(0,4);
+
         tb.innerHTML += `
             <tr style="${v.isBlocked ? 'opacity:0.5; color:red;' : ''}">
-                <td><b>${v.username || 'User'}</b></td>
-                <td><small>${k}</small></td> <td style="color:var(--success)">${v.balance || 0}</td>
+                <td><b>${displayName}</b></td>
+                <td><small>${k.substring(0, 8)}...</small></td> 
+                <td style="color:var(--success)">${v.balance || 0}</td>
                 <td>
                     <div style="display:flex; gap:5px;">
                         <button class="btn" style="background:#555;" onclick="openU('${k}')">Edit</button>
-                        <button class="btn" style="background:var(--gold); color:#000;" onclick="viewUserHistory('${k}', '${v.username}')">
+                        <button class="btn" style="background:var(--gold); color:#000;" onclick="viewUserHistory('${k}', '${displayName}')">
                             <i class="fas fa-history"></i>
                         </button>
-<button class="btn" style="background:var(--success); color:#000;" onclick="viewKYC('${k}', '${v.username}')" title="View KYC">
-    <i class="fas fa-id-card"></i> KYC
-</button>
+                        <button class="btn" style="background:var(--success); color:#000;" onclick="viewKYC('${k}', '${displayName}')" title="View KYC">
+                            <i class="fas fa-id-card"></i> KYC
+                        </button>
                     </div>
                 </td>
             </tr>`; 
     });
 });
 
-        onValue(ref(db, 'deposit_requests'), (s) => {
+        // --- 2. DEPOSITS LOADER ---
+onValue(ref(db, 'deposit_requests'), (s) => {
     const tb = document.getElementById('tb-dep');
     tb.innerHTML = "";
     let p = 0;
@@ -575,54 +581,46 @@ onValue(ref(db, 'users'), s => {
     if (s.exists()) {
         const deposits = s.val();
 
-        // Realtime Users data fetch kar rahe hain details ke liye
         get(ref(db, 'users')).then((uSnap) => {
             const allUsers = uSnap.val() || {};
 
             Object.entries(deposits).reverse().forEach(([k, v]) => {
-                // Pending requests count aur Approved revenue calculation
                 if (v.status === 'Pending') p++;
                 if (v.status === 'Approved') r += Number(v.amount);
 
                 const userData = allUsers[v.userId] || {};
-                const username = userData.username || "Unknown User";
+                // 🌟 SMART NAME FALLBACK
+                const username = userData.username || userData.fullName || userData.name || "User_" + v.userId.substring(0, 4);
 
                 tb.innerHTML += `
-    <tr>
-        <td style="line-height:1.2; cursor:pointer;" onclick="viewUserHistory('${v.userId}', '${username}')" title="Click to view full history">
-            <b style="color:var(--primary); text-decoration:underline;">${username}</b><br>
-            <small style="font-size:9px; opacity:0.6">UID: ${v.userId.substring(0, 6)}</small>
-        </td>
-        <td style="color:var(--success); font-weight:bold">Rs. ${v.amount}</td>
-        <td>
-            <span style="text-transform: capitalize; font-size:12px;">
-                <i class="fas fa-wallet" style="font-size:10px; color:var(--gold)"></i> ${v.method}
-            </span>
-        </td>
-        <td style="font-family: monospace; letter-spacing:1px; color:var(--neon-blue)">
-            ${v.trxID}
-        </td>
-        <td>
-            ${v.status === 'Pending' ? `
-                <div style="display:flex; gap:5px;">
-                    <button class="btn btn-ok" onclick="hDep('${k}','Approved','${v.userId}',${v.amount})" title="Approve">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    <button class="btn btn-no" onclick="hDep('${k}','Rejected')" title="Reject">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            ` : `
-                <span class="badge" style="background:${v.status === 'Approved' ? 'rgba(0,242,195,0.2)' : 'rgba(253,93,147,0.2)'}; 
-                color:${v.status === 'Approved' ? 'var(--success)' : 'var(--danger)'}; border:1px solid; font-size:10px; padding:2px 8px">
-                    ${v.status}
-                </span>
-            `}
-        </td>
-    </tr>`;
+                    <tr>
+                        <td style="line-height:1.2; cursor:pointer;" onclick="viewUserHistory('${v.userId}', '${username}')" title="Click to view full history">
+                            <b style="color:var(--primary); text-decoration:underline;">${username}</b><br>
+                            <small style="font-size:9px; opacity:0.6">UID: ${v.userId.substring(0, 6)}</small>
+                        </td>
+                        <td style="color:var(--success); font-weight:bold">Rs. ${v.amount}</td>
+                        <td>
+                            <span style="text-transform: capitalize; font-size:12px;">
+                                <i class="fas fa-wallet" style="font-size:10px; color:var(--gold)"></i> ${v.method}
+                            </span>
+                        </td>
+                        <td style="font-family: monospace; letter-spacing:1px; color:var(--neon-blue)">${v.trxID}</td>
+                        <td>
+                            ${v.status === 'Pending' ? `
+                                <div style="display:flex; gap:5px;">
+                                    <button class="btn btn-ok" onclick="hDep('${k}','Approved','${v.userId}',${v.amount})" title="Approve"><i class="fas fa-check"></i></button>
+                                    <button class="btn btn-no" onclick="hDep('${k}','Rejected')" title="Reject"><i class="fas fa-times"></i></button>
+                                </div>
+                            ` : `
+                                <span class="badge" style="background:${v.status === 'Approved' ? 'rgba(0,242,195,0.2)' : 'rgba(253,93,147,0.2)'}; 
+                                color:${v.status === 'Approved' ? 'var(--success)' : 'var(--danger)'}; border:1px solid; font-size:10px; padding:2px 8px">
+                                    ${v.status}
+                                </span>
+                            `}
+                        </td>
+                    </tr>`;
             });
 
-            // Stats Update
             document.getElementById('s-rev').innerText = "Rs. " + r;
             const dbg = document.getElementById('dep-badge');
             dbg.innerText = p;
@@ -632,7 +630,8 @@ onValue(ref(db, 'users'), s => {
     }
 });
 
-        onValue(ref(db, 'withdraw_requests'), (s) => {
+        // --- 3. WITHDRAWALS LOADER ---
+onValue(ref(db, 'withdraw_requests'), (s) => {
     const tb = document.getElementById('tb-with');
     tb.innerHTML = "";
     let p = 0;
@@ -640,7 +639,6 @@ onValue(ref(db, 'users'), s => {
     if (s.exists()) {
         const requests = s.val();
         
-        // Users ka data fetch kar rahe hain taake username mil sake
         get(ref(db, 'users')).then((uSnap) => {
             const allUsers = uSnap.val() || {};
 
@@ -648,9 +646,9 @@ onValue(ref(db, 'users'), s => {
                 if (v.status === 'Pending') p++;
 
                 const userData = allUsers[v.userId] || {};
-                const username = userData.username || "Unknown";
+                // 🌟 SMART NAME FALLBACK
+                const username = userData.username || userData.fullName || userData.name || "User_" + v.userId.substring(0, 4);
                 
-                // Table Row with Full Details
                 tb.innerHTML += `
                     <tr>
                         <td style="line-height:1.2">
@@ -670,12 +668,8 @@ onValue(ref(db, 'users'), s => {
                         <td>
                             ${v.status === 'Pending' ? `
                                 <div style="display:flex; gap:5px;">
-                                    <button class="btn btn-ok" onclick="hWith('${k}','Approved','${v.userId}',${v.amount})" title="Approve">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    <button class="btn btn-no" onclick="hWith('${k}','Rejected','${v.userId}',${v.amount})" title="Reject">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                                    <button class="btn btn-ok" onclick="hWith('${k}','Approved','${v.userId}',${v.amount})" title="Approve"><i class="fas fa-check"></i></button>
+                                    <button class="btn btn-no" onclick="hWith('${k}','Rejected','${v.userId}',${v.amount})" title="Reject"><i class="fas fa-times"></i></button>
                                 </div>
                             ` : '<i class="fas fa-lock" style="opacity:0.3"></i>'}
                         </td>
