@@ -10,8 +10,8 @@
         :root { 
             --wa-bg: #0b141a; 
             --wa-header: #202c33; 
-            --user-bubble: #005c4b; 
-            --admin-bubble: #202c33; 
+            --user-bubble: #005c4b; /* Deep Green for User */
+            --admin-bubble: #202c33; /* Dark Grey for Admin */
             --text-main: #e9edef;
             --gold: #f1c40f;
         }
@@ -23,6 +23,7 @@
             background-color: var(--wa-bg); 
             color: var(--text-main); 
             height: 100vh; 
+            height: 100dvh; 
             display: flex; 
             flex-direction: column; 
             overflow: hidden;
@@ -35,56 +36,142 @@
             display: flex; 
             align-items: center; 
             gap: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
             z-index: 10;
         }
         .back-btn { font-size: 20px; color: #aebac1; cursor: pointer; }
         .header img { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
         .header-info { display: flex; flex-direction: column; }
         .header-info h2 { font-size: 15px; font-weight: 600; color: white; margin: 0; }
-        /* Dynamic Status Text */
         #admin-status { font-size: 11px; font-weight: 500; transition: color 0.3s; }
 
         /* --- CHAT AREA --- */
         .chat-area { 
-            flex: 1; overflow-y: auto; padding: 20px 15px; display: flex; flex-direction: column; gap: 15px;
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px 15px 90px 15px; 
             background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
-            background-blend-mode: overlay; background-color: rgba(11, 20, 26, 0.93); scroll-behavior: smooth;
+            background-blend-mode: overlay; 
+            background-color: rgba(11, 20, 26, 0.93); 
+            scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+            gap: 12px; /* Bubbles ke darmiyan fasla */
         }
 
-        .chat-date { text-align: center; margin: 10px 0; }
-        .chat-date span { background: #182229; font-size: 10px; padding: 5px 12px; border-radius: 10px; color: #8696a0; }
+        .chat-date { text-align: center; margin: 5px 0 15px 0; }
+        .chat-date span { background: rgba(32, 44, 51, 0.8); font-size: 11px; padding: 6px 14px; border-radius: 10px; color: #8696a0; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
 
-        /* --- BUBBLES --- */
+        /* --- BEAUTIFUL BUBBLES (POPULS) --- */
         .bubble { 
-            max-width: 80%; padding: 8px 12px 20px 12px; border-radius: 12px; 
-            font-size: 13.5px; position: relative; line-height: 1.4; word-wrap: break-word;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            max-width: 80%; 
+            padding: 8px 10px 22px 12px; /* Bottom padding to fit the time */
+            border-radius: 12px; 
+            font-size: 14px; 
+            position: relative; 
+            line-height: 1.5; 
+            word-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.4);
         }
-        .user { align-self: flex-end; background: var(--user-bubble); border-top-right-radius: 0; }
-        .admin { align-self: flex-start; background: var(--admin-bubble); border-top-left-radius: 0; }
+
+        /* 🟢 USER BUBBLE (Right Side) */
+        .user { 
+            align-self: flex-end; 
+            background: var(--user-bubble); 
+            border-top-right-radius: 0; /* Tail ke liye kona chipta kiya */
+            margin-right: 8px; /* Tail ki jagah */
+        }
+        /* User Tail (Pooch) */
+        .user::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -8px;
+            width: 0;
+            height: 0;
+            border-top: 12px solid var(--user-bubble);
+            border-right: 12px solid transparent;
+        }
+
+        /* 🔘 ADMIN BUBBLE (Left Side) */
+        .admin { 
+            align-self: flex-start; 
+            background: var(--admin-bubble); 
+            border-top-left-radius: 0; /* Tail ke liye kona chipta kiya */
+            margin-left: 8px; /* Tail ki jagah */
+        }
+        /* Admin Tail (Pooch) */
+        .admin::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -8px;
+            width: 0;
+            height: 0;
+            border-top: 12px solid var(--admin-bubble);
+            border-left: 12px solid transparent;
+        }
         
-        .chat-img { width: 100%; max-height: 250px; border-radius: 8px; margin-bottom: 5px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
-        .time { font-size: 9px; color: rgba(255,255,255,0.6); position: absolute; bottom: 5px; right: 10px; display: flex; align-items: center; gap: 4px; }
+        /* Image inside chat */
+        .chat-img { width: 100%; max-height: 250px; border-radius: 8px; margin-bottom: 5px; object-fit: cover; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
         
-        /* Ticks Style */
-        .tick { font-size: 10px; }
+        /* Timestamps */
+        .time { 
+            font-size: 10px; 
+            color: rgba(255,255,255,0.6); 
+            position: absolute; 
+            bottom: 4px; 
+            right: 10px; 
+            display: flex; 
+            align-items: center; 
+            gap: 4px; 
+        }
+        
+        /* Read Receipts (Ticks) */
+        .tick { font-size: 11px; }
         .tick-grey { color: #8696a0; }
-        .tick-blue { color: #53bdeb; }
+        .tick-blue { color: #53bdeb; } /* Blue tick color */
 
-        /* --- INPUT AREA --- */
-        .input-container { background: var(--wa-header); padding: 10px 15px; display: flex; align-items: flex-end; gap: 10px; position: relative; }
-        .preview-box { position: absolute; bottom: 70px; left: 15px; background: var(--wa-header); padding: 10px; border-radius: 15px; display: none; border: 1px solid #333; box-shadow: 0 5px 15px rgba(0,0,0,0.5); text-align: center; }
-        .preview-box img { max-width: 150px; max-height: 150px; border-radius: 8px; }
-        .cancel-img { position: absolute; top: -10px; right: -10px; background: #ff4757; color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 12px; }
+        /* --- INPUT AREA (FIXED BOTTOM) --- */
+        .input-container { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background: var(--wa-header); 
+            padding: 8px 12px; 
+            display: flex; 
+            align-items: flex-end; 
+            gap: 8px; 
+        }
+        
+        .preview-box { 
+            position: fixed; 
+            bottom: 75px; 
+            left: 15px; 
+            z-index: 999;
+            background: var(--wa-header); 
+            padding: 8px; 
+            border-radius: 12px; 
+            display: none; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.6); 
+        }
+        .preview-box img { max-width: 120px; max-height: 120px; border-radius: 8px; }
+        .cancel-img { position: absolute; top: -8px; right: -8px; background: #ff4757; color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 10px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
 
-        .attach-btn { color: #8696a0; font-size: 22px; cursor: pointer; padding-bottom: 8px; }
-        .input-box { flex: 1; background: #2a3942; border-radius: 20px; display: flex; align-items: center; padding: 0 15px; min-height: 40px; }
-        #msg-input { width: 100%; background: transparent; border: none; color: white; font-size: 14px; padding: 10px 0; outline: none; font-family: 'Poppins'; }
+        .attach-btn { color: #8696a0; font-size: 24px; cursor: pointer; padding: 8px 5px; transition: 0.2s; }
+        .attach-btn:active { color: var(--gold); }
+        
+        .input-box { flex: 1; background: #2a3942; border-radius: 24px; display: flex; align-items: center; padding: 0 15px; min-height: 44px; }
+        #msg-input { width: 100%; background: transparent; border: none; color: white; font-size: 15px; padding: 12px 0; outline: none; font-family: 'Poppins'; }
+        #msg-input::placeholder { color: #8696a0; }
 
         .send-btn { 
-            width: 42px; height: 42px; background: #00a884; border: none; border-radius: 50%; 
+            width: 44px; height: 44px; background: #00a884; border: none; border-radius: 50%; 
             color: white; font-size: 16px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         .send-btn:active { transform: scale(0.9); }
         #file-input { display: none; }
@@ -93,21 +180,16 @@
 <body>
 
     <div class="header">
-        <i class="fas fa-arrow-left back-btn" onclick="window.history.back()"></i>
+        <i class="fas fa-arrow-left back-btn" onclick="window.location.href='profile.html'"></i>
         <img src="https://cdn-icons-png.flaticon.com/512/2206/2206368.png" alt="Support Admin">
         <div class="header-info">
             <h2>Official Support</h2>
-            <span id="admin-status" style="color: #8696a0;">Reply within 1 hour</span>
+            <span id="admin-status" style="color: #8696a0;">Reply Within 1 Hour</span>
         </div>
     </div>
 
     <div class="chat-area" id="chat-screen">
-        <div class="chat-date"><span>Today</span></div>
-        <div class="bubble admin">
-            Welcome to Ludo Pro! 🎲<br>How can we help you today?
-            <span class="time">System</span>
         </div>
-    </div>
 
     <div class="preview-box" id="img-preview-box">
         <div class="cancel-img" onclick="cancelImage()"><i class="fas fa-times"></i></div>
@@ -117,7 +199,7 @@
     <div class="input-container">
         <label for="file-input" class="attach-btn"><i class="fas fa-paperclip"></i></label>
         <input type="file" id="file-input" accept="image/*" onchange="previewSelectedImage()">
-        <div class="input-box"><input type="text" id="msg-input" placeholder="Type a message..." autocomplete="off"></div>
+        <div class="input-box"><input type="text" id="msg-input" placeholder="Message" autocomplete="off"></div>
         <button class="send-btn" id="send-btn-ui" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
     </div>
 
@@ -142,11 +224,12 @@
         let currentUser = null;
         let hasPreviousMessages = false;
 
+        // Ensure user is logged in
         onAuthStateChanged(auth, (user) => {
             if(user) { 
                 currentUser = user; 
                 loadChat(); 
-                listenAdminStatus(); // Live Online/Offline check
+                listenAdminStatus(); 
             } else { 
                 window.location.href="login.html"; 
             }
@@ -154,10 +237,10 @@
 
         
 
-        // --- UI IMAGE FUNCTIONS ---
         const screen = document.getElementById('chat-screen');
         const scrollToBottom = () => { setTimeout(() => { screen.scrollTop = screen.scrollHeight; }, 100); };
 
+        // 📷 Image Preview Function
         window.previewSelectedImage = () => {
             const file = document.getElementById('file-input').files[0];
             if(file) {
@@ -175,7 +258,7 @@
             document.getElementById('img-preview-box').style.display = 'none';
         };
 
-        // --- 2. SEND MESSAGE & UPLOAD FIX ---
+        // ✉️ Send Message Function
         window.sendMessage = async () => {
             const msgInput = document.getElementById('msg-input');
             const fileInput = document.getElementById('file-input');
@@ -192,15 +275,14 @@
             try {
                 let imageUrl = "";
                 
-                // Photo Uploading Process
+                // Upload image if selected
                 if(file) {
-                    // Unique name taake error na aye
                     const storageRef = sRef(storage, `support_images/${Date.now()}_${file.name}`);
                     await uploadBytes(storageRef, file);
                     imageUrl = await getDownloadURL(storageRef);
                 }
 
-                // Database mein Save
+                // Push to Realtime DB
                 const ticketRef = push(ref(db, 'support_tickets'));
                 const ticketKey = ticketRef.key;
                 
@@ -213,14 +295,14 @@
                     status: 'Open',
                     reply: "", 
                     userRead: true,
-                    adminRead: false // YE FIELD BLUE TICK KE LIYE HAI
+                    adminRead: false 
                 });
 
                 msgInput.value = "";
                 cancelImage();
                 scrollToBottom();
 
-                // AUTO REPLY
+                // 🤖 Auto Reply on First Message
                 if (!hasPreviousMessages) {
                     hasPreviousMessages = true; 
                     setTimeout(() => {
@@ -234,17 +316,24 @@
 
             } catch (error) {
                 console.error("Upload Error:", error);
-                alert("Upload failed! ❌ Firebase Storage Rules check karein. Error: " + error.message);
+                alert("Message send failed! Error: " + error.message);
             }
 
             btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
             btn.disabled = false;
         };
 
-        // --- 3. LOAD CHAT & REAL-TIME BLUE TICK ---
+        // 💬 Load Realtime Chat
         function loadChat() {
             onValue(ref(db, 'support_tickets'), (snap) => {
-                document.querySelectorAll('.bubble:not(:first-child)').forEach(e => e.remove());
+                screen.innerHTML = `
+                    <div class="chat-date"><span>Today</span></div>
+                    <div class="bubble admin">
+                        Welcome to Ludo.Website! 🎲<br>How can we help you today?
+                        <span class="time">System</span>
+                    </div>
+                `;
+                
                 let msgCount = 0;
 
                 if(snap.exists()){
@@ -255,12 +344,13 @@
                             msgCount++;
                             const timeStr = new Date(t.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-                            // TICK LOGIC (Grey ya Blue)
-                            let tickHtml = '<i class="fas fa-check-double tick tick-grey"></i>'; // Default Grey
+                            // Tick color logic
+                            let tickHtml = '<i class="fas fa-check-double tick tick-grey"></i>'; 
                             if (t.adminRead === true) {
-                                tickHtml = '<i class="fas fa-check-double tick tick-blue"></i>'; // Blue if read by admin
+                                tickHtml = '<i class="fas fa-check-double tick tick-blue"></i>'; 
                             }
 
+                            // 🟢 Print USER Message (Right Side)
                             screen.innerHTML += `
                                 <div class="bubble user">
                                     ${t.image ? `<img src="${t.image}" class="chat-img" onclick="window.open('${t.image}')">` : ''}
@@ -269,13 +359,19 @@
                                 </div>
                             `;
 
+                            // 🔘 Print ADMIN Reply (Left Side) - Splitting by <br><br> for continuous messages
                             if(t.reply) {
-                                screen.innerHTML += `
-                                    <div class="bubble admin">
-                                        ${t.reply}
-                                        <span class="time">Admin</span>
-                                    </div>
-                                `;
+                                const adminReplies = t.reply.split("<br><br>");
+                                adminReplies.forEach(replyText => {
+                                    if(replyText.trim() !== "") {
+                                        screen.innerHTML += `
+                                            <div class="bubble admin">
+                                                ${replyText}
+                                                <span class="time">Support</span>
+                                            </div>
+                                        `;
+                                    }
+                                });
                             }
                         }
                     });
@@ -286,6 +382,7 @@
             });
         }
 
+        // Enter key to send message
         document.getElementById("msg-input").addEventListener("keypress", function(event) {
             if (event.key === "Enter") { event.preventDefault(); sendMessage(); }
         });
