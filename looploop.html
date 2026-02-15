@@ -401,9 +401,20 @@ window.updateKYCStatus = (newStatus) => {
         closeKycModal();
     });
 };
+        // --- 1. LOAD CHAT (Header mein Delete Button aur Image Support ke sath) ---
         window.loadChat = (uid, name) => {
             currentChatUid = uid;
-            document.getElementById('c-name').innerText = name;
+            
+            // Header ko update karna (Naam ke sath Delete button)
+            document.getElementById('c-name').innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span id="raw-c-name">${name}</span>
+                    <button class="btn btn-no" style="padding: 6px 12px; font-size: 11px; background: rgba(253,93,147,0.2); color: var(--danger); border: 1px solid var(--danger); border-radius: 5px; cursor: pointer;" onclick="deleteAllChats()" title="Delete Full Chat">
+                        <i class="fas fa-trash"></i> Clear Chat
+                    </button>
+                </div>
+            `;
+            
             document.getElementById('c-input').disabled = false;
             
             get(ref(db, 'support_tickets')).then(snap => {
@@ -418,10 +429,17 @@ window.updateKYCStatus = (newStatus) => {
                 currentTicketId = null;
 
                 myTickets.forEach(([tid, t]) => {
+                    // Agar admin chat khol le, toh user ko Blue Tick mil jaye (adminRead: true)
+                    if(!t.adminRead) update(ref(db, `support_tickets/${tid}`), { adminRead: true });
+
+                    // Image dikhane ka logic
+                    let msgContent = t.image ? `<img src="${t.image}" style="max-width: 100%; border-radius: 8px; margin-bottom: 5px; cursor: pointer; border: 1px solid #444;" onclick="window.open('${t.image}')"><br>` : "";
+                    msgContent += t.message !== "📷 Photo Attached" ? t.message : "";
+
                     area.innerHTML += `
                         <div class="msg msg-in">
                             <span class="ticket-label">${t.subject}</span>
-                            ${t.message}
+                            ${msgContent}
                         </div>
                     `;
                     if(t.reply) {
@@ -434,6 +452,7 @@ window.updateKYCStatus = (newStatus) => {
             });
         };
 
+        // --- 2. SEND REPLY LOGIC ---
         window.sendReply = () => {
             const txt = document.getElementById('c-input').value;
             if(!txt || !currentChatUid) return;
@@ -441,13 +460,49 @@ window.updateKYCStatus = (newStatus) => {
             if(currentTicketId) {
                 update(ref(db, `support_tickets/${currentTicketId}`), {
                     reply: txt,
-                    status: 'Closed'
+                    status: 'Closed',
+                    adminRead: true // Reply karne par bhi Blue Tick lag jaye
                 }).then(() => {
                     document.getElementById('c-input').value = "";
-                    loadChat(currentChatUid, document.getElementById('c-name').innerText);
+                    const rawName = document.getElementById('raw-c-name').innerText;
+                    loadChat(currentChatUid, rawName);
                 });
             } else {
                 alert("This user has no open tickets to reply to.");
+            }
+        };
+
+        // --- 3. SARI CHAT DELETE KARNE KA FUNCTION ---
+        window.deleteAllChats = () => {
+            if (!currentChatUid) return;
+            
+            if (confirm("Kya aap waqai is user ki SARI chat history delete karna chahte hain? Yeh user aur admin dono taraf se hamesha ke liye gayab ho jayegi!")) {
+                
+                get(ref(db, 'support_tickets')).then(snap => {
+                    if (snap.exists()) {
+                        const updates = {};
+                        let hasMessages = false;
+                        
+                        // Sirf select kiye gaye user ki chat dhoondna
+                        Object.entries(snap.val()).forEach(([tid, t]) => {
+                            if (t.userId === currentChatUid) {
+                                updates[tid] = null; // Firebase mein null ka matlab delete hota hai
+                                hasMessages = true;
+                            }
+                        });
+
+                        if (hasMessages) {
+                            // Ek hi click mein sari history clean karna
+                            update(ref(db, 'support_tickets'), updates).then(() => {
+                                alert("Chat history mukammal delete ho chuki hai.");
+                                document.getElementById('c-msgs').innerHTML = "<div style='text-align:center; opacity:0.5; margin-top:20px;'>Chat cleared</div>";
+                                currentTicketId = null; 
+                            }).catch(err => alert("Error: " + err.message));
+                        } else {
+                            alert("Is user ki pehle se koi chat history nahi hai.");
+                        }
+                    }
+                });
             }
         };
 
