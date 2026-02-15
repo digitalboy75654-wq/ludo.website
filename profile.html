@@ -47,16 +47,29 @@
         .p-uid { font-size: 11px; color: var(--neon); font-family: 'Orbitron'; opacity: 0.8; letter-spacing: 1px; }
 
         /* --- UPDATED STATS GRID (2x2) --- */
+        /* --- UPDATED STATS GRID (4 in 1 Line) --- */
         .stats-grid { 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 25px; 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); /* Is se 4 boxes ek line me aayenge */
+            gap: 6px; /* Gap thoda kam kiya taake fit aaye */
+            margin-top: 25px; 
         }
         .stat-item { 
-            background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; 
-            border: 1px solid var(--glass-border); text-align: center;
+            background: rgba(0,0,0,0.3); 
+            padding: 10px 2px; /* Padding adjust ki */
+            border-radius: 10px; 
+            border: 1px solid var(--glass-border); 
+            text-align: center;
         }
-        .stat-val { display: block; font-weight: 700; font-size: 18px; color: var(--gold); font-family: 'Orbitron'; }
-        .stat-lbl { display: block; font-size: 10px; text-transform: uppercase; opacity: 0.7; margin-top: 4px; letter-spacing: 0.5px; }
-        
+        .stat-val { 
+            display: block; font-weight: 700; font-size: 15px; /* Font thoda chota kiya */
+            color: var(--gold); font-family: 'Orbitron'; 
+        }
+        .stat-lbl { 
+            display: block; font-size: 8px; text-transform: uppercase; 
+            opacity: 0.7; margin-top: 4px; letter-spacing: 0px; 
+            white-space: nowrap; /* Text ko doosri line me tootne se rokega */
+        }
         .c-green { color: var(--neon); }
         .c-red { color: var(--red); }
 
@@ -222,6 +235,35 @@
     padding: 20px; 
     padding-bottom: 150px; /* Isay 100 se barha kar 150 kar dein */
 }
+/* --- AVATAR SELECTION GRID --- */
+        .avatar-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px;
+        }
+        .avatar-option {
+            width: 50px; height: 50px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2);
+            background-size: cover; background-position: center; cursor: pointer; transition: 0.2s;
+            margin: 0 auto;
+        }
+        .avatar-option.selected {
+            border-color: var(--gold); box-shadow: 0 0 15px rgba(241, 196, 15, 0.6); transform: scale(1.1);
+        }
+        
+        .edit-input {
+            width: 100%; padding: 12px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+            color: white; font-family: 'Poppins'; outline: none; margin-bottom: 15px;
+            text-align: center; font-size: 16px; font-weight: bold;
+        }
+        .edit-input:focus { border-color: var(--gold); }
+        .avatar-grid {
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 10px; 
+    margin-top: 10px;
+    max-height: 250px; /* Limit height */
+    overflow-y: auto;  /* Add scroll */
+    padding: 10px;
+}
     </style>
 </head>
 <body>
@@ -233,12 +275,15 @@
 
     <div class="container">
         <div class="user-main">
-            <div class="profile-img-container">
+            <div class="profile-img-container" onclick="openEditProfile()" style="cursor: pointer;">
                 <div id="u-pfp" class="p-img" style="background-image: url('https://api.dicebear.com/7.x/avataaars/svg?seed=Felix');"></div>
+                <div class="edit-badge" style="position: absolute; bottom: 0; right: 0; background: var(--gold); color: black; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid #24243e; box-shadow: 0 2px 10px rgba(0,0,0,0.5);"><i class="fas fa-pen" style="font-size: 12px;"></i></div>
             </div>
             <div class="p-name" id="display-name">Loading...</div>
             <div class="p-uid" id="display-uid">UID: ...</div>
-
+<div style="font-size: 11px; color: var(--gold); margin-top: 25px; margin-bottom: -15px; letter-spacing: 1px; text-transform: uppercase; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                <i class="fas fa-calendar-alt"></i> Last 30 Days Performance
+            </div>
             <div class="stats-grid">
                 <div class="stat-item">
                     <span class="stat-val" id="stat-total">0</span>
@@ -306,7 +351,22 @@
             <button class="send-btn" onclick="submitFeedback()">SEND TO ADMIN</button>
         </div>
     </div>
+<div id="edit-modal" class="modal">
+        <div class="modal-content" style="position:relative;">
+            <i class="fas fa-times close-modal" onclick="closeEditProfile()"></i>
+            <h2 class="modal-title">EDIT PROFILE</h2>
+            
+            <input type="text" id="edit-name-inp" class="edit-input" placeholder="Enter New Name" maxlength="15">
+            
+            
 
+            <p style="font-size:12px; color:#aaa; margin-bottom:5px; text-align: left;">Or Choose Avatar:</p>
+            <div class="avatar-grid" id="avatar-grid">
+                </div>
+
+            <button class="send-btn" id="save-profile-btn" onclick="saveProfile()">SAVE CHANGES</button>
+        </div>
+    </div>
     <div class="navigation-dock">
     <div class="nav-item" id="nav-social" onclick="window.location.href='social.html'">
         <i class="fas fa-share-alt"></i>
@@ -352,7 +412,7 @@
 </div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
         import { getDatabase, ref, onValue, update, push } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
         const firebaseConfig = { 
@@ -383,16 +443,20 @@
         });
 
         function loadProfile(user) {
-            document.getElementById('display-name').innerText = user.displayName || "Ludo Player";
-            document.getElementById('display-uid').innerText = "UID: " + user.uid.substring(0, 8).toUpperCase();
-            if(user.photoURL) document.getElementById('u-pfp').style.backgroundImage = `url('${user.photoURL}')`;
-
-            // Balance Check
-            onValue(ref(db, `users/${user.uid}/balance`), (snap) => {
-                document.getElementById('p-balance').innerText = "Rs. " + (snap.val() || 0);
-            });
+    document.getElementById('display-name').innerText = user.displayName || "Ludo Player";
+    document.getElementById('display-uid').innerText = "UID: " + user.uid.substring(0, 8).toUpperCase();
+    
+    // Database check karein, agar wahan nahi hai to Auth ki photo dikhayein
+    onValue(ref(db, `users/${user.uid}`), (snap) => {
+        const data = snap.val();
+        const photoUrl = (data && data.photoURL) ? data.photoURL : (user.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix');
+        document.getElementById('u-pfp').style.backgroundImage = `url('${photoUrl}')`;
+        
+        if(data && data.balance) {
+            document.getElementById('p-balance').innerText = "Rs. " + data.balance;
         }
-
+    });
+}
         // --- NEW REAL-TIME STATS ALGORITHM ---
         function calculateRealTimeStats(uid) {
             const historyRef = ref(db, `users/${uid}/gameHistory`);
@@ -453,6 +517,157 @@
         document.getElementById('logout-btn').onclick = () => {
             if(confirm("Do you want to logout?")) {
                 signOut(auth).then(() => window.location.href = "index.html");
+            }
+        };
+        // --- EDIT PROFILE LOGIC ---
+        let selectedAvatar = "";
+        const avatarSeeds = ['Felix', 'Aneka', 'Bandit', 'Charlie', 'Daisy', 'Garfield', 'Jasper', 'Loki'];
+// --- GALLERY UPLOAD & COMPRESSION LOGIC ---
+        window.handleGalleryUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    // Ek canvas banayenge taake image ka size chota kiya ja sake (warna Firebase DB crash ho jayega)
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Profile picture ke liye 150x150 ka size best hai
+                    const MAX_SIZE = 150;
+                    canvas.width = MAX_SIZE;
+                    canvas.height = MAX_SIZE;
+                    
+                    // Image ko canvas par draw aur resize karein
+                    ctx.drawImage(img, 0, 0, MAX_SIZE, MAX_SIZE);
+                    
+                    // Image ko Base64 text mein convert karein (Quality 0.8)
+                    const base64Image = canvas.toDataURL('image/jpeg', 0.8);
+                    
+                    // Nayi image ko selectedAvatar mein set karein
+                    selectedAvatar = base64Image;
+                    
+                    // UI Update: Purane avatars se selection hata dein
+                    document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                    
+                    // Gallery ki photo ko grid mein pehli jagah dikhayein
+                    let customPreview = document.getElementById('custom-avatar-preview');
+                    if (!customPreview) {
+                        customPreview = document.createElement('div');
+                        customPreview.id = 'custom-avatar-preview';
+                        customPreview.className = 'avatar-option selected';
+                        document.getElementById('avatar-grid').prepend(customPreview);
+                    } else {
+                        customPreview.classList.add('selected');
+                    }
+                    customPreview.style.backgroundImage = `url('${base64Image}')`;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+        window.openEditProfile = () => {
+    document.getElementById('edit-modal').style.display = 'flex';
+    document.getElementById('edit-name-inp').value = currentUser.displayName || "";
+    
+    const grid = document.getElementById('avatar-grid');
+    grid.innerHTML = "";
+
+    // 1. User ki REAL PHOTO (Google wali)
+    if (currentUser.photoURL) {
+        const realPhotoDiv = document.createElement('div');
+        realPhotoDiv.className = "avatar-option";
+        realPhotoDiv.style.backgroundImage = `url('${currentUser.photoURL}')`;
+        realPhotoDiv.innerHTML = `<i class="fas fa-user-circle" style="font-size:10px; color:gold; position:absolute; bottom:0;"></i>`;
+        
+        realPhotoDiv.onclick = () => {
+            selectThisAvatar(currentUser.photoURL, realPhotoDiv);
+        };
+        grid.appendChild(realPhotoDiv);
+    }
+
+    // 2. 20 Naye Mixed Avatars
+    const seeds = [
+        'Felix', 'Aneka', 'Bandit', 'Charlie', 'Daisy', 'Garfield', 'Jasper', 'Loki',
+        'Pandora', 'Oscar', 'Misty', 'Sassy', 'Peanut', 'Oliver', 'Luna', 'Simba',
+        'Zoe', 'Max', 'Buster', 'Coco',
+    // --- Cool & Stylish ---
+    'Aiden', 'Jude', 'Kiki', 'Toby', 'Vivian', 'Willow', 'Xavier', 'Yara', 
+    // --- Tough & Dangerous Look ---
+    'Viking', 'Warrior', 'Shadow', 'Hunter', 'Blade', 'Rogue', 'Titan', 
+    // --- Unique & Mysterious ---
+    'Ghost', 'Storm', 'Rex', 'Zelda', 'Nova', 'Ryder', 'Axel', 'Blaze',
+    // --- Professional & Bold ---
+    'Ace', 'Duke', 'King', 'Queen', 'Raven', 'Viper', 'Wolf'
+];
+    
+
+    seeds.forEach(seed => {
+        const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`;
+        const div = document.createElement('div');
+        div.className = "avatar-option";
+        div.style.backgroundImage = `url('${url}')`;
+
+        div.onclick = () => {
+            selectThisAvatar(url, div);
+        };
+        grid.appendChild(div);
+    });
+};
+
+// Selection function
+function selectThisAvatar(url, element) {
+    document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    selectedAvatar = url;
+}
+
+        window.closeEditProfile = () => {
+            document.getElementById('edit-modal').style.display = 'none';
+        };
+
+        window.saveProfile = async () => {
+            const newName = document.getElementById('edit-name-inp').value.trim();
+            if (!newName) return alert("Name cannot be empty!");
+            if (!selectedAvatar) selectedAvatar = currentUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=Felix`;
+
+            const btn = document.getElementById('save-profile-btn');
+            btn.innerText = "Saving...";
+            btn.disabled = true;
+
+            try {
+                // 1. Firebase Auth Update (Error Fix)
+                const isBase64 = selectedAvatar.startsWith('data:image');
+                let authUpdates = { displayName: newName };
+                
+                // Agar photo gallery se (Base64) nahi hai, toh hi Auth mein save karo
+                if (!isBase64) {
+                    authUpdates.photoURL = selectedAvatar;
+                }
+                
+                await updateProfile(currentUser, authUpdates);
+
+                // 2. Firebase Database Update (Yahan gallery photo aaram se save ho jayegi)
+                await update(ref(db, `users/${currentUser.uid}`), {
+                    name: newName,
+                    username: newName,
+                    photoURL: selectedAvatar
+                });
+
+                // 3. UI Update foran karein
+                document.getElementById('display-name').innerText = newName;
+                document.getElementById('u-pfp').style.backgroundImage = `url('${selectedAvatar}')`;
+
+                closeEditProfile();
+                btn.innerText = "SAVE CHANGES";
+                btn.disabled = false;
+                
+            } catch (error) {
+                alert("Error updating profile: " + error.message);
+                btn.innerText = "SAVE CHANGES";
+                btn.disabled = false;
             }
         };
         // --- 🚀 ADVANCED NAVIGATION LOGIC ---
