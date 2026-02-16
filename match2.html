@@ -90,6 +90,8 @@
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = "login.html"; return; }
             currentUser = user;
+            window.history.pushState(null, null, window.location.href);
+            
             findStrictMatch();
         });
 
@@ -232,7 +234,7 @@ async function joinRoom(roomId) {
             document.getElementById('status-text').innerText = "OPPONENT FOUND!";
             document.getElementById('status-text').style.color = "#f1c40f";
             document.getElementById('cancel-action').style.display = 'none'; 
-            
+            window.onpopstate = null;
             // --- FIX START: Data Delete hone se bachayein ---
             // Page change hone par server data delete na kare, isliye purana order cancel karein
             const myPlayerRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}`);
@@ -263,20 +265,44 @@ async function joinRoom(roomId) {
             }
         }
 
-        document.getElementById('cancel-action').onclick = async function() {
-            if (confirm("Cancel and refund?")) {
-                await runTransaction(ref(db, `users/${currentUser.uid}/balance`), (bal) => (bal || 0) + ENTRY_FEE);
-                
-                if (myRoomId) {
+        const cancelBtn = document.getElementById('cancel-action');
+        if (cancelBtn) {
+            cancelBtn.onclick = function() {
+                triggerCancelAndRefund();
+            };
+        }
+        // --- MOBILE BACK BUTTON & REFUND LOGIC ---
+        window.addEventListener('popstate', async function() {
+            const status = document.getElementById('status-text').innerText;
+            if (status === "OPPONENT FOUND!") {
+                window.history.pushState(null, null, window.location.href);
+                return;
+            }
+            await triggerCancelAndRefund();
+        });
+
+        async function triggerCancelAndRefund() {
+            if (!currentUser || !myRoomId) {
+                window.location.href = "home.html";
+                return;
+            }
+
+            if (confirm("Cancel match and get a refund?")) {
+                document.getElementById('status-text').innerText = "CANCELLING...";
+                try {
+                    // 1. Balance Refund
+                    await runTransaction(ref(db, `users/${currentUser.uid}/balance`), (bal) => (bal || 0) + ENTRY_FEE);
+                    // 2. Remove Player from Room
                     await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players/${currentUser.uid}`));
-                    
-                    // Garbage Collection: Agar room khali ho jaye to delete
+                    // 3. Delete empty room
                     const snap = await get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players`));
                     if (!snap.exists()) {
                         await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}`));
                     }
-                }
+                } catch (e) { console.error(e); }
                 window.location.href = "home.html";
+            } else {
+                window.history.pushState(null, null, window.location.href);
             }
         }
     </script>
