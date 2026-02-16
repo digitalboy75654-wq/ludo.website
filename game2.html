@@ -1229,15 +1229,78 @@ async finalizeRoll(diceBox, val) {
 },
 
             renderAll() {
-                ['red', 'yellow'].forEach(c => this.tokens[c].forEach((p, i) => {
-                    const el = document.getElementById(`t-${c}-${i}`);
-                    const size = 340 / 15;
-                    let r, col;
-                    if (p === 0) [r, col] = this.homes[c][i];
-                    else if (p > 51) [r, col] = this.winP[c][p - 52];
-                    else { let gi = this.toGlobal(c, p); [r, col] = this.path[gi]; }
-                    el.style.top = (r * size + 2) + 'px'; el.style.left = (col * size + 2) + 'px';
-                }));
+    // 1. Pehle ek dictionary banayein taake pata chale kis box par kitni gotiyan hain
+    const positionsCount = {};
+    const tokenData = []; // Har token ka data store karne ke liye
+
+    ['red', 'yellow'].forEach(c => {
+        this.tokens[c].forEach((p, i) => {
+            const el = document.getElementById(`t-${c}-${i}`);
+            let r, col, isHome = false, isWin = false;
+            
+            // Coordinates nikalna
+            if (p === 0) {
+                [r, col] = this.homes[c][i];
+                isHome = true;
+            } else if (p > 51) {
+                [r, col] = this.winP[c][p - 52];
+                isWin = true;
+            } else {
+                let gi = this.toGlobal(c, p); 
+                [r, col] = this.path[gi]; 
+            }
+
+            // Box ki key banayein (e.g., "5-6" ya "home-red-1")
+            let posKey = isHome ? `home-${c}-${i}` : `${r}-${col}`;
+            
+            // Count barhayein
+            if (!positionsCount[posKey]) {
+                positionsCount[posKey] = { count: 0, tokens: [] };
+            }
+            
+            tokenData.push({ el, r, col, isHome, posKey });
+            positionsCount[posKey].count++;
+            positionsCount[posKey].tokens.push(el);
+        });
+    });
+
+    // 2. Ab gotiyon ko screen par draw karein (offset ke sath)
+    const size = 340 / 15; // Box ka size
+
+    tokenData.forEach(data => {
+        const { el, r, col, isHome, posKey } = data;
+        const totalInBox = positionsCount[posKey].count;
+        const indexInBox = positionsCount[posKey].tokens.indexOf(el);
+
+        let offsetX = 0;
+        let offsetY = 0;
+        let scale = 1;
+
+        // Agar ek se zyada gotiyan hain aur woh home mein nahi hain
+        if (totalInBox > 1 && !isHome) {
+            // Gotiyan chhoti hongi taake fit aa saken
+            scale = 0.7; 
+
+            // Offset logic (Max 4 gotiyan ek box mein ho sakti hain)
+            if (indexInBox === 0) { offsetX = -4; offsetY = -4; }
+            if (indexInBox === 1) { offsetX = 4; offsetY = 4; }
+            if (indexInBox === 2) { offsetX = -4; offsetY = 4; }
+            if (indexInBox === 3) { offsetX = 4; offsetY = -4; }
+            
+            // Z-index adjust karein taake baad wali goti oopar nazar aaye
+            el.style.zIndex = 50 + indexInBox;
+        } else {
+            el.style.zIndex = 50;
+        }
+
+        // Apply Position
+        // "+ 2" default border offset ke liye hai
+        el.style.top = (r * size + 2 + offsetY) + 'px'; 
+        el.style.left = (col * size + 2 + offsetX) + 'px';
+        
+        // Scale apply karein taake agar ek jageh hain to chhoti nazar aayein
+        el.style.transform = `scale(${scale})`;
+    });
             }
         };
 
@@ -1324,6 +1387,41 @@ onValue(ref(db, `users/${user.uid}/balance`), (bSnap) => {
         setTimeout(() => clearInterval(syncRetry), 10000);
     }
 });
+// --- MOBILE BACK BUTTON LOGIC ---
+
+// 1. Browser ki history mein ek fake state dalo
+history.pushState(null, null, window.location.href);
+
+// 2. Jab user back button dabaye (popstate trigger ho)
+window.onpopstate = function () {
+    // Foran ek aur fake state dalo taake user wapis piche na ja sake
+    history.pushState(null, null, window.location.href);
+
+    // Wahi exit wala logic trigger karo
+    triggerExitLogic();
+};
+
+// 3. Exit Logic Function (Common for Exit Button & Back Button)
+async function triggerExitLogic() {
+    const confirmExit = confirm("Are you sure you want to leave? Your entry fee will not be refunded and you will lose the match.");
+    
+    if (confirmExit) {
+        // Database mein status 'left' update karein
+        if (currentUser && GAME_ID) {
+            const myStatusRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/players/${currentUser.uid}/online`);
+            await set(myStatusRef, "left");
+            
+            // History log save karein
+            saveHistory(db, currentUser.uid, -entry, "Left Game (Back Button)", "loss");
+            
+            // Home bhej dein
+            window.location.href = "home.html";
+        }
+    }
+}
+
+// 4. Purane Exit Button Click ko bhi isi function se connect kar dein
+document.getElementById('exit-btn').onclick = triggerExitLogic;
     </script>
     <script src="script.js"></script>
 </body>
