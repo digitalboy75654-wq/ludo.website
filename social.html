@@ -312,25 +312,46 @@
         });
 
         window.copyLink = () => {
-            navigator.clipboard.writeText(myReferralLink);
-            alert("Referral link copied!");
-        };
+    const linkText = myReferralLink;
+    
+    // Modern Method
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(linkText).then(() => {
+            alert("✅ Link Copied Successfully!");
+        }).catch(err => {
+            // Agar modern method fail ho jaye to niche wala chalega
+            fallbackCopy(linkText);
+        });
+    } else {
+        // Fallback Method for non-https/older devices
+        fallbackCopy(linkText);
+    }
+};
 
-        window.shareWA = () => {
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + myReferralLink)}`);
-        };
+// --- Pakka Copy Method (Fallback) ---
+function fallbackCopy(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Isay screen se bahar rakhein
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+    
+    textArea.focus();
+    textArea.select();
 
-        window.shareFB = () => {
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(myReferralLink)}`);
-        };
+    try {
+        const successful = document.execCommand('copy');
+        if(successful) alert("✅ Link Copied!");
+        else alert("Failed to copy. Please select and copy manually.");
+    } catch (err) {
+        alert("Unable to copy. Please copy the link manually.");
+    }
 
-        window.nativeShare = async () => {
-            if (navigator.share) {
-                try {
-                    await navigator.share({ title: 'Ludo Pro', text: shareText, url: myReferralLink });
-                } catch (err) {}
-            } else { alert("Please copy the link manually."); }
-        };
+    document.body.removeChild(textArea);
+}
         // --- 🚀 ADVANCED NAVIGATION LOGIC ---
 
 window.navigate = (page, index) => {
