@@ -103,7 +103,7 @@ function closePopup() {
 
 // Window load hone par check karein
 window.onload = function() {
-    const broadcastMsg = "🏆 Welcome to LUDO.WEBSITE! \n\nGet ready for the ultimate gaming experience. Play with real players, enter elite tournaments, and turn your skills into real cash rewards. \n\nGood luck, Champion!";
+    const broadcastMsg = "🏆 Welcome to LUDO.LAT! \n\nGet ready for the ultimate gaming experience. Play with real players, enter elite tournaments, and turn your skills into real cash rewards. \n\nGood luck, Champion!";
     
     // 2 second ke delay ke baad dikhayen
     setTimeout(() => {
@@ -152,4 +152,5 @@ window.initSkipDisplay = function(db, ref, onValue, GAME_ID, ENTRY_FEE) {
             }
         });
     });
+
 };
