@@ -1,8 +1,21 @@
-self.addEventListener('install', (e) => {
-  console.log('Service Worker Installed');
+const cacheName = 'ludo-v1';
+const staticAssets = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icon.png'
+];
+
+self.addEventListener('install', async (e) => {
+  const cache = await caches.open(cacheName);
+  await cache.addAll(staticAssets);
+  return self.skipWaiting();
+});
+
+self.addEventListener('activate', (e) => {
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (e) => {
-  // Website ko smoothly load karne ke liye
   e.respondWith(fetch(e.request));
 });
