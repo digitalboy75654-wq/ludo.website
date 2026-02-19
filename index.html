@@ -55,37 +55,23 @@
         .link { color: var(--accent); cursor: pointer; font-weight: bold; }
         #loader { display: none; margin-top: 15px; color: var(--accent); font-size: 13px; }
         #form-container { display: none; } /* Pehle chhupa rahega jab tak auth check na ho */
-        /* 🟢 DOWNLOAD BUTTON STYLE 🟢 */
-.top-download-box {
-    margin-bottom: 25px; 
-    border-bottom: 1px solid rgba(255,255,255,0.1); 
-    padding-bottom: 20px;
-}
-.dl-btn-top {
-    background: #3DDC84; 
-    color: black !important; 
-    padding: 12px; 
-    text-decoration: none; 
-    border-radius: 12px; 
-    font-weight: 800; 
-    display: block; 
-    width: 100%; 
-    font-size: 14px; 
-    box-shadow: 0 4px 15px rgba(61, 220, 132, 0.3);
-    transition: 0.3s;
-}
-.dl-btn-top:active { transform: scale(0.96); }
+        
     </style>
+    <link rel="manifest" href="manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
 </head>
 <body>
 
     <div class="auth-card">
-        <div class="top-download-box">
-        <a href="https://github.com/digitalboy75654-wq/ludo.website/releases/download/v1.0/app-debug.apk" class="dl-btn-top">
-            <i class="fab fa-android" style="font-size: 18px; margin-right: 5px; vertical-align: middle;"></i> 
-            DOWNLOAD ANDROID APP
-        </a>
-    </div>
+        <div id="install-container" style="display: none; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+    <button id="install-btn" style="background: #3DDC84; color: black; padding: 12px; border: none; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer;">
+        <i class="fab fa-android"></i> INSTALL LUDO APP
+    </button>
+</div>
         <div class="logo-icon"><i class="fas fa-dice"></i></div>
         <div class="title">LUDO.Website</div>
 
@@ -115,6 +101,23 @@
     </div>
 
 <script type="module">
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('install-container').style.display = 'block';
+    });
+
+    document.getElementById('install-btn').addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                document.getElementById('install-container').style.display = 'none';
+            }
+            deferredPrompt = null;
+        }
+    });
     // --- SECURE BACKEND CONNECTION ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
