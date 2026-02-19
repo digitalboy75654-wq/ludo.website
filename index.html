@@ -6,7 +6,7 @@
     <meta property="og:title" content="Ludo Pro - Play & Win">
 <meta property="og:image" content="https://ludo.website/icon1.png">
 <meta property="og:description" content="Click karke join karein aur jeetein!">
-    <title>Ludo Lat - Earn Real Money</title>
+    <title>Ludo Pro - Elite Login</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -55,13 +55,39 @@
         .link { color: var(--accent); cursor: pointer; font-weight: bold; }
         #loader { display: none; margin-top: 15px; color: var(--accent); font-size: 13px; }
         #form-container { display: none; } /* Pehle chhupa rahega jab tak auth check na ho */
+        /* 🟢 DOWNLOAD BUTTON STYLE 🟢 */
+.top-download-box {
+    margin-bottom: 25px; 
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+    padding-bottom: 20px;
+}
+.dl-btn-top {
+    background: #3DDC84; 
+    color: black !important; 
+    padding: 12px; 
+    text-decoration: none; 
+    border-radius: 12px; 
+    font-weight: 800; 
+    display: block; 
+    width: 100%; 
+    font-size: 14px; 
+    box-shadow: 0 4px 15px rgba(61, 220, 132, 0.3);
+    transition: 0.3s;
+}
+.dl-btn-top:active { transform: scale(0.96); }
     </style>
 </head>
 <body>
 
     <div class="auth-card">
+        <div class="top-download-box">
+        <a href="https://github.com/digitalboy75654-wq/ludo.website/releases/download/v1.0/app-debug.apk" class="dl-btn-top">
+            <i class="fab fa-android" style="font-size: 18px; margin-right: 5px; vertical-align: middle;"></i> 
+            DOWNLOAD ANDROID APP
+        </a>
+    </div>
         <div class="logo-icon"><i class="fas fa-dice"></i></div>
-        <div class="title">LUDO.LAT</div>
+        <div class="title">LUDO.Website</div>
 
         <div id="form-container">
             <input type="email" id="email" class="input-box" placeholder="Email Address">
@@ -216,6 +242,4 @@
 </script>
 <script src="script.js"></script>
 </body>
-
 </html>
-
