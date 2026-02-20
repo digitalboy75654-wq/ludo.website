@@ -158,13 +158,10 @@
         /* GAME GRID */
         .grid {
     display: grid;
-    /* Yeh line 2 barabar columns banaye gi */
-    grid-template-columns: repeat(2, 1fr); 
-    /* Cards ke darmiyan fasla (Gap) */
-    gap: 20px; 
-    /* Screen ke darmiyan alignment */
+    grid-template-columns: repeat(2, 150px); /* Do columns 150px ke */
+    justify-content: center; /* Screen ke center mein layout */
+    gap: 15px; /* Cards ke beech ka fasla */
     padding: 20px;
-    max-width: 400px; /* Aapki screen ke mutabiq adjust karein */
     margin: 0 auto;
 }
 
@@ -291,21 +288,35 @@
     transform: scale(0.95);
 }
 /* --- 💎 CARD DESIGN --- */
+/* --- 1vs1 Card (Base) --- */
 .mini-battle-box {
     position: relative;
-    width: 170px; /* Chota aur compact size */
-    height: 210px;
-    background: linear-gradient(135deg, #0f0c29, #302b63); /* Deep Premium Blue */
-    border-radius: 25px;
-    margin: 20px auto;
+    width: 150px !important;
+    height: 190px !important; /* Sab ki height ek jaisi */
+    border-radius: 20px;
     cursor: pointer;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
     transition: 0.3s ease;
-    /* overflow: hidden NAHI lagaya taake goti bahar nikle */
+    margin: 0 !important; /* Kisi bhi card ki apni margin nahi honi chahiye */
+    overflow: hidden;
 }
 
-.mini-battle-box:active { transform: scale(0.95); }
+/* Content ko center karne ke liye */
+.clash-zone, .clash-zone-4p, .clash-zone-tourney {
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-footer-solid {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 10px 0;
+    text-align: center;
+}
 
 /* --- 🟢 LIVE TAG (Top Left) --- */
 .status-badge {
@@ -993,7 +1004,7 @@
         initRealtimeBalance(user);
         
     } else {
-        window.location.href = "login.html";
+        window.location.href = "index.html";
     }
 });
 
@@ -1176,4 +1187,3 @@ window.addEventListener('load', initNavigation);
     <script src="script.js"></script>
 </body>
 </html>
-
