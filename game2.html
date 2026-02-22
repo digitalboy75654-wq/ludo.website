@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -638,7 +639,7 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
 }
 
         onAuthStateChanged(auth, async (user) => {
-            if (user) { currentUser = user; await startMatchmaking(); } else { window.location.href = "login.html"; }
+            if (user) { currentUser = user; await startMatchmaking(); } else { window.location.href = "index.html"; }
         });
 
         async function startMatchmaking() {
@@ -852,6 +853,12 @@ if (window.initSkipDisplay) {
             },
 
             sync(state) {
+                if (state.skips) {
+                    const rS = document.getElementById('skips-red');
+                    const yS = document.getElementById('skips-yellow');
+                    if (rS) rS.innerText = `Skips: ${state.skips.red || 0}/5`;
+                    if (yS) yS.innerText = `Skips: ${state.skips.yellow || 0}/5`;
+                }
     // 1. Agar Firebase mein winner mil jaye
     if (state.winner) {
         // Game timers aur listeners ko stop karo
@@ -922,7 +929,11 @@ if (window.initSkipDisplay) {
 
                     if (timeLeft <= 0) {
                         clearInterval(this.turnTimer);
-
+get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${activeColor}`)).then(snap => {
+                            let s = (snap.val() || 0) + 1;
+                            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips`), { [activeColor]: s });
+                            if(s >= 5) update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { winner: activeColor === 'red' ? 'yellow' : 'red' });
+                        });
                         // AGAR MERI BARI HAI (Lekin main offline hoon ya move nahi kar raha)
                         if (activeColor === myColor) {
                             if (type === 'roll' && !this.hasRolled) this.rollDice();
@@ -932,7 +943,10 @@ if (window.initSkipDisplay) {
     window.handleMissedTurnLogic({
         db, ref, get, update, GAME_ID, ENTRY_FEE, myColor, currentUser, activeColor: this.turn
     });
+    if (this.turn !== myColor) { this.simulateOpponentTurn(); }
 }
+
+
                         // AGAR OPPONENT KI BARI HAI (Aur uska internet chala gaya hai)
                         else {
                             console.log("Opponent is inactive, auto-simulating for him...");
@@ -1112,6 +1126,9 @@ async finalizeRoll(diceBox, val) {
                         this.autoMoveForOpponent(fakeVal);
                     }, 1000);
                 }
+                else {
+                    this.autoMoveForOpponent(this.diceVal);
+                }
             },
 
             autoMoveForOpponent(val) {
@@ -1126,6 +1143,7 @@ async finalizeRoll(diceBox, val) {
                     this.handleMoveForColor(opp, movableTokens[0], val);
                 } else {
                     this.passTurn(false);
+                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { turn: myColor });
                 }
             },
 
