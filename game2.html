@@ -816,6 +816,10 @@ if (window.initSkipDisplay) {
 
                 // 3. GAME STATE SYNC
                 if (data.gameState && window.Game) {
+                    if (data.lastRoll && data.lastRoll.color === data.gameState.turn) {
+                        window.Game.hasRolled = true;
+                        window.Game.diceVal = data.lastRoll.value;
+                    }
                     window.Game.sync(data.gameState);
                 }
             });
@@ -869,7 +873,10 @@ if (window.initSkipDisplay) {
         handleForcedEnd(state.winner); 
         return; 
     }
-
+if (!this.firstSyncDone) {
+        this.tokens = JSON.parse(JSON.stringify(state.tokens));
+        this.firstSyncDone = true;
+    }
     // 2. Tokens Movement Sync (Opponent ki goti chalne ki animation)
     const opp = myColor === 'red' ? 'yellow' : 'red';
     const oldToks = this.tokens[opp];
