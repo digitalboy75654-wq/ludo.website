@@ -592,7 +592,14 @@ saveHistory(db, currentUser.uid, winAmount, "1vs1 Win", "win");
         collectBtn.style.display = 'block';
         homeBtn.style.display = 'none';
         AudioSys.win();
-
+// --- AUTO DELETE LOGIC ---
+setTimeout(async () => {
+    try {
+        await set(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), null);
+        console.log("Room Cleaned Successfully");
+    } catch (err) { console.error("Delete Error:", err); }
+}, 3000); // 3 second baad delete ho jayega
+// -------------------------
         collectBtn.onclick = async function() {
             collectBtn.disabled = true;
             collectBtn.innerText = "Processing...";
@@ -1451,4 +1458,3 @@ document.getElementById('exit-btn').onclick = triggerExitLogic;
     <script src="script.js"></script>
 </body>
 </html>
-game2
