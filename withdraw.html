@@ -253,8 +253,8 @@
         let currentBalance = 0;
         let isKycApproved = false;
 
-        const WITHDRAW_FEE = 0;
-        const MIN_WITHDRAW = 50; // Total 50, user gets 50.
+        const WITHDRAW_FEE = 0;   // Fee 0 ho gayi
+const MIN_WITHDRAW = 50; // Total 200, user gets 100.
 
         // --- 1. AUTH & DATA LOAD ---
         onAuthStateChanged(auth, (user) => {
@@ -411,6 +411,4 @@
     <script type="module" src="globalManager.js"></script>
     <script src="script.js"></script>
 </body>
-
 </html>
-
