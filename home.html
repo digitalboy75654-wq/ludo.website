@@ -830,7 +830,14 @@
     </div>
 </div>
             </div>
-        
+        <div id="install-banner" style="display: none; background: linear-gradient(135deg, #3DDC84, #28a745); padding: 12px 20px; text-align: center; margin: 15px; border-radius: 15px; box-shadow: 0 5px 15px rgba(61, 220, 132, 0.2);">
+    <div style="color: black; font-weight: 800; font-size: 13px; margin-bottom: 8px; font-family: 'Poppins', sans-serif;">
+        🔥 Play Faster! Install Ludo Pro App
+    </div>
+    <button id="install-btn-home" style="background: #111; color: white; padding: 8px 25px; border: none; border-radius: 8px; font-weight: bold; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: 0.3s; width: 100%;">
+        <i class="fab fa-google-play"></i> DOWNLOAD NOW
+    </button>
+</div>
     <div class="scroll-area">
         <div class="app-branding">
             <div class="brand-title">
@@ -1182,6 +1189,45 @@ function initNavigation() {
 // Page load hote hi chalayein
 window.addEventListener('load', initNavigation);
     </script>
+    <script>
+    // PWA Install Logic for Home Page
+    let deferredPrompt;
+    const installBanner = document.getElementById('install-banner');
+    const installBtn = document.getElementById('install-btn-home');
+
+    // 1. Check karein ke kya user pehle hi App use kar raha hai?
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    // Agar App mein nahi hai, tabhi install ka option dikhayein
+    if (!isStandalone) {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Button ko show karein
+            installBanner.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Install ka popup dikhayein
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    // Agar user ne Install kar liya toh button gayab kar dein
+                    installBanner.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        // Background me completely install hone par bhi button hata dein
+        window.addEventListener('appinstalled', () => {
+            installBanner.style.display = 'none';
+            deferredPrompt = null;
+        });
+    }
+</script>
     <script type="module" src="globalManager.js"></script>
     <script src="navigation.js"></script>
     <script src="script.js"></script>
