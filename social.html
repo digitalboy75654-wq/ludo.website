@@ -327,7 +327,41 @@
         fallbackCopy(linkText);
     }
 };
+// --- SHARE FUNCTIONS ---
+        
+        // 1. WhatsApp Share
+        window.shareWA = () => {
+            if (!myReferralLink) return alert("Please wait, link is loading...");
+            const text = encodeURIComponent(shareText + "\n\n" + myReferralLink);
+            window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+        };
 
+        // 2. Facebook Share
+        window.shareFB = () => {
+            if (!myReferralLink) return alert("Please wait, link is loading...");
+            const url = encodeURIComponent(myReferralLink);
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+        };
+
+        // 3. Native Share (Mobile ka apna share menu)
+        window.nativeShare = async () => {
+            if (!myReferralLink) return alert("Please wait, link is loading...");
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Ludo Pro - Play & Win',
+                        text: 'Play Ludo Pro and Win Real Cash! 🎲 Join using my link:\n',
+                        url: myReferralLink
+                    });
+                } catch (err) {
+                    console.log('User cancelled share');
+                }
+            } else {
+                alert("Native share is not supported on this browser. Please copy the link manually.");
+                copyLink(); // Agar share support na ho toh link copy kar de
+            }
+        };
 // --- Pakka Copy Method (Fallback) ---
 function fallbackCopy(text) {
     const textArea = document.createElement("textarea");
