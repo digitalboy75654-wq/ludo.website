@@ -582,6 +582,20 @@ onAuthStateChanged(auth, async (user) => {
     const winAmount = totalPot - adminFee;
 
     if (myColor === winnerColor) {
+        // --- AUTO BALANCE & DELETE LOGIC ---
+try {
+    const userRef = ref(db, `users/${currentUser.uid}/balance`);
+    // 1. Balance foran update karein
+    await runTransaction(userRef, (curr) => (curr || 0) + winAmount);
+    saveHistory(db, currentUser.uid, winAmount, "1vs1 Win", "win");
+
+    // 2. ✨ ROOM AUTO DELETE (3 second ke delay ke baad)
+    setTimeout(async () => {
+        await set(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), null);
+        console.log("Room Cleaned Automatically");
+    }, 3000);
+} catch (err) { console.error("Auto Process Failed:", err); }
+// ------------------------------------
         // --- WINNER LOGIC ---
         // Jahan winner logic hai, wahan bas ye line add karein:
 saveHistory(db, currentUser.uid, winAmount, "1vs1 Win", "win");
