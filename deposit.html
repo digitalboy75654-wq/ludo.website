@@ -321,36 +321,43 @@
         }
 
         // --- 4. LOAD HISTORY ---
-        function loadHistory(uid) {
-            const depRef = ref(db, 'deposit_requests');
-            onValue(depRef, (snap) => {
-                const container = document.getElementById('history-container');
-                container.innerHTML = "";
-                let hasData = false;
+        // --- 4. LOAD HISTORY (WITH FULL USER DETAILS) ---
+function loadHistory(uid) {
+    const depRef = ref(db, 'deposit_requests');
+    onValue(depRef, (snap) => {
+        const container = document.getElementById('history-container');
+        container.innerHTML = "";
+        let hasData = false;
 
-                if(snap.exists()) {
-                    const allReqs = Object.entries(snap.val()).reverse();
+        if(snap.exists()) {
+            const allReqs = Object.entries(snap.val()).reverse();
+            
+            allReqs.forEach(([key, val]) => {
+                if(val.userId === uid) {
+                    hasData = true;
+                    const date = new Date(val.timestamp).toLocaleDateString();
                     
-                    allReqs.forEach(([key, val]) => {
-                        if(val.userId === uid) {
-                            hasData = true;
-                            const date = new Date(val.timestamp).toLocaleDateString();
-                            container.innerHTML += `
-                                <div class="history-item">
-                                    <div class="h-left">
-                                        <div class="h-amt">Rs. ${val.amount}</div>
-                                        <div class="h-date">${val.method.toUpperCase()} • ${date}</div>
-                                    </div>
-                                    <div class="badge b-${val.status.toLowerCase()}">${val.status}</div>
+                    container.innerHTML += `
+                        <div class="history-item" style="margin-bottom: 12px; border-left: 3px solid var(--primary);">
+                            <div class="h-left">
+                                <div class="h-amt">Rs. ${val.amount}</div>
+                                <div class="h-date">${val.method.toUpperCase()} • ${date}</div>
+                                
+                                <div style="font-size:10px; margin-top:5px; line-height:1.4;">
+                                    <div style="color:var(--gold);"><i class="fas fa-user-edit"></i> Sender: ${val.sender}</div>
+                                    <div style="color:var(--neon-blue);"><i class="fas fa-fingerprint"></i> TRX ID: ${val.trxID}</div>
                                 </div>
-                            `;
-                        }
-                    });
+                            </div>
+                            <div class="badge b-${val.status.toLowerCase()}">${val.status}</div>
+                        </div>
+                    `;
                 }
-                
-                if(!hasData) container.innerHTML = "<div style='text-align:center; opacity:0.5; font-size:12px; padding:20px;'>No Recent Transactions Found.</div>";
             });
         }
+        
+        if(!hasData) container.innerHTML = "<div style='text-align:center; opacity:0.5; font-size:12px; padding:20px;'>No Recent Transactions Found.</div>";
+    });
+}
     </script>
     <script type="module" src="globalManager.js"></script>
     <script src="script.js"></script>
