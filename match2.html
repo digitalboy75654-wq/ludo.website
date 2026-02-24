@@ -272,55 +272,38 @@ async function joinRoom(roomId) {
                 triggerCancelAndRefund();
             };
         }
-        // --- MOBILE BACK BUTTON TRAP (INFINITE TRAP) ---
-        
-        // 1. Page load hotay hi ek nakli (fake) history state daal do
-        window.history.pushState(null, null, window.location.href);
-
-        // 2. Jab bhi user back dabayega, ye function chalega
-        window.onpopstate = function() {
-            // Foran ek aur state daal do (taake wo pichle page par na ja sake)
-            window.history.pushState(null, null, window.location.href);
-            
+        // --- MOBILE BACK BUTTON & REFUND LOGIC ---
+        window.addEventListener('popstate', async function() {
             const status = document.getElementById('status-text').innerText;
             if (status === "OPPONENT FOUND!") {
-                return; // Agar match mil gaya hai to waise hi kuch na karo
+                window.history.pushState(null, null, window.location.href);
+                return;
             }
+            await triggerCancelAndRefund();
+        });
 
-            // User ko warn karo ke button kaam nahi karega
-            alert("Please use the 'CANCEL MATCH' button on the screen to go back and get a refund.");
-        };
-
-        // --- CANCEL BUTTON LOGIC (Sirf yahan se refund hoga) ---
         async function triggerCancelAndRefund() {
             if (!currentUser || !myRoomId) {
                 window.location.href = "home.html";
                 return;
             }
 
-            // Jab user screen wala laal button dabayega, tabhi ye chalega
             if (confirm("Cancel match and get a refund?")) {
                 document.getElementById('status-text').innerText = "CANCELLING...";
-                document.getElementById('cancel-action').disabled = true;
-
                 try {
-                    // 1. Paise wapas (Araam se honge kyunke page abhi open hai)
+                    // 1. Balance Refund
                     await runTransaction(ref(db, `users/${currentUser.uid}/balance`), (bal) => (bal || 0) + ENTRY_FEE);
-                    
-                    // 2. Room se niklo
+                    // 2. Remove Player from Room
                     await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players/${currentUser.uid}`));
-                    
-                    // 3. Room delete karo agar khali hai
+                    // 3. Delete empty room
                     const snap = await get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players`));
                     if (!snap.exists()) {
                         await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}`));
                     }
-                } catch (e) { 
-                    console.error("Refund Error:", e); 
-                }
-                
-                // Sab hone ke baad home page par bhej do
+                } catch (e) { console.error(e); }
                 window.location.href = "home.html";
+            } else {
+                window.history.pushState(null, null, window.location.href);
             }
         }
     </script>
