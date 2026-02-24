@@ -273,8 +273,7 @@ async function joinRoom(roomId) {
             };
         }
         // --- MOBILE BACK BUTTON & REFUND LOGIC ---
-        window.history.pushState(null, null, window.location.href);
-        window.addEventListener('popstate', async function() {window.history.pushState(null, null, window.location.href);
+        window.addEventListener('popstate', async function() {
             const status = document.getElementById('status-text').innerText;
             if (status === "OPPONENT FOUND!") {
                 window.history.pushState(null, null, window.location.href);
