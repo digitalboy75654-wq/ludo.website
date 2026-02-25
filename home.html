@@ -1,5 +1,4 @@
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -367,13 +366,13 @@
 .blue-v {
     color: #00d2d3; /* Neon Blue */
     left: -20px; /* Card ke left edge se bahar */
-    animation: moveBlue 20s infinite alternate cubic-bezier(.17,.67,.83,.67);
+    animation: moveBlue 3s infinite alternate cubic-bezier(.17,.67,.83,.67);
 }
 
 .red-v {
     color: #ff4757; /* Neon Red */
     right: -20px; /* Card ke right edge se bahar */
-    animation: moveRed 20s infinite alternate cubic-bezier(.17,.67,.83,.67);
+    animation: moveRed 3s infinite alternate cubic-bezier(.17,.67,.83,.67);
 }
 
 .clash-impact {
@@ -381,7 +380,7 @@
     width: 60px; height: 60px;
     background: radial-gradient(circle, #fff 0%, transparent 70%);
     opacity: 0;
-    animation: flashImpact 20s infinite alternate;
+    animation: flashImpact 3s infinite alternate;
 }
 
 /* --- ANIMATIONS --- */
@@ -413,7 +412,7 @@
 .card-title {
     font-family: 'Orbitron', sans-serif;
     font-size: 15px;
-    margin: 0; color: #ffffff;
+    margin: 0; color: #fff;
     letter-spacing: 1px;
 }
 
@@ -428,12 +427,12 @@
     position: relative;
     width: 170px;
     height: 210px;
-     /* Fresh Teal/Green Gradient */
+    background: linear-gradient(135deg, #00b894, #00cec9); /* Fresh Teal/Green Gradient */
     border-radius: 25px;
     margin: 20px auto;
     cursor: pointer;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 184, 148, 0.4);
     transition: 0.3s ease;
 }
 
@@ -473,13 +472,13 @@
 .h-left {
     color: #fd79a8; /* Soft Pink Heart */
     left: -15px;
-    animation: moveHeartLeft 20s infinite alternate ease-in-out;
+    animation: moveHeartLeft 5s infinite alternate ease-in-out;
 }
 
 .h-right {
     color: #fab1a0; /* Peach Heart */
     right: -15px;
-    animation: moveHeartRight 20s infinite alternate ease-in-out;
+    animation: moveHeartRight 5s infinite alternate ease-in-out;
 }
 
 .heart-glow {
@@ -487,7 +486,7 @@
     width: 70px; height: 70px;
     background: radial-gradient(circle, #fff 0%, transparent 75%);
     opacity: 0;
-    animation: heartMerge 20s infinite alternate;
+    animation: heartMerge 5s infinite alternate;
 }
 
 /* --- ANIMATIONS: Dil Ka Milna --- */
@@ -507,38 +506,31 @@
 }
 
 /* --- 📝 SOLID FOOTER --- */
-.card-footer-solid {
-    position: absolute;
-    bottom: 0; width: 100%;
-    background: #6c5ce7; /* Beautiful Solid Purple Fill */
-    padding: 15px 0;
-    border-radius: 0 0 25px 25px;
-    text-align: center;
+.friend-footer {
+    background: #009688 !important; /* Solid Dark Teal Fill */
 }
 
 .card-title {
     font-family: 'Orbitron', sans-serif;
-    font-size: 15px;
-    margin: 0; color: #fff;
-    letter-spacing: 1px;
+    font-size: 14px;
+    color: #fff;
 }
 
 .card-sub {
     font-size: 9px;
-    color: #f1c40f;
+    color: #ffeaa7; /* Soft Yellow */
     font-weight: bold;
-    margin: 4px 0 0 0;
 }
 /* --- 🎲 MULTIPLAYER CARD STYLE --- */
 .multiplayer-card {
     position: relative;
     width: 170px;
     height: 210px;
-     /* Beautiful Red/Orange Energy */
+    background: linear-gradient(135deg, #ff7675, #d63031); /* Beautiful Red/Orange Energy */
     border-radius: 25px;
     margin: 20px auto;
     cursor: pointer;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 10px 30px rgba(214, 48, 49, 0.4);
     transition: 0.03s ease;
 }
 
@@ -574,10 +566,10 @@
 }
 
 /* Charon Gotiyon ki Positions aur Animations */
-.p-blue   { color: #0984e3; top: -15px; animation: moveDown 20s infinite alternate; }
-.p-red    { color: #ffffff; bottom: -15px; animation: moveUp 20s infinite alternate; }
-.p-green  { color: #00b894; left: -25px; animation: moveRightMulti 20s infinite alternate; }
-.p-yellow { color: #f1c40f; right: -25px; animation: moveLeftMulti 20s infinite alternate; }
+.p-blue   { color: #0984e3; top: -15px; animation: moveDown 3s infinite alternate; }
+.p-red    { color: #ffffff; bottom: -15px; animation: moveUp 3s infinite alternate; }
+.p-green  { color: #00b894; left: -25px; animation: moveRightMulti 3s infinite alternate; }
+.p-yellow { color: #f1c40f; right: -25px; animation: moveLeftMulti 3s infinite alternate; }
 
 /* --- MULTIPLAYER ANIMATIONS --- */
 @keyframes moveDown { from { top: -25px; } to { top: 30px; } }
@@ -590,7 +582,7 @@
     width: 60px; height: 60px;
     background: radial-gradient(circle, #fff 0%, transparent 75%);
     opacity: 0;
-    animation: multiFlash 20s infinite alternate;
+    animation: multiFlash 0.7s infinite alternate;
 }
 
 @keyframes multiFlash {
@@ -599,38 +591,33 @@
 }
 
 /* --- 📝 MULTI FOOTER --- */
-.card-footer-solid {
-    position: absolute;
-    bottom: 0; width: 100%;
-    background: #6c5ce7; /* Beautiful Solid Purple Fill */
-    padding: 15px 0;
-    border-radius: 0 0 25px 25px;
-    text-align: center;
+.multi-footer {
+    background: #c0392b !important; /* Solid Deep Red Fill */
 }
 
 .card-title {
     font-family: 'Orbitron', sans-serif;
     font-size: 15px;
-    margin: 0; color: #fff;
-    letter-spacing: 1px;
+    color: #fff;
+    margin: 0;
 }
 
 .card-sub {
     font-size: 9px;
-    color: #f1c40f;
+    color: #fab1a0;
     font-weight: bold;
-    margin: 4px 0 0 0;
+    margin-top: 4px;
 }
 /* --- 🏆 TOURNAMENT CARD STYLE --- */
 .tournament-card {
     position: relative;
     width: 170px;
     height: 210px;
-     /* Royal Gold Gradient */
+    background: linear-gradient(135deg, #f39c12, #e67e22); /* Royal Gold Gradient */
     border-radius: 25px;
     margin: 20px auto;
     cursor: pointer;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 10px 30px rgba(230, 126, 34, 0.4);
     transition: 0.3s ease;
 }
 
@@ -655,7 +642,7 @@
     color: #fff;
     filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
     z-index: 6;
-    animation: trophyBounce 20.5s infinite ease-in-out;
+    animation: trophyBounce 1.5s infinite ease-in-out;
 }
 
 /* Sitaron ki Animation (Stars) */
@@ -694,27 +681,22 @@
 }
 
 /* --- 📝 TOURNAMENT FOOTER --- */
-.card-footer-solid {
-    position: absolute;
-    bottom: 0; width: 100%;
-    background: #6c5ce7; /* Beautiful Solid Purple Fill */
-    padding: 15px 0;
-    border-radius: 0 0 25px 25px;
-    text-align: center;
+.tourney-footer {
+    background: #d35400 !important; /* Deep Burnt Orange Fill */
 }
 
 .card-title {
     font-family: 'Orbitron', sans-serif;
-    font-size: 15px;
-    margin: 0; color: #fff;
-    letter-spacing: 1px;
+    font-size: 16px;
+    color: #fff;
+    margin: 0;
 }
 
 .card-sub {
-    font-size: 9px;
+    font-size: 10px;
     color: #f1c40f;
     font-weight: bold;
-    margin: 4px 0 0 0;
+    margin-top: 4px;
 }
 /* Popup Overlay */
 .popup-overlay {
@@ -826,8 +808,6 @@
                  0 0 30px rgba(255, 255, 255, 0.4);
     margin-left: 10px;
 }
-
-
     </style>
 </head>
 <body>
@@ -909,7 +889,7 @@
             <div class="heart-glow"></div>
         </div>
         <div class="card-footer-solid friend-footer">
-            <h3 class="card-title">With FRIENDS</h3>
+            <h3 class="card-title">Play With FRIENDS</h3>
             <p class="card-sub">Private Room</p>
         </div>
     </div>
@@ -1209,4 +1189,3 @@ window.addEventListener('load', initNavigation);
     <script src="script.js"></script>
 </body>
 </html>
-
