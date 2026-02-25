@@ -956,11 +956,30 @@ if (!this.firstSyncDone) {
             },
 
             startTimer(type) {
+                // --- 1. CHAT MESSAGE TIMER RESET FIX ---
+                // Agar same player ki bari chal rahi hai, toh timer dubara reset nahi hoga
+                if (this.lastTurnColor === this.turn && this.lastTimerType === type && this.turnTimer) {
+                    return; 
+                }
+                this.lastTurnColor = this.turn;
+                this.lastTimerType = type;
+                // ---------------------------------------
+
                 if (this.turnTimer) clearInterval(this.turnTimer);
 
                 let timeLeft = 20;
+                
+                // --- 2. PAGE REFRESH TIMER FIX ---
+                if (type === 'move' && this.rollStartTime) {
+                    let elapsed = Math.floor((Date.now() - this.rollStartTime) / 1000);
+                    timeLeft = (elapsed > 0 && elapsed < 20) ? 20 - elapsed : 1;
+                }
+                // ---------------------------------
+
                 const activeColor = this.turn;
                 const bar = document.getElementById(`timer-${activeColor}`);
+
+                // ... baqi neeche ka sara code same rahega (setInterval wala)
 
                 this.turnTimer = setInterval(() => {
                     timeLeft--;
