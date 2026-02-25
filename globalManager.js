@@ -174,5 +174,5 @@ function showInvitePopup(invite, inviteId, myUid, sName, sPhoto) {
         } catch (e) { console.error(e); div.remove(); }
     };
 
-    setTimeout(() => { if(div) div.remove(); }, 30000);
+    setTimeout(() => { if(div) div.remove(); }, 10000);
 }
