@@ -381,12 +381,32 @@
                 status: 'pending',
                 timestamp: serverTimestamp()
             });
-
+// --- ⏲️ YE HISSA ADD KAREIN (10 SECOND TIMER) ---
+    const currentInviteId = activeChallengeId; // Current ID ko save karlein
+    setTimeout(async () => {
+        // Agar game shuru nahi hui (activeChallengeId abhi bhi wahi hai)
+        if (activeChallengeId === currentInviteId) {
+            const inviteRef = ref(db, `invites/${currentInviteId}`);
+            const snap = await get(inviteRef);
+            
+            if (snap.exists() && snap.val().status === 'pending') {
+                // 1. Database mein request khatam karein
+                await update(inviteRef, { status: 'expired' });
+                
+                // 2. Sender ki screen se waiting box hatayein
+                closeModal('modal-wait');
+                alert("No response from player. Request expired.");
+                activeChallengeId = null;
+            }
+        }
+    }, 10000); // 10000ms = 10 second
+    // --- TIMER END ---
             const unsub = onValue(ref(db, `invites/${activeChallengeId}`), (snap) => {
                 const data = snap.val();
                 if(!data) return;
 
                 if(data.status === 'accepted') {
+                    activeChallengeId = null;
                     startGame(gameId, amount);
                 } 
                 else if (data.status === 'rejected') {
