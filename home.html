@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -365,13 +366,13 @@
 .blue-v {
     color: #00d2d3; /* Neon Blue */
     left: -20px; /* Card ke left edge se bahar */
-    animation: moveBlue 3s infinite alternate cubic-bezier(.17,.67,.83,.67);
+    animation: moveBlue 20s infinite alternate cubic-bezier(.17,.67,.83,.67);
 }
 
 .red-v {
     color: #ff4757; /* Neon Red */
     right: -20px; /* Card ke right edge se bahar */
-    animation: moveRed 3s infinite alternate cubic-bezier(.17,.67,.83,.67);
+    animation: moveRed 20s infinite alternate cubic-bezier(.17,.67,.83,.67);
 }
 
 .clash-impact {
@@ -379,7 +380,7 @@
     width: 60px; height: 60px;
     background: radial-gradient(circle, #fff 0%, transparent 70%);
     opacity: 0;
-    animation: flashImpact 3s infinite alternate;
+    animation: flashImpact 20s infinite alternate;
 }
 
 /* --- ANIMATIONS --- */
@@ -471,13 +472,13 @@
 .h-left {
     color: #fd79a8; /* Soft Pink Heart */
     left: -15px;
-    animation: moveHeartLeft 5s infinite alternate ease-in-out;
+    animation: moveHeartLeft 20s infinite alternate ease-in-out;
 }
 
 .h-right {
     color: #fab1a0; /* Peach Heart */
     right: -15px;
-    animation: moveHeartRight 5s infinite alternate ease-in-out;
+    animation: moveHeartRight 20s infinite alternate ease-in-out;
 }
 
 .heart-glow {
@@ -485,7 +486,7 @@
     width: 70px; height: 70px;
     background: radial-gradient(circle, #fff 0%, transparent 75%);
     opacity: 0;
-    animation: heartMerge 5s infinite alternate;
+    animation: heartMerge 20s infinite alternate;
 }
 
 /* --- ANIMATIONS: Dil Ka Milna --- */
@@ -565,10 +566,10 @@
 }
 
 /* Charon Gotiyon ki Positions aur Animations */
-.p-blue   { color: #0984e3; top: -15px; animation: moveDown 3s infinite alternate; }
-.p-red    { color: #ffffff; bottom: -15px; animation: moveUp 3s infinite alternate; }
-.p-green  { color: #00b894; left: -25px; animation: moveRightMulti 3s infinite alternate; }
-.p-yellow { color: #f1c40f; right: -25px; animation: moveLeftMulti 3s infinite alternate; }
+.p-blue   { color: #0984e3; top: -15px; animation: moveDown 20s infinite alternate; }
+.p-red    { color: #ffffff; bottom: -15px; animation: moveUp 20s infinite alternate; }
+.p-green  { color: #00b894; left: -25px; animation: moveRightMulti 20s infinite alternate; }
+.p-yellow { color: #f1c40f; right: -25px; animation: moveLeftMulti 20s infinite alternate; }
 
 /* --- MULTIPLAYER ANIMATIONS --- */
 @keyframes moveDown { from { top: -25px; } to { top: 30px; } }
@@ -581,7 +582,7 @@
     width: 60px; height: 60px;
     background: radial-gradient(circle, #fff 0%, transparent 75%);
     opacity: 0;
-    animation: multiFlash 0.7s infinite alternate;
+    animation: multiFlash 20s infinite alternate;
 }
 
 @keyframes multiFlash {
@@ -641,7 +642,7 @@
     color: #fff;
     filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
     z-index: 6;
-    animation: trophyBounce 1.5s infinite ease-in-out;
+    animation: trophyBounce 20.5s infinite ease-in-out;
 }
 
 /* Sitaron ki Animation (Stars) */
@@ -807,10 +808,103 @@
                  0 0 30px rgba(255, 255, 255, 0.4);
     margin-left: 10px;
 }
+/* --- 🌌 ULTRA GLOWING BACKGROUND --- */
+body {
+    margin: 0; padding: 0; font-family: 'Poppins', sans-serif;
+    background: #020205 !important; /* Bilkul dark background taake glow nazar aaye */
+    height: 100vh; color: white; display: flex; flex-direction: column; overflow: hidden;
+    position: relative;
+}
+
+body::before {
+    content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    /* Tezz Ludo Colors */
+    background: 
+        radial-gradient(circle at 10% 10%, rgba(255, 71, 87, 0.5) 0%, transparent 40%),
+        radial-gradient(circle at 90% 10%, rgba(46, 213, 115, 0.5) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(255, 202, 40, 0.5) 0%, transparent 40%),
+        radial-gradient(circle at 10% 90%, rgba(0, 210, 211, 0.5) 0%, transparent 40%);
+    z-index: -2;
+    filter: blur(60px);
+    animation: bgMovement 10s infinite alternate ease-in-out;
+}
+
+@keyframes bgMovement {
+    from { transform: scale(1) rotate(0deg); opacity: 0.7; }
+    to { transform: scale(1.3) rotate(5deg); opacity: 1; }
+}
+
+/* --- ✨ NEON GLOWING CARDS --- */
+.mini-battle-box {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(15px);
+    border-radius: 22px;
+    border: 2px solid rgba(255, 255, 255, 0.15) !important;
+    transition: all 0.3s ease !important;
+    position: relative;
+}
+
+/* 2 Player - Cyan/Blue Glow */
+.mini-battle-box:nth-of-type(1) {
+    box-shadow: 0 0 25px rgba(0, 210, 211, 0.5), inset 0 0 15px rgba(0, 210, 211, 0.2);
+    border-color: rgba(0, 210, 211, 0.6) !important;
+}
+
+/* Friends - Green Glow */
+.friend-live-card {
+    box-shadow: 0 0 25px rgba(0, 184, 148, 0.5), inset 0 0 15px rgba(0, 184, 148, 0.2);
+    border-color: rgba(0, 184, 148, 0.6) !important;
+}
+
+/* 4 Player - Red Glow */
+.multiplayer-card {
+    box-shadow: 0 0 25px rgba(214, 48, 49, 0.5), inset 0 0 15px rgba(214, 48, 49, 0.2);
+    border-color: rgba(214, 48, 49, 0.6) !important;
+}
+
+/* Events - Gold Glow */
+.tournament-card {
+    box-shadow: 0 0 25px rgba(241, 196, 15, 0.5), inset 0 0 15px rgba(241, 196, 15, 0.2);
+    border-color: rgba(241, 196, 15, 0.6) !important;
+}
+
+/* --- 🎇 FLOATING GLOWING PARTICLES --- */
+.particle-container {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1; pointer-events: none;
+}
+
+.glow-particle {
+    position: absolute;
+    bottom: -10%;
+    border-radius: 50%;
+    filter: blur(2px) drop-shadow(0 0 10px currentColor);
+    animation: floatUp 12s infinite linear;
+    opacity: 0;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0) rotate(0deg) scale(0.5); opacity: 0; }
+    20% { opacity: 0.8; }
+    80% { opacity: 0.8; }
+    100% { transform: translateY(-110vh) rotate(360deg) scale(1.2); opacity: 0; }
+}
     </style>
 </head>
 <body>
+    <div class="particle-container">
+    <i class="fas fa-dice glow-particle" style="left: 10%; color: #00d2d3; font-size: 30px; animation-delay: 0s;"></i>
+    <i class="fas fa-chess-pawn glow-particle" style="left: 55%; color: #00d2d3; font-size: 45px; animation-delay: 4s;"></i>
     
+    <i class="fas fa-dice-five glow-particle" style="left: 25%; color: #ff4757; font-size: 25px; animation-delay: 2s;"></i>
+    <i class="fas fa-chess-pawn glow-particle" style="left: 85%; color: #ff4757; font-size: 50px; animation-delay: 7s;"></i>
+    
+    <i class="fas fa-dice-one glow-particle" style="left: 40%; color: #2ed573; font-size: 35px; animation-delay: 5s;"></i>
+    <i class="fas fa-chess-pawn glow-particle" style="left: 70%; color: #2ed573; font-size: 40px; animation-delay: 1s;"></i>
+    
+    <i class="fas fa-star glow-particle" style="left: 15%; color: #f1c40f; font-size: 20px; animation-delay: 3s;"></i>
+    <i class="fas fa-dice-six glow-particle" style="left: 90%; color: #f1c40f; font-size: 55px; animation-delay: 6s;"></i>
+</div>
 
     <div class="header">
     <div class="profile-sec">
