@@ -287,23 +287,23 @@ async function joinRoom(roomId) {
                 triggerCancelAndRefund();
             };
         }
-        // --- MOBILE BACK BUTTON TRAP (INFINITE TRAP) ---
+        // --- MOBILE BACK BUTTON AUTO-REFUND LOGIC ---
         
         // 1. Page load hotay hi ek nakli (fake) history state daal do
         window.history.pushState(null, null, window.location.href);
 
         // 2. Jab bhi user back dabayega, ye function chalega
         window.onpopstate = function() {
-            // Foran ek aur state daal do (taake wo pichle page par na ja sake)
+            // Foran ek aur state daal do (taake pichla order wapis maintain rahe)
             window.history.pushState(null, null, window.location.href);
             
             const status = document.getElementById('status-text').innerText;
             if (status === "OPPONENT FOUND!") {
-                return; // Agar match mil gaya hai to waise hi kuch na karo
+                return; // Agar match mil gaya hai to back button kaam nahi karega
             }
 
-            // User ko warn karo ke button kaam nahi karega
-            alert("Please use the 'CANCEL MATCH' button on the screen to go back and get a refund.");
+            // Alert ki jagah direct Cancel aur Refund wala function call karein
+            triggerCancelAndRefund();
         };
 
         // --- CANCEL BUTTON LOGIC (Sirf yahan se refund hoga) ---
