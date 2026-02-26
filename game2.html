@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -264,19 +263,6 @@
     box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
 }
 .add-friend-btn:active { transform: scale(0.9); }
-/* Emojis agar akele hon toh unka size bada dikhe */
-.side-bubble {
-    font-size: 16px; /* Standard text size */
-    min-width: 40px;
-    text-align: center;
-}
-
-/* Agar sirf ek emoji bhejain toh wo bara nazar aye */
-.side-bubble:has-only-emoji {
-    font-size: 30px;
-    background: transparent !important;
-    box-shadow: none !important;
-}
     </style>
 </head>
 <body>
@@ -343,24 +329,12 @@
     </div>
 
     <div class="presets-scroll">
-        
         <div class="preset-btn" onclick="sendQuickChat('Sorry!')">Sorry!</div>
         <div class="preset-btn" onclick="sendQuickChat('Play fast!')">Play fast!</div>
         <div class="preset-btn" onclick="sendQuickChat('Good game')">Good game</div>
         <div class="preset-btn" onclick="sendQuickChat('Oops!')">Oops!</div>
     </div>
-<div class="presets-scroll" style="border-top: 1px solid #333; background: rgba(0,0,0,0.2);">
-    <div class="preset-btn" onclick="sendQuickChat('😂')">😂</div>
-    <div class="preset-btn" onclick="sendQuickChat('😎')">😎</div>
-    <div class="preset-btn" onclick="sendQuickChat('🔥')">🔥</div>
-    <div class="preset-btn" onclick="sendQuickChat('👍')">👍</div>
-    
-    <div class="preset-btn" onclick="sendQuickChat('😮')">😮</div>
-    <div class="preset-btn" onclick="sendQuickChat('💩')">💩</div>
-    <div class="preset-btn" onclick="sendQuickChat('🙏')">🙏</div>
-    <div class="preset-btn" onclick="sendQuickChat('😭')">😭</div>
-    <div class="preset-btn" onclick="sendQuickChat('👑')">👑</div>
-</div>
+
     <div id="chat-messages">
         <div style="text-align:center; color:#777; font-size:11px; margin-top:10px;">Chat started...</div>
     </div>
@@ -543,13 +517,7 @@ function showSidePopup(data) {
     // Red -> sb-red, Yellow -> sb-yellow
     pop.className = `side-bubble sb-${data.from}`;
     pop.innerText = data.msg;
-const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])$/;
-    if (emojiRegex.test(data.msg)) {
-        pop.style.fontSize = "45px";   // Emoji ko bada dikhao
-        pop.style.background = "none"; // Background hata do
-        pop.style.boxShadow = "none";  // Shadow hata do
-        pop.style.border = "none";    // Border hata do
-    }
+
     // Body mein append karo taake absolute positioning sahi kaam kare
     // Lekin humein coordinates chahiye parent ke
     const rect = parent.getBoundingClientRect();
@@ -623,14 +591,7 @@ saveHistory(db, currentUser.uid, winAmount, "1vs1 Win", "win");
         collectBtn.style.display = 'block';
         homeBtn.style.display = 'none';
         AudioSys.win();
-// --- AUTO DELETE LOGIC ---
-setTimeout(async () => {
-    try {
-        await set(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), null);
-        console.log("Room Cleaned Successfully");
-    } catch (err) { console.error("Delete Error:", err); }
-}, 3000); // 3 second baad delete ho jayega
-// -------------------------
+
         collectBtn.onclick = async function() {
             collectBtn.disabled = true;
             collectBtn.innerText = "Processing...";
@@ -956,30 +917,11 @@ if (!this.firstSyncDone) {
             },
 
             startTimer(type) {
-                // --- 1. CHAT MESSAGE TIMER RESET FIX ---
-                // Agar same player ki bari chal rahi hai, toh timer dubara reset nahi hoga
-                if (this.lastTurnColor === this.turn && this.lastTimerType === type && this.turnTimer) {
-                    return; 
-                }
-                this.lastTurnColor = this.turn;
-                this.lastTimerType = type;
-                // ---------------------------------------
-
                 if (this.turnTimer) clearInterval(this.turnTimer);
 
                 let timeLeft = 20;
-                
-                // --- 2. PAGE REFRESH TIMER FIX ---
-                if (type === 'move' && this.rollStartTime) {
-                    let elapsed = Math.floor((Date.now() - this.rollStartTime) / 1000);
-                    timeLeft = (elapsed > 0 && elapsed < 20) ? 20 - elapsed : 1;
-                }
-                // ---------------------------------
-
                 const activeColor = this.turn;
                 const bar = document.getElementById(`timer-${activeColor}`);
-
-                // ... baqi neeche ka sara code same rahega (setInterval wala)
 
                 this.turnTimer = setInterval(() => {
                     timeLeft--;
