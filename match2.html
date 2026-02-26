@@ -99,32 +99,48 @@
         // --- match2.html MEIN REPLACE KAREIN ---
 
 async function findStrictMatch() {
-    document.getElementById('status-text').innerText = "Searching Rooms...";
+    document.getElementById('status-text').innerText = "Cleaning old data...";
     const poolRef = ref(db, `matchmaking_pool/${ENTRY_FEE}`);
     
-    const snapshot = await get(poolRef);
+    // --- 1. PEHLE PURANA DATA SAAF KARO (Auto Delete Logic) ---
+    let snap = await get(poolRef);
+    if (snap.exists()) {
+        const rooms = snap.val();
+        for (const roomId in rooms) {
+            const room = rooms[roomId];
+            
+            // Agar main kisi purane room mein majood hoon
+            if (room.players && room.players[currentUser.uid]) {
+                console.log("Found old room, deleting my data:", roomId);
+                
+                // Mujhe is room se nikal do
+                await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}`));
+                
+                // Agar room mein sirf main hi tha, toh poora room hi delete kar do
+                if (room.players && Object.keys(room.players).length <= 1) { 
+                    await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}`));
+                }
+            }
+        }
+    }
+
+    // --- 2. AB NAYA MATCH DHOONDO YA BANAO ---
+    document.getElementById('status-text').innerText = "Searching Rooms...";
+    snap = await get(poolRef); // Safai ke baad fresh data get karo
+    
     let targetRoomId = null;
     let maxIndex = 0;
 
-    if (snapshot.exists()) {
-        const rooms = snapshot.val();
+    if (snap.exists()) {
+        const rooms = snap.val();
         for (const roomId in rooms) {
-            // 1. Convert ID to lowercase immediately
             const cleanId = roomId.toLowerCase(); 
             const idx = parseInt(cleanId.split('_')[1]) || 0;
             if(idx > maxIndex) maxIndex = idx;
 
             const room = rooms[roomId];
             
-            // 2. Agar main pehle se is room mein hoon (Reconnect logic)
-            if (room.players && room.players[currentUser.uid]) {
-                console.log("Rejoining existing room:", cleanId);
-                myRoomId = cleanId; 
-                listenToRoom(cleanId);
-                return; 
-            }
-
-            // 3. Agar room mein jagah hai (Join logic)
+            // Agar room mein jagah hai (Join logic)
             const pCount = room.players ? Object.keys(room.players).length : 0;
             if (pCount < 2) {
                 targetRoomId = cleanId; 
@@ -133,8 +149,7 @@ async function findStrictMatch() {
         }
     }
 
-    // 4. Decision: Ya toh mila hua room join karo, ya naya banao
-    // Yahan ghalti thi, ab theek hai:
+    // 3. Ya toh mila hua room join karo, ya naya banao
     const finalRoomId = targetRoomId ? targetRoomId : `room_${maxIndex + 1}`;
     
     console.log("Joining Room:", finalRoomId);
@@ -272,38 +287,55 @@ async function joinRoom(roomId) {
                 triggerCancelAndRefund();
             };
         }
-        // --- MOBILE BACK BUTTON & REFUND LOGIC ---
-        window.addEventListener('popstate', async function() {
+        // --- MOBILE BACK BUTTON TRAP (INFINITE TRAP) ---
+        
+        // 1. Page load hotay hi ek nakli (fake) history state daal do
+        window.history.pushState(null, null, window.location.href);
+
+        // 2. Jab bhi user back dabayega, ye function chalega
+        window.onpopstate = function() {
+            // Foran ek aur state daal do (taake wo pichle page par na ja sake)
+            window.history.pushState(null, null, window.location.href);
+            
             const status = document.getElementById('status-text').innerText;
             if (status === "OPPONENT FOUND!") {
-                window.history.pushState(null, null, window.location.href);
-                return;
+                return; // Agar match mil gaya hai to waise hi kuch na karo
             }
-            await triggerCancelAndRefund();
-        });
 
+            // User ko warn karo ke button kaam nahi karega
+            alert("Please use the 'CANCEL MATCH' button on the screen to go back and get a refund.");
+        };
+
+        // --- CANCEL BUTTON LOGIC (Sirf yahan se refund hoga) ---
         async function triggerCancelAndRefund() {
             if (!currentUser || !myRoomId) {
                 window.location.href = "home.html";
                 return;
             }
 
+            // Jab user screen wala laal button dabayega, tabhi ye chalega
             if (confirm("Cancel match and get a refund?")) {
                 document.getElementById('status-text').innerText = "CANCELLING...";
+                document.getElementById('cancel-action').disabled = true;
+
                 try {
-                    // 1. Balance Refund
+                    // 1. Paise wapas (Araam se honge kyunke page abhi open hai)
                     await runTransaction(ref(db, `users/${currentUser.uid}/balance`), (bal) => (bal || 0) + ENTRY_FEE);
-                    // 2. Remove Player from Room
+                    
+                    // 2. Room se niklo
                     await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players/${currentUser.uid}`));
-                    // 3. Delete empty room
+                    
+                    // 3. Room delete karo agar khali hai
                     const snap = await get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players`));
                     if (!snap.exists()) {
                         await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}`));
                     }
-                } catch (e) { console.error(e); }
+                } catch (e) { 
+                    console.error("Refund Error:", e); 
+                }
+                
+                // Sab hone ke baad home page par bhej do
                 window.location.href = "home.html";
-            } else {
-                window.history.pushState(null, null, window.location.href);
             }
         }
     </script>
