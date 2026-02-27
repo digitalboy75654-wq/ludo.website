@@ -475,16 +475,16 @@
         };
 
         // --- 5. START GAME (Money Deduct Here) ---
-        async function startGame(gameId, amount) {
-            // Deduct Balance
-            const balRef = ref(db, `users/${me.uid}/balance`);
-            await runTransaction(balRef, (bal) => {
-                return (Number(bal) || 0) - amount;
-            });
-
-            // Redirect
-            window.location.replace(`match2.html?gameId=${gameId}&entry=${amount}`);
-        }
+        // --- 5. START GAME (Sirf Check karega, deduct 'match2' par hoga) ---
+async function startGame(gameId, amount) {
+    // Sirf check karein ke paise poore hain ya nahi
+    if (myBalance >= amount) {
+        // Bina paise kate seedha match2 par bhej dein
+        window.location.replace(`match2.html?gameId=${gameId}&entry=${amount}`);
+    } else {
+        alert("Low Balance! Please recharge your account.");
+    }
+}
 
         // --- 6. RENDER LISTS ---
         // --- 6. RENDER LISTS ---
