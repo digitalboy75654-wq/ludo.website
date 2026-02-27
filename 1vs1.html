@@ -84,8 +84,6 @@
         }
         .play-btn.active { opacity: 1; transform: translateY(0) scale(1); }
         .play-btn:active { transform: scale(0.95); }
-
-        
     </style>
 </head>
 <body>
@@ -112,12 +110,11 @@
     <div class="play-bar">
         <button id="play-btn" class="play-btn" onclick="startGame()">SELECT A BET</button>
     </div>
-
     
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"; // <--- runTransaction add kiya
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"; // runTransaction yahan se nikal diya
 
     const firebaseConfig = { 
         apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
@@ -187,37 +184,19 @@
         btn.innerHTML = `PLAY FOR <span style="font-family:Orbitron">₹${entry}</span>`;
     };
 
-    // --- FINAL START GAME LOGIC ---
-    window.startGame = async () => {
-        if (selectedBet > 0 && myBalance >= selectedBet) {
-            const btn = document.getElementById('play-btn');
-            btn.innerText = "PROCESSING...";
-            btn.disabled = true;
+    // --- FINAL START GAME LOGIC (NO FEE DEDUCTION HERE) ---
+    window.startGame = () => {
+        if (selectedBet > 0) {
+            // Sirf check karega ke paise hain ya nahi
+            if (myBalance >= selectedBet) {
+                const btn = document.getElementById('play-btn');
+                btn.innerText = "LOADING...";
+                btn.disabled = true;
 
-            const userBalRef = ref(db, `users/${auth.currentUser.uid}/balance`);
-
-            try {
-                const result = await runTransaction(userBalRef, (currentBalance) => {
-                    // Firebase balance ko number mein convert karein
-                    const bal = (currentBalance === null) ? 0 : Number(currentBalance);
-                    if (bal >= selectedBet) {
-                        return bal - selectedBet;
-                    }
-                    return; // Abort agar balance kam ho
-                });
-
-                if (result.committed) {
-                    // Paisa kat gaya, ab Radar page par bhejein
-                    window.location.href = `match2.html?entry=${selectedBet}`;
-                } else {
-                    alert("Low Balance! Please recharge.");
-                    btn.disabled = false;
-                    btn.innerText = "TRY AGAIN";
-                }
-            } catch (error) {
-                console.error("Error:", error);
-                alert("Database Error! Refresh and try again.");
-                btn.disabled = false;
+                // Seedha matchmaking screen par bhej dega (Bina fee kate)
+                window.location.href = `match2.html?entry=${selectedBet}`;
+            } else {
+                alert("Low Balance! Please recharge to play this amount.");
             }
         } else {
             alert("Select a bet first!");
