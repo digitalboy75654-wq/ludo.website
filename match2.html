@@ -78,288 +78,289 @@
     </div>
     
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, onValue, get, set, runTransaction, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue, get, set, runTransaction, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
-            authDomain: "ludo-d46ab.firebaseapp.com", 
-            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
-            projectId: "ludo-d46ab" 
-        };
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
+        authDomain: "ludo-d46ab.firebaseapp.com", 
+        databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
+        projectId: "ludo-d46ab" 
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const auth = getAuth(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const ENTRY_FEE = parseInt(urlParams.get('entry')) || 0; 
+    const urlParams = new URLSearchParams(window.location.search);
+    const ENTRY_FEE = parseInt(urlParams.get('entry')) || 0; 
+    
+    // ✨ FIX 1: URL se Private Room ID (gameId) nikalna
+    const PRIVATE_ROOM_ID = urlParams.get('gameId'); 
+    
+    let currentUser = null;
+    let myRoomId = null;
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = "login.html"; return; }
+        currentUser = user;
+        window.history.pushState(null, null, window.location.href);
         
-        let currentUser = null;
-        let myRoomId = null;
-
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = "login.html"; return; }
-            currentUser = user;
-            window.history.pushState(null, null, window.location.href);
-            
-            findStrictMatch();
-        });
-
-async function findStrictMatch() {
-    document.getElementById('status-text').innerText = "Cleaning old data...";
-    const poolRef = ref(db, `matchmaking_pool/${ENTRY_FEE}`);
-    
-    let snap = await get(poolRef);
-    if (snap.exists()) {
-        const rooms = snap.val();
-        for (const roomId in rooms) {
-            const room = rooms[roomId];
-            if (room.players && room.players[currentUser.uid]) {
-                await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}`));
-                if (room.players && Object.keys(room.players).length <= 1) { 
-                    await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}`));
-                }
-            }
+        // ✨ FIX 2: Check karna ke Public Match hai ya Friend Challenge
+        if (PRIVATE_ROOM_ID) {
+            joinRoom(PRIVATE_ROOM_ID); // Seedha doston ke room mein jao
+        } else {
+            findStrictMatch(); // Warna naya match dhoondo
         }
-    }
+    });
 
-    document.getElementById('status-text').innerText = "Searching Rooms...";
-    snap = await get(poolRef); 
-    
-    let targetRoomId = null;
-    let maxIndex = 0;
-
-    if (snap.exists()) {
-        const rooms = snap.val();
-        for (const roomId in rooms) {
-            const cleanId = roomId.toLowerCase(); 
-            const idx = parseInt(cleanId.split('_')[1]) || 0;
-            if(idx > maxIndex) maxIndex = idx;
-
-            const room = rooms[roomId];
-            const pCount = room.players ? Object.keys(room.players).length : 0;
-            if (pCount < 2) {
-                targetRoomId = cleanId; 
-                break; 
-            }
-        }
-    }
-
-    const finalRoomId = targetRoomId ? targetRoomId : `room_${maxIndex + 1}`;
-    joinRoom(finalRoomId);
-}
-
-async function joinRoom(roomId) {
-    myRoomId = roomId;
-    document.getElementById('status-text').innerText = `Joining ${roomId}...`;
-    
-    const roomRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}`);
-
-    const result = await runTransaction(roomRef, (roomData) => {
-        if (!roomData) {
-            return {
-                status: 'waiting',
-                createdAt: Date.now(),
-                gameState: { 
-                    tokens: { red: [0,0,0,0], yellow: [0,0,0,0] },
-                    turn: 'red',
-                    winner: null
-                },
-                players: {
-                    [currentUser.uid]: {
-                        uid: currentUser.uid,
-                        name: currentUser.displayName || "Player",
-                        photo: currentUser.photoURL || "https://i.pravatar.cc/150",
-                        color: 'red',
-                        ready: false // <-- Naya status
+    async function findStrictMatch() {
+        document.getElementById('status-text').innerText = "Cleaning old data...";
+        const poolRef = ref(db, `matchmaking_pool/${ENTRY_FEE}`);
+        
+        let snap = await get(poolRef);
+        if (snap.exists()) {
+            const rooms = snap.val();
+            for (const roomId in rooms) {
+                const room = rooms[roomId];
+                if (room.players && room.players[currentUser.uid]) {
+                    await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}`));
+                    if (room.players && Object.keys(room.players).length <= 1) { 
+                        await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}`));
                     }
                 }
-            };
+            }
         }
 
-        if (roomData.players && roomData.players[currentUser.uid]) return; 
-
-        const pCount = roomData.players ? Object.keys(roomData.players).length : 0;
+        document.getElementById('status-text').innerText = "Searching Rooms...";
+        snap = await get(poolRef); 
         
-        if (pCount < 2) {
-            if (!roomData.players) roomData.players = {};
+        let targetRoomId = null;
+        let maxIndex = 0;
 
-            if (pCount === 0) {
-                 roomData.gameState = {
-                    tokens: { red: [0,0,0,0], yellow: [0,0,0,0] },
-                    turn: 'red',
-                    winner: null
+        if (snap.exists()) {
+            const rooms = snap.val();
+            for (const roomId in rooms) {
+                const cleanId = roomId.toLowerCase(); 
+                const idx = parseInt(cleanId.split('_')[1]) || 0;
+                if(idx > maxIndex) maxIndex = idx;
+
+                const room = rooms[roomId];
+                const pCount = room.players ? Object.keys(room.players).length : 0;
+                if (pCount < 2) {
+                    targetRoomId = cleanId; 
+                    break; 
+                }
+            }
+        }
+
+        const finalRoomId = targetRoomId ? targetRoomId : `room_${maxIndex + 1}`;
+        joinRoom(finalRoomId);
+    }
+
+    async function joinRoom(roomId) {
+        myRoomId = roomId;
+        document.getElementById('status-text').innerText = `Joining ${roomId}...`;
+        
+        const roomRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}`);
+
+        const result = await runTransaction(roomRef, (roomData) => {
+            if (!roomData) {
+                return {
+                    status: 'waiting',
+                    createdAt: Date.now(),
+                    gameState: { 
+                        tokens: { red: [0,0,0,0], yellow: [0,0,0,0] },
+                        turn: 'red',
+                        winner: null
+                    },
+                    players: {
+                        [currentUser.uid]: {
+                            uid: currentUser.uid,
+                            name: currentUser.displayName || "Player",
+                            photo: currentUser.photoURL || "https://i.pravatar.cc/150",
+                            color: 'red',
+                            ready: false 
+                        }
+                    }
                 };
             }
 
-            roomData.players[currentUser.uid] = {
-                uid: currentUser.uid,
-                name: currentUser.displayName || "Player",
-                photo: currentUser.photoURL || "https://i.pravatar.cc/150",
-                color: pCount === 0 ? 'red' : 'yellow',
-                ready: false // <-- Naya status
-            };
-            return roomData;
-        }
-        return; 
-    });
+            if (roomData.players && roomData.players[currentUser.uid]) return; 
 
-    if (result.committed || result.snapshot.exists()) {
-        document.getElementById('room-id-disp').innerText = `ID: ${roomId}`;
-        
-        const myPlayerRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}`);
-        onDisconnect(myPlayerRef).remove(); 
-
-        listenToRoom(roomId);
-    } else {
-        setTimeout(findStrictMatch, 500);
-    }
-}
-
-function listenToRoom(roomId) {
-    const roomRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}`);
-    onValue(roomRef, async (snap) => {
-        const data = snap.val();
-        if (!data || !data.players) return; 
-
-        const playersList = Object.values(data.players);
-        const count = playersList.length;
-
-        document.getElementById('joined-count').innerText = `${count}/2`;
-        updateSlots(playersList);
-
-        // Agar Opponent bhaag jaye toh wapis cancel mode mein aayen
-        if (count === 1) {
-            document.getElementById('status-text').innerText = "Waiting for Opponent...";
-            document.getElementById('status-text').style.color = "#00d2d3";
-            document.getElementById('cancel-action').style.display = 'block';
-            document.getElementById('ready-action').style.display = 'none';
+            const pCount = roomData.players ? Object.keys(roomData.players).length : 0;
             
-            // Apni ready state false kar do
-            if (data.players[currentUser.uid].ready) {
-                await set(ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}/ready`), false);
+            if (pCount < 2) {
+                if (!roomData.players) roomData.players = {};
+
+                if (pCount === 0) {
+                     roomData.gameState = {
+                        tokens: { red: [0,0,0,0], yellow: [0,0,0,0] },
+                        turn: 'red',
+                        winner: null
+                    };
+                }
+
+                roomData.players[currentUser.uid] = {
+                    uid: currentUser.uid,
+                    name: currentUser.displayName || "Player",
+                    photo: currentUser.photoURL || "https://i.pravatar.cc/150",
+                    color: pCount === 0 ? 'red' : 'yellow',
+                    ready: false 
+                };
+                return roomData;
             }
+            return; 
+        });
+
+        if (result.committed || result.snapshot.exists()) {
+            document.getElementById('room-id-disp').innerText = `ID: ${roomId}`;
+            
+            const myPlayerRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}`);
+            onDisconnect(myPlayerRef).remove(); 
+
+            listenToRoom(roomId);
+        } else {
+            // Agar Private room fail ho jaye, toh naya search karein (lekin thoda delay karke)
+            setTimeout(findStrictMatch, 500);
         }
+    }
 
-        // Agar dono players mojood hain
-        if (count === 2) {
-            document.getElementById('cancel-action').style.display = 'none'; 
-            document.getElementById('ready-action').style.display = 'block';
-            window.onpopstate = null; 
+    function listenToRoom(roomId) {
+        const roomRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}`);
+        onValue(roomRef, async (snap) => {
+            const data = snap.val();
+            if (!data || !data.players) return; 
 
-            const me = data.players[currentUser.uid];
-            const opp = playersList.find(p => p.uid !== currentUser.uid);
+            const playersList = Object.values(data.players);
+            const count = playersList.length;
 
-            // Ready Buttons aur Status update karna
-            if (me.ready) {
-                document.getElementById('ready-action').innerText = "WAITING...";
-                document.getElementById('ready-action').disabled = true;
-                document.getElementById('status-text').innerText = opp.ready ? "STARTING MATCH..." : "WAITING FOR OPPONENT TO READY...";
-            } else {
-                document.getElementById('ready-action').innerText = "I AM READY";
-                document.getElementById('ready-action').disabled = false;
-                document.getElementById('status-text').innerText = opp.ready ? "OPPONENT IS READY! CLICK READY TO START!" : "OPPONENT FOUND! CLICK READY!";
-            }
+            document.getElementById('joined-count').innerText = `${count}/2`;
+            updateSlots(playersList);
 
-            // Jab DONO ready ho jayen
-            if (me.ready && opp && opp.ready) {
-                document.getElementById('status-text').innerText = "FEE DEDUCTED! STARTING...";
-                document.getElementById('status-text').style.color = "#2ecc71";
+            if (count === 1) {
+                document.getElementById('status-text').innerText = "Waiting for Opponent...";
+                document.getElementById('status-text').style.color = "#00d2d3";
+                document.getElementById('cancel-action').style.display = 'block';
                 document.getElementById('ready-action').style.display = 'none';
                 
-                // Entry Fee Deduct Logic (Sirf ek bar chalega)
-                if (!window.feeDeducted) {
-                    window.feeDeducted = true;
-                    
-                    const myPlayerRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}`);
-                    onDisconnect(myPlayerRef).cancel(); 
-
-                    // YAHAN BALANCE KATEGA
-                    if (ENTRY_FEE > 0) {
-                        await runTransaction(ref(db, `users/${currentUser.uid}/balance`), (bal) => (bal || 0) - ENTRY_FEE);
-                    }
-
-                    setTimeout(() => {
-                        window.location.href = `game2.html?gameId=${roomId.toLowerCase()}&entry=${ENTRY_FEE}`;
-                    }, 1500);
+                if (data.players[currentUser.uid].ready) {
+                    await set(ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}/ready`), false);
                 }
             }
-        }
-    });
-}
 
-function updateSlots(players) {
-    players.sort((a,b) => a.color === 'red' ? -1 : 1);
+            if (count === 2) {
+                document.getElementById('cancel-action').style.display = 'none'; 
+                document.getElementById('ready-action').style.display = 'block';
+                window.onpopstate = null; 
 
-    for(let i=0; i<2; i++) {
-        const slot = document.getElementById(`slot-${i}`);
-        if (players[i]) {
-            // Ready Badge UI Logic
-            let badgeHTML = players[i].ready ? `<div class="ready-badge" style="display:block;">READY</div>` : '';
-            
-            slot.innerHTML = `
-                <img src="${players[i].photo}">
-                ${badgeHTML}
-                <div class="slot-name">${players[i].name}</div>
-            `;
-            slot.classList.add('filled');
-        } else {
-            slot.innerHTML = '<div class="loader-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
-            slot.classList.remove('filled');
-        }
-    }
-}
+                const me = data.players[currentUser.uid];
+                const opp = playersList.find(p => p.uid !== currentUser.uid);
 
-// Ready Button Click Event
-document.getElementById('ready-action').onclick = async function() {
-    if (!currentUser || !myRoomId) return;
-    document.getElementById('ready-action').innerText = "LOADING...";
-    await set(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players/${currentUser.uid}/ready`), true);
-};
+                if (me.ready) {
+                    document.getElementById('ready-action').innerText = "WAITING...";
+                    document.getElementById('ready-action').disabled = true;
+                    document.getElementById('status-text').innerText = opp.ready ? "STARTING MATCH..." : "WAITING FOR OPPONENT TO READY...";
+                } else {
+                    document.getElementById('ready-action').innerText = "I AM READY";
+                    document.getElementById('ready-action').disabled = false;
+                    document.getElementById('status-text').innerText = opp.ready ? "OPPONENT IS READY! CLICK READY TO START!" : "OPPONENT FOUND! CLICK READY!";
+                }
 
-document.getElementById('cancel-action').onclick = function() {
-    triggerCancelAndRefund();
-};
+                // ✨ FIX 3: FEE DEDUCTION LOGIC
+                if (me.ready && opp && opp.ready) {
+                    document.getElementById('status-text').innerText = "FEE DEDUCTED! STARTING...";
+                    document.getElementById('status-text').style.color = "#2ecc71";
+                    document.getElementById('ready-action').style.display = 'none';
+                    
+                    if (!window.feeDeducted) {
+                        window.feeDeducted = true;
+                        
+                        const myPlayerRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${roomId}/players/${currentUser.uid}`);
+                        onDisconnect(myPlayerRef).cancel(); 
 
-window.history.pushState(null, null, window.location.href);
-window.onpopstate = function() {
-    window.history.pushState(null, null, window.location.href);
-    const status = document.getElementById('status-text').innerText;
-    if (status.includes("OPPONENT FOUND") || status.includes("READY")) {
-        return; 
-    }
-    triggerCancelAndRefund();
-};
+                        if (ENTRY_FEE > 0) {
+                            await runTransaction(ref(db, `users/${currentUser.uid}/balance`), (bal) => {
+                                let current = Number(bal || 0);
+                                return current >= ENTRY_FEE ? current - ENTRY_FEE : current;
+                            });
+                        }
 
-// Cancel (Ab ismein fee wapis add nahi hogi kyunke kate gi hi nahi)
-async function triggerCancelAndRefund() {
-    if (!currentUser || !myRoomId) {
-        window.location.href = "home.html";
-        return;
-    }
-
-    if (confirm("Cancel matchmaking and go back?")) {
-        document.getElementById('status-text').innerText = "CANCELLING...";
-        document.getElementById('cancel-action').disabled = true;
-
-        try {
-            // Sirf Room se nikalo
-            await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players/${currentUser.uid}`));
-            
-            const snap = await get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players`));
-            if (!snap.exists()) {
-                await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}`));
+                        setTimeout(() => {
+                            window.location.href = `game2.html?gameId=${roomId.toLowerCase()}&entry=${ENTRY_FEE}`;
+                        }, 1500);
+                    }
+                }
             }
-        } catch (e) { 
-            console.error("Cancel Error:", e); 
-        }
-        
-        window.location.href = "home.html";
+        });
     }
-}
-    </script>
+
+    function updateSlots(players) {
+        players.sort((a,b) => a.color === 'red' ? -1 : 1);
+
+        for(let i=0; i<2; i++) {
+            const slot = document.getElementById(`slot-${i}`);
+            if (players[i]) {
+                let badgeHTML = players[i].ready ? `<div class="ready-badge" style="display:block;">READY</div>` : '';
+                slot.innerHTML = `
+                    <img src="${players[i].photo}">
+                    ${badgeHTML}
+                    <div class="slot-name">${players[i].name}</div>
+                `;
+                slot.classList.add('filled');
+            } else {
+                slot.innerHTML = '<div class="loader-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+                slot.classList.remove('filled');
+            }
+        }
+    }
+
+    document.getElementById('ready-action').onclick = async function() {
+        if (!currentUser || !myRoomId) return;
+        document.getElementById('ready-action').innerText = "LOADING...";
+        await set(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players/${currentUser.uid}/ready`), true);
+    };
+
+    document.getElementById('cancel-action').onclick = function() {
+        triggerCancelAndRefund();
+    };
+
+    window.history.pushState(null, null, window.location.href);
+    window.onpopstate = function() {
+        window.history.pushState(null, null, window.location.href);
+        const status = document.getElementById('status-text').innerText;
+        if (status.includes("OPPONENT FOUND") || status.includes("READY")) {
+            return; 
+        }
+        triggerCancelAndRefund();
+    };
+
+    async function triggerCancelAndRefund() {
+        if (!currentUser || !myRoomId) {
+            window.location.href = "home.html";
+            return;
+        }
+
+        if (confirm("Cancel matchmaking and go back?")) {
+            document.getElementById('status-text').innerText = "CANCELLING...";
+            document.getElementById('cancel-action').disabled = true;
+
+            try {
+                await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players/${currentUser.uid}`));
+                
+                const snap = await get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}/players`));
+                if (!snap.exists()) {
+                    await remove(ref(db, `matchmaking_pool/${ENTRY_FEE}/${myRoomId}`));
+                }
+            } catch (e) { 
+                console.error("Cancel Error:", e); 
+            }
+            
+            window.location.href = "home.html";
+        }
+    }
+</script>
     <script src="script.js"></script>
 </body>
 </html>
