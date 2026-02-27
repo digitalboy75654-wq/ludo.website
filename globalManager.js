@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-// 🔥 FIX: 'set' aur 'onDisconnect' add kiya hai niche wali line mein
-import { getDatabase, ref, onChildAdded, update, runTransaction, get, set, onDisconnect } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+import { getDatabase, ref, onChildAdded, update, get, set, onDisconnect } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
 // --- CONFIGURATION ---
 const firebaseConfig = { 
@@ -147,31 +146,38 @@ function showInvitePopup(invite, inviteId, myUid, sName, sPhoto) {
     `;
     document.body.appendChild(div);
 
+    // Decline Logic
     document.getElementById(`btn-dec-${inviteId}`).onclick = () => {
         update(ref(db, `invites/${inviteId}`), { status: 'rejected' });
         div.style.animation = "slideUp 0.4s forwards";
         setTimeout(() => div.remove(), 400);
     };
 
+    // ✨ ACCEPT LOGIC (Fixed: No Money Deduction Here) ✨
     document.getElementById(`btn-acc-${inviteId}`).onclick = async () => {
         const btn = document.getElementById(`btn-acc-${inviteId}`);
-        btn.innerText = "..."; btn.disabled = true;
+        btn.innerText = "..."; 
+        btn.disabled = true;
         
-        const myBalRef = ref(db, `users/${myUid}/balance`);
         try {
-            await runTransaction(myBalRef, (bal) => {
-                const b = Number(bal || 0);
-                return (b >= invite.amount) ? b - invite.amount : undefined;
-            }).then((res) => {
-                if (res.committed) {
-                    update(ref(db, `invites/${inviteId}`), { status: 'accepted' });
-                    window.location.href = `match2.html?gameId=${invite.gameId}&entry=${invite.amount}`;
-                } else {
-                    alert("Low Balance!");
-                    div.remove();
-                }
-            });
-        } catch (e) { console.error(e); div.remove(); }
+            // Sirf user ka balance fetch karke check kar rahe hain
+            const snap = await get(ref(db, `users/${myUid}/balance`));
+            const myBal = Number(snap.val() || 0);
+
+            if (myBal >= invite.amount) {
+                // Agar paise poore hain, toh invite accept karein aur match2 par bhejein
+                await update(ref(db, `invites/${inviteId}`), { status: 'accepted' });
+                window.location.href = `match2.html?gameId=${invite.gameId}&entry=${invite.amount}`;
+            } else {
+                // Agar paise kam hain toh reject kar dein
+                alert("Low Balance! You cannot accept this challenge.");
+                await update(ref(db, `invites/${inviteId}`), { status: 'rejected' });
+                div.remove();
+            }
+        } catch (e) { 
+            console.error(e); 
+            div.remove(); 
+        }
     };
 
     setTimeout(() => { if(div) div.remove(); }, 10000);
