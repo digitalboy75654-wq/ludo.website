@@ -351,7 +351,11 @@
             document.getElementById('search-result-area').style.display = 'none';
             document.getElementById('search-uid').value = "";
         }
-
+window.removeFriend = async (oppId, oppName) => {
+            if(confirm(`Remove ${oppName} from friends?`)) {
+                await set(ref(db, `users/${me.uid}/friends/${oppId}`), null);
+            }
+        };
         // --- 3. SEND CHALLENGE (Host) ---
         window.confirmChallenge = async () => {
             const amount = parseInt(document.getElementById('bet-amount').value);
@@ -488,7 +492,7 @@ async function startGame(gameId, amount) {
 
         // --- 6. RENDER LISTS ---
         // --- 6. RENDER LISTS ---
-        function createCard(u, container) {
+        function createCard(u, container, isFriend = false)  {
             const div = document.createElement('div');
             div.className = 'user-card';
             
@@ -499,14 +503,17 @@ async function startGame(gameId, amount) {
             const photo = (u.photoURL && u.photoURL !== "") ? u.photoURL : 
                           (u.photo && u.photo !== "") ? u.photo : 
                           "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-
+let removeHtml = "";
+            if (isFriend) {
+                removeHtml = `<i class="fas fa-user-times" style="color: #ff4757; font-size: 12px; margin-left: 8px; cursor: pointer;" onclick="window.removeFriend('${uid}', '${name}')"></i>`;
+            }
             div.innerHTML = `
                 <div class="u-left">
                     <div class="u-avatar" style="background-image:url('${photo}'); background-size: cover; background-position: center;">
                         <div class="status-dot" id="dot-${uid}"></div>
                     </div>
                     <div class="u-info">
-                        <h4>${name}</h4>
+                        <h4 style="display: flex; align-items: center;">${name} ${removeHtml}</h4>
                         <p style="color: #f1c40f; font-family: 'Orbitron'; font-size: 8px;">UID: ${uid}</p>
                         <p style="color: #2ecc71; font-size: 11px; font-weight: bold; margin-top: 2px;">💰 ₹<span id="card-bal-${uid}">${bal}</span></p>
                     </div>
@@ -524,7 +531,7 @@ async function startGame(gameId, amount) {
         list.innerHTML = "";
         if(snap.exists()) {
             Object.values(snap.val()).forEach(f => {
-                createCard(f, list);
+                createCard(f, list, true);
                 // Har friend ka status alag se monitor karein
                 listenFriendStatus(f.uid);
             });
