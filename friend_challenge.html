@@ -197,6 +197,12 @@
 .t-btn-acc { background: #2ecc71; color: black; box-shadow: 0 0 15px rgba(46, 204, 113, 0.3); }
 
 @keyframes slideInTop { from { top: -120px; opacity: 0; } to { top: 20px; opacity: 1; } }
+/* --- WATCH GAME BUTTON STYLE --- */
+        .watch-btn { 
+            background: linear-gradient(135deg, #e67e22, #f1c40f) !important; 
+            color: #000 !important; 
+            box-shadow: 0 4px 10px rgba(230, 126, 34, 0.4) !important; 
+        }
     </style>
 </head>
 <body>
@@ -543,6 +549,9 @@ let removeHtml = "";
 
 // Naya Helper Function
 // ✨ NAYA: Ab ye status ke sath live balance bhi monitor karega
+        // ✨ NAYA: Ab ye status ke sath live balance aur gameId bhi monitor karega
+        // ✨ NAYA: Ab ye status ke sath live balance aur gameId bhi monitor karega
+        // ✨ NAYA: Ab ye status ke sath live balance aur gameId bhi monitor karega
         function listenFriendStatus(uid) {
             onValue(ref(db, `users/${uid}`), (snap) => {
                 const u = snap.val();
@@ -560,26 +569,38 @@ let removeHtml = "";
                 
                 if(!dot || !btn) return;
 
-                // Button ki values update karein taake hamesha fresh balance select ho
-                btn.onclick = () => window.openBetModal(uid, u.username || u.name || "Player", currentBal);
-
                 if(s && s.state === 'online') {
                     dot.style.backgroundColor = "#2ecc71"; 
                     btn.disabled = false;
-                    btn.innerText = "CHALLENGE";
+                    btn.className = "challenge-btn"; // Reset design
+                    btn.innerHTML = "CHALLENGE"; // Normal text
                     btn.style.opacity = "1";
+                    // Challenge ke liye Bet Modal open karein
+                    btn.onclick = () => window.openBetModal(uid, u.username || u.name || "Player", currentBal);
                 } 
                 else if (s && s.state === 'playing') {
                     dot.style.backgroundColor = "#e67e22"; 
-                    btn.disabled = true;
-                    btn.innerText = "PLAYING";
-                    btn.style.opacity = "0.6";
+                    btn.disabled = false; 
+                    btn.className = "challenge-btn watch-btn"; // ✨ NAYA: Special Gold Design
+                    btn.innerHTML = '<i class="fas fa-eye"></i> WATCH'; // ✨ NAYA: Eye Icon add kiya hai
+                    btn.style.opacity = "1"; 
+                    
+                    // Viewer ko game2.html par bhejein
+                    btn.onclick = () => {
+                        if (s.currentGameId) {
+                            window.location.href = `game2.html?gameId=${s.currentGameId}&spectator=true`;
+                        } else {
+                            alert("Game Room ID not found. They might be finishing up.");
+                        }
+                    };
                 } 
                 else {
                     dot.style.backgroundColor = "#7f8c8d"; 
                     btn.disabled = true;
-                    btn.innerText = "OFFLINE";
+                    btn.className = "challenge-btn"; // Reset design
+                    btn.innerHTML = "OFFLINE";
                     btn.style.opacity = "0.5";
+                    btn.onclick = null;
                 }
             });
         }
@@ -587,44 +608,44 @@ let removeHtml = "";
 
 
         function loadOnline() {
-    const usersRef = ref(db, 'users');
-    onValue(usersRef, (snap) => {
-        const list = document.getElementById('online-list');
-        list.innerHTML = "";
-        let count = 0;
+            const usersRef = ref(db, 'users');
+            onValue(usersRef, (snap) => {
+                const list = document.getElementById('online-list');
+                list.innerHTML = "";
+                let count = 0;
 
-        if (snap.exists()) {
-            snap.forEach(child => {
-                const u = child.val();
-                const uid = child.key;
+                if (snap.exists()) {
+                    snap.forEach(child => {
+                        const u = child.val();
+                        const uid = child.key;
 
-                // Shart: 
-                // 1. Woh main na hoon (uid !== me.uid)
-                // 2. Uska status 'online' ho
-                // 3. Uska koi naam set ho (username ya name)
-                if (uid !== me.uid && 
-                    u.status && u.status.state === 'online' && 
-                    (u.username || u.name)) {
-                    
-                    const userData = {
-                        uid: uid,
-                        name: u.username || u.name || "Elite Player",
-                        photo: u.photoURL || u.photo || "https://cdn-icons-png.flaticon.com/512/149/149071.png", // <-- Yahan aakhir mein COMMA (,) lagayein
-                        balance: u.balance || 0 // <-- Yahan se '/' hata dein
-                    };
+                        // Shart (Update kardi gayi hai): 
+                        // 1. Woh main na hoon (uid !== me.uid)
+                        // 2. Uska status 'online' HO YA 'playing' (busy) HO
+                        // 3. Uska koi naam set ho
+                        if (uid !== me.uid && 
+                            u.status && (u.status.state === 'online' || u.status.state === 'playing') && 
+                            (u.username || u.name)) {
+                            
+                            const userData = {
+                                uid: uid,
+                                name: u.username || u.name || "Elite Player",
+                                photo: u.photoURL || u.photo || "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+                                balance: u.balance || 0
+                            };
 
-                    createCard(userData, list);
-                    listenFriendStatus(uid); // Online status monitor karne ke liye
-                    count++;
+                            createCard(userData, list);
+                            listenFriendStatus(uid); // Online/Playing status live monitor karne ke liye
+                            count++;
+                        }
+                    });
+                }
+
+                if (count === 0) {
+                    list.innerHTML = "<p style='text-align:center; font-size:12px; color:#666'>No other players online right now.</p>";
                 }
             });
         }
-
-        if (count === 0) {
-            list.innerHTML = "<p style='text-align:center; font-size:12px; color:#666'>No other players online right now.</p>";
-        }
-    });
-}
 
         // Search
         window.searchUser = async () => {
