@@ -292,7 +292,8 @@
         }
 
         // --- RENDER LIST ---
-        function loadLeaderboard(currentUser) {
+        // --- RENDER LIST ---
+function loadLeaderboard(currentUser) {
     const list = document.getElementById('leaderboard-list');
     const myCard = document.getElementById('my-card-container');
     const usersRef = ref(db, 'users');
@@ -307,58 +308,89 @@
             const u = child.val();
             
             if (u.username || u.name) {
-                // ⚡ NEW LOGIC: Har user ki History se real wins count karo
                 let realWinsCount = 0;
+                let realLossesCount = 0;
+                let totalGames = 0;
                 
+                // Har user ki History se real wins/losses count karo
                 if (u.gameHistory) {
-                    // History ke har ek record ko check karo
                     Object.values(u.gameHistory).forEach(game => {
-                        // Agar history mein result 'win' hai ya amount plus mein hai
+                        totalGames++; // Total games calculate ho rahi hain
                         if (game.result === 'win' || game.amount > 0) {
                             realWinsCount++;
+                        } else if (game.result === 'loss' || game.amount < 0) {
+                            realLossesCount++;
                         }
                     });
                 }
 
-                // Ab user ko list mein add karo uski "real history wins" ke sath
+                // Win Rate Calculate karo
+                let winRate = 0;
+                if (totalGames > 0) {
+                    winRate = Math.round((realWinsCount / totalGames) * 100);
+                }
+
+                // ✨ FAIRNESS LOGIC: Sirf unko list mein shamil karo jinho ne minimum 10 games kheli hain
+                // (Lekin khud ko hamesha list (ya myCard) mein show karne ke liye hum check baad mein lagayenge)
+                
                 allUsers.push({
                     id: child.key,
                     name: u.username || u.name || "Player",
                     photo: u.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${child.key}`,
-                    wins: realWinsCount // <-- Yahan history wala count use ho raha hai
+                    wins: realWinsCount,
+                    totalPlayed: totalGames,
+                    winRate: winRate
                 });
             }
         });
 
-        // 1. Sabse zyada wins walon ko oopar rakhein
-        allUsers.sort((a, b) => b.wins - a.wins);
+        // 1. Un users ko alag karo jinho ne 10 ya us se zyada games kheli hain (Ranking ke liye eligible)
+        let eligibleUsers = allUsers.filter(u => u.totalPlayed >= 10);
 
-        // 2. Aapki (Current User) apni rank dhundein
-        const myIndex = allUsers.findIndex(u => u.id === currentUser.uid);
+        // 2. Win Rate ki buniyad par Sort karo (Agar Win Rate barabar ho toh jiski total games zyada hain wo oopar aayega)
+        eligibleUsers.sort((a, b) => {
+            if (b.winRate === a.winRate) {
+                return b.totalPlayed - a.totalPlayed; 
+            }
+            return b.winRate - a.winRate;
+        });
+
+        // 3. Aapki (Current User) apni rank dhundein
+        const myIndex = eligibleUsers.findIndex(u => u.id === currentUser.uid);
         const myRank = myIndex + 1;
-        const myData = myIndex !== -1 ? allUsers[myIndex] : {
-            name: currentUser.displayName || "Player",
-            photo: currentUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.uid}`,
-            wins: 0
-        };
+        
+        // Agar main eligible nahi hoon (10 games poori nahi huin), tab bhi mera apna data nikalo
+        let myData = allUsers.find(u => u.id === currentUser.uid);
+        if (!myData) {
+            myData = { name: currentUser.displayName || "Player", photo: currentUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.uid}`, wins: 0, totalPlayed: 0, winRate: 0 };
+        }
 
-        // 3. Aapka apna Rank Card Update karein
+        // 4. Aapka apna Rank Card Update karein
+        let rankText = myRank > 0 ? `#${myRank}` : '-';
+        let statusText = myData.totalPlayed < 10 ? `Play ${10 - myData.totalPlayed} more games to rank` : `MY RANKING`;
+        let statusColor = myData.totalPlayed < 10 ? `#e74c3c` : `var(--neon)`;
+
         myCard.innerHTML = `
             <div class="my-card">
-                <div class="rank-num" style="color:white; font-size:24px;">#${myRank > 0 ? myRank : '-'}</div>
+                <div class="rank-num" style="color:white; font-size:24px;">${rankText}</div>
                 <div class="avatar" style="background-image: url('${myData.photo}')"></div>
                 <div class="info">
                     <span class="name">${myData.name} (You)</span>
-                    <span class="tier" style="color:var(--neon)">MY RANKING</span>
+                    <span class="tier" style="color:${statusColor}">${statusText}</span>
                 </div>
-                <div class="score-box" style="font-size:16px;">${myData.wins} Wins</div>
+                <div class="score-box" style="font-size:16px;">${myData.winRate}% <span style="font-size:8px; display:block; color:#aaa; font-weight:normal;">WR (${myData.wins}/${myData.totalPlayed})</span></div>
             </div>`;
 
-        // 4. REAL-TIME FIX: Purani list ko clear karein
+        // 5. Purani list ko clear karein
         list.innerHTML = "";
         
-        // 5. TOP 10 RENDER
-        allUsers.slice(0, 10).forEach((u, index) => {
+        // 6. TOP 10 RENDER (Sirf Eligible Users)
+        if (eligibleUsers.length === 0) {
+            list.innerHTML = "<div style='text-align:center; padding:20px; color:#555;'>No players have completed 10 placement matches yet.</div>";
+            return;
+        }
+
+        eligibleUsers.slice(0, 10).forEach((u, index) => {
             const rank = index + 1;
             let rankIcon = `#${rank}`;
             let specialClass = "";
@@ -375,22 +407,23 @@
                     <div class="avatar" style="background-image: url('${u.photo}')"></div>
                     <div class="info">
                         <span class="name" style="${isMe ? 'color:#00d2d3' : ''}">${u.name}</span>
-                        <span class="tier">${getTier(u.wins)}</span>
+                        <span class="tier">${getTier(u.winRate)}</span>
                     </div>
-                    <div class="score-box">${u.wins}</div>
+                    <div class="score-box">${u.winRate}% <span style="font-size:8px; display:block; color:#aaa; font-weight:normal;">WR (${u.wins}/${u.totalPlayed})</span></div>
                 </div>`;
             list.innerHTML += html;
         });
     });
 }
 
-        function getTier(wins) {
-            if (wins >= 100) return "Grandmaster";
-            if (wins >= 50) return "Master";
-            if (wins >= 20) return "Elite";
-            if (wins >= 5) return "Pro";
-            return "Rookie";
-        }
+// 7. Tier System ko Win Rate ke mutabiq update karein
+function getTier(winRate) {
+    if (winRate >= 80) return "Grandmaster";
+    if (winRate >= 65) return "Master";
+    if (winRate >= 50) return "Elite";
+    if (winRate >= 35) return "Pro";
+    return "Rookie";
+}
         // --- 🚀 ADVANCED NAVIGATION LOGIC ---
 
 window.navigate = (page, index) => {
