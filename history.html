@@ -154,28 +154,43 @@
 
         function fetchHistory(uid) {
             const container = document.getElementById('history-container');
-            // Hum directly gameHistory check kar rahe hain taake purana data delete kar sakein
             const historyRef = ref(db, `users/${uid}/gameHistory`);
 
             onValue(historyRef, (snapshot) => {
                 if (snapshot.exists()) {
                     allGames = [];
                     const now = Date.now();
+                    
+                    // ✨ SMART FILTER: Double entry rokne ke liye
+                    const uniqueCheck = new Set(); 
 
                     snapshot.forEach(child => {
                         const game = child.val();
                         const gameKey = child.key;
 
-                        // ⚡ AUTO-REMOVE LOGIC: Agar 30 din se purani hai toh Firebase se ura do
+                        // 1. Agar 30 din se purani hai toh Firebase se delete kar do
                         if (now - game.timestamp > TIME_30_DAYS) {
                             remove(ref(db, `users/${uid}/gameHistory/${gameKey}`));
                         } else {
-                            allGames.push(game);
+                            // 2. SMART DEDUPLICATION LOGIC
+                            // Time ko 5 second ke blocks mein divide kiya
+                            const timeBlock = Math.floor(game.timestamp / 5000); 
+                            const signature = `${game.type}_${game.amount}_${timeBlock}`;
+
+                            if (!uniqueCheck.has(signature)) {
+                                // Agar ye entry pehli dafa aayi hai, toh list me daal do
+                                uniqueCheck.add(signature);
+                                allGames.push(game);
+                            } else {
+                                // ⚡ AGAR DOUBLE ENTRY HAI: Toh usay screen par nahi dikhana 
+                                // aur database se bhi hamesha ke liye delete kar dena hai!
+                                remove(ref(db, `users/${uid}/gameHistory/${gameKey}`));
+                            }
                         }
                     });
                     
-                    // Naya pehle dikhane ke liye reverse
-                    allGames.reverse(); 
+                    // Naya record hamesha sabse upar dikhane ke liye
+                    allGames.sort((a, b) => b.timestamp - a.timestamp); 
                     
                     // Current filter apply karo
                     applyCurrentFilter();
