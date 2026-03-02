@@ -367,6 +367,7 @@ const rawId = urlParams.get('gameId');
 // Agar URL mein "ROOM_1" bhi aaya, toh ye usay "room_1" kar dega
 const GAME_ID = rawId ? rawId.toLowerCase().trim() : null; 
 const ENTRY_FEE = urlParams.get('entry') || "0";
+const isSpectator = urlParams.get('spectator') === 'true';
         let currentUser = null, myColor = null, lastProcessedRoll = null;
         let unsubscribeGame = null; // Yeh line lazmi add karein
 // Winning Amount (Entry * 2 - 15% Fee) display karne ka code
@@ -573,7 +574,15 @@ onAuthStateChanged(auth, async (user) => {
     const homeBtn = document.getElementById('home-btn');
 
     winOverlay.style.display = 'flex';
-
+if (isSpectator) {
+        statusTitle.innerText = "MATCH ENDED";
+        statusTitle.style.color = "gold";
+        amountText.innerText = `Winner: ${winnerColor.toUpperCase()}`;
+        collectBtn.style.display = 'none';
+        homeBtn.style.display = 'block';
+        homeBtn.onclick = () => window.location.href = "home.html";
+        return; // Spectator ke liye code yahi ruk jayega
+    }
     // Calculation: 15% Admin fee nikal kar
     const entry = parseInt(ENTRY_FEE);
     const totalPot = entry * 2;
@@ -647,28 +656,27 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
         return;
     }
 
-    // 1. Path ko clean aur lowercase karein
     const cleanEntry = ENTRY_FEE.toString().trim();
     const cleanRoom = GAME_ID.toString().trim().toLowerCase(); 
-
     const roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
-    console.log("Checking DB Path:", `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
 
     let isFound = false;
 
-    // 2. Retry Logic: 5 baar check karega (Total 10 seconds)
-    // Takke internet slow hone par bhi data mil jaye
     for (let i = 0; i < 5; i++) {
         const snap = await get(roomRef);
         const roomData = snap.val();
 
-        if (roomData && roomData.players && roomData.players[currentUser.uid]) {
-            myColor = roomData.players[currentUser.uid].color;
-            isFound = true;
-            break; 
+        if (roomData && roomData.players) {
+            if (roomData.players[currentUser.uid]) {
+                myColor = roomData.players[currentUser.uid].color;
+                isFound = true;
+                break; 
+            } else if (isSpectator) { // ✨ NAYA: Spectator bypass
+                myColor = 'spectator';
+                isFound = true;
+                break;
+            }
         }
-        
-        console.warn(`Attempt ${i+1}: Waiting for server sync...`);
         await new Promise(r => setTimeout(r, 2000)); 
     }
 
@@ -681,6 +689,14 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
     // SUCCESS
     const overlay = document.getElementById('waiting-overlay');
     if (overlay) overlay.style.display = 'none';
+
+    // ✨ SPECTATOR KI SETTINGS: Chat aur Exit Button ka alag rawayya
+    if (isSpectator) {
+        document.querySelector('.inbox-trigger').style.display = 'none'; // Chat hide karein
+        document.getElementById('exit-btn').onclick = () => window.location.href = "home.html";
+        window.onpopstate = () => window.location.href = "home.html";
+    }
+
     window.Game.init();
     listenToLiveUpdates(roomRef);
 }
@@ -785,9 +801,10 @@ if (window.initSkipDisplay) {
                         }
 
                         // Check if opponent left
-                        if (p.uid !== currentUser.uid && p.online === "left") {
-                            handleForcedEnd(myColor); // I win since opponent left
-                        }
+                        // Check if opponent left (Lekin Spectator ke jane se game end na ho)
+if (p.uid !== currentUser.uid && p.online === "left" && !isSpectator) {
+    handleForcedEnd(myColor); // I win since opponent left
+}
                     });
                 }
 
