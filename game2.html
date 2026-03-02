@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -263,6 +264,19 @@
     box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
 }
 .add-friend-btn:active { transform: scale(0.9); }
+/* Emojis agar akele hon toh unka size bada dikhe */
+.side-bubble {
+    font-size: 16px; /* Standard text size */
+    min-width: 40px;
+    text-align: center;
+}
+
+/* Agar sirf ek emoji bhejain toh wo bara nazar aye */
+.side-bubble:has-only-emoji {
+    font-size: 30px;
+    background: transparent !important;
+    box-shadow: none !important;
+}
     </style>
 </head>
 <body>
@@ -329,12 +343,24 @@
     </div>
 
     <div class="presets-scroll">
+        
         <div class="preset-btn" onclick="sendQuickChat('Sorry!')">Sorry!</div>
         <div class="preset-btn" onclick="sendQuickChat('Play fast!')">Play fast!</div>
         <div class="preset-btn" onclick="sendQuickChat('Good game')">Good game</div>
         <div class="preset-btn" onclick="sendQuickChat('Oops!')">Oops!</div>
     </div>
-
+<div class="presets-scroll" style="border-top: 1px solid #333; background: rgba(0,0,0,0.2);">
+    <div class="preset-btn" onclick="sendQuickChat('😂')">😂</div>
+    <div class="preset-btn" onclick="sendQuickChat('😎')">😎</div>
+    <div class="preset-btn" onclick="sendQuickChat('🔥')">🔥</div>
+    <div class="preset-btn" onclick="sendQuickChat('👍')">👍</div>
+    
+    <div class="preset-btn" onclick="sendQuickChat('😮')">😮</div>
+    <div class="preset-btn" onclick="sendQuickChat('💩')">💩</div>
+    <div class="preset-btn" onclick="sendQuickChat('🙏')">🙏</div>
+    <div class="preset-btn" onclick="sendQuickChat('😭')">😭</div>
+    <div class="preset-btn" onclick="sendQuickChat('👑')">👑</div>
+</div>
     <div id="chat-messages">
         <div style="text-align:center; color:#777; font-size:11px; margin-top:10px;">Chat started...</div>
     </div>
@@ -367,6 +393,7 @@ const rawId = urlParams.get('gameId');
 // Agar URL mein "ROOM_1" bhi aaya, toh ye usay "room_1" kar dega
 const GAME_ID = rawId ? rawId.toLowerCase().trim() : null; 
 const ENTRY_FEE = urlParams.get('entry') || "0";
+const isSpectator = urlParams.get('spectator') === 'true';
         let currentUser = null, myColor = null, lastProcessedRoll = null;
         let unsubscribeGame = null; // Yeh line lazmi add karein
 // Winning Amount (Entry * 2 - 15% Fee) display karne ka code
@@ -517,7 +544,13 @@ function showSidePopup(data) {
     // Red -> sb-red, Yellow -> sb-yellow
     pop.className = `side-bubble sb-${data.from}`;
     pop.innerText = data.msg;
-
+const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])$/;
+    if (emojiRegex.test(data.msg)) {
+        pop.style.fontSize = "45px";   // Emoji ko bada dikhao
+        pop.style.background = "none"; // Background hata do
+        pop.style.boxShadow = "none";  // Shadow hata do
+        pop.style.border = "none";    // Border hata do
+    }
     // Body mein append karo taake absolute positioning sahi kaam kare
     // Lekin humein coordinates chahiye parent ke
     const rect = parent.getBoundingClientRect();
@@ -573,7 +606,15 @@ onAuthStateChanged(auth, async (user) => {
     const homeBtn = document.getElementById('home-btn');
 
     winOverlay.style.display = 'flex';
-
+if (isSpectator) {
+        statusTitle.innerText = "MATCH ENDED";
+        statusTitle.style.color = "gold";
+        amountText.innerText = `Winner: ${winnerColor.toUpperCase()}`;
+        collectBtn.style.display = 'none';
+        homeBtn.style.display = 'block';
+        homeBtn.onclick = () => window.location.href = "home.html";
+        return; // Spectator ke liye code yahi ruk jayega
+    }
     // Calculation: 15% Admin fee nikal kar
     const entry = parseInt(ENTRY_FEE);
     const totalPot = entry * 2;
@@ -591,7 +632,14 @@ saveHistory(db, currentUser.uid, winAmount, "1vs1 Win", "win");
         collectBtn.style.display = 'block';
         homeBtn.style.display = 'none';
         AudioSys.win();
-
+// --- AUTO DELETE LOGIC ---
+setTimeout(async () => {
+    try {
+        await set(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), null);
+        console.log("Room Cleaned Successfully");
+    } catch (err) { console.error("Delete Error:", err); }
+}, 3000); // 3 second baad delete ho jayega
+// -------------------------
         collectBtn.onclick = async function() {
             collectBtn.disabled = true;
             collectBtn.innerText = "Processing...";
@@ -642,45 +690,63 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
         });
 
         async function startMatchmaking() {
-    if (!GAME_ID || !ENTRY_FEE) {
+    if (!GAME_ID) {
         window.location.href = "home.html";
         return;
     }
 
-    // 1. Path ko clean aur lowercase karein
-    const cleanEntry = ENTRY_FEE.toString().trim();
+    let cleanEntry = ENTRY_FEE.toString().trim();
     const cleanRoom = GAME_ID.toString().trim().toLowerCase(); 
-
-    const roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
-    console.log("Checking DB Path:", `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
-
+    let roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
     let isFound = false;
 
-    // 2. Retry Logic: 5 baar check karega (Total 10 seconds)
-    // Takke internet slow hone par bhi data mil jaye
-    for (let i = 0; i < 5; i++) {
-        const snap = await get(roomRef);
-        const roomData = snap.val();
-
-        if (roomData && roomData.players && roomData.players[currentUser.uid]) {
-            myColor = roomData.players[currentUser.uid].color;
-            isFound = true;
-            break; 
+    if (isSpectator) {
+        // ✨ VIEWER LOGIC: Bina Entry Fee ke pure database mein room dhoondo
+        const poolSnap = await get(ref(db, 'matchmaking_pool'));
+        if (poolSnap.exists()) {
+            const allPools = poolSnap.val();
+            for (const fee in allPools) {
+                if (allPools[fee][cleanRoom]) {
+                    cleanEntry = fee; // Sahi entry fee mil gayi!
+                    roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
+                    myColor = 'spectator';
+                    isFound = true;
+                    break;
+                }
+            }
         }
-        
-        console.warn(`Attempt ${i+1}: Waiting for server sync...`);
-        await new Promise(r => setTimeout(r, 2000)); 
+    } else {
+        // ✨ PLAYERS LOGIC
+        if (!ENTRY_FEE) { window.location.href = "home.html"; return; }
+        for (let i = 0; i < 5; i++) {
+            const snap = await get(roomRef);
+            const roomData = snap.val();
+
+            if (roomData && roomData.players && roomData.players[currentUser.uid]) {
+                myColor = roomData.players[currentUser.uid].color;
+                isFound = true;
+                break; 
+            }
+            await new Promise(r => setTimeout(r, 2000)); 
+        }
     }
 
     if (!isFound) {
-        alert(`Session Expired!\nRoom ID: ${cleanRoom} nahi mila.\nLobby se dobara join karein.`);
+        alert(`Match Ended ya Room ID: ${cleanRoom} nahi mila.`);
         window.location.href = "home.html";
         return;
     }
 
-    // SUCCESS
+    // SUCCESS - Screen saaf karo
     const overlay = document.getElementById('waiting-overlay');
     if (overlay) overlay.style.display = 'none';
+
+    // ✨ SPECTATOR KOI PABANDI NAHI
+    if (isSpectator) {
+        const inbox = document.querySelector('.inbox-trigger');
+        if(inbox) inbox.style.display = 'none'; // Viewer chat nahi kar sakta
+    }
+
     window.Game.init();
     listenToLiveUpdates(roomRef);
 }
@@ -917,11 +983,30 @@ if (!this.firstSyncDone) {
             },
 
             startTimer(type) {
+                // --- 1. CHAT MESSAGE TIMER RESET FIX ---
+                // Agar same player ki bari chal rahi hai, toh timer dubara reset nahi hoga
+                if (this.lastTurnColor === this.turn && this.lastTimerType === type && this.turnTimer) {
+                    return; 
+                }
+                this.lastTurnColor = this.turn;
+                this.lastTimerType = type;
+                // ---------------------------------------
+
                 if (this.turnTimer) clearInterval(this.turnTimer);
 
                 let timeLeft = 20;
+                
+                // --- 2. PAGE REFRESH TIMER FIX ---
+                if (type === 'move' && this.rollStartTime) {
+                    let elapsed = Math.floor((Date.now() - this.rollStartTime) / 1000);
+                    timeLeft = (elapsed > 0 && elapsed < 20) ? 20 - elapsed : 1;
+                }
+                // ---------------------------------
+
                 const activeColor = this.turn;
                 const bar = document.getElementById(`timer-${activeColor}`);
+
+                // ... baqi neeche ka sara code same rahega (setInterval wala)
 
                 this.turnTimer = setInterval(() => {
                     timeLeft--;
@@ -1426,19 +1511,23 @@ window.onpopstate = function () {
 };
 
 // 3. Exit Logic Function (Common for Exit Button & Back Button)
+// 3. Exit Logic Function (Common for Exit Button & Back Button)
 async function triggerExitLogic() {
+    // ✨ VIEWER DIRECT WAPIS JAYEGA (Koi warning nahi)
+    if (isSpectator) {
+        window.location.href = "home.html";
+        return;
+    }
+
+    // PLAYERS KO WARNING MILEGI
     const confirmExit = confirm("Are you sure you want to leave? Your entry fee will not be refunded and you will lose the match.");
     
     if (confirmExit) {
-        // Database mein status 'left' update karein
         if (currentUser && GAME_ID) {
-            const myStatusRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/players/${currentUser.uid}/online`);
+            let cleanEntry = ENTRY_FEE.toString().trim();
+            const myStatusRef = ref(db, `matchmaking_pool/${cleanEntry}/${GAME_ID}/players/${currentUser.uid}/online`);
             await set(myStatusRef, "left");
-            
-            // History log save karein
-            saveHistory(db, currentUser.uid, -entry, "Left Game (Back Button)", "loss");
-            
-            // Home bhej dein
+            saveHistory(db, currentUser.uid, -entry, "Left Game", "loss");
             window.location.href = "home.html";
         }
     }
@@ -1447,6 +1536,7 @@ async function triggerExitLogic() {
 // 4. Purane Exit Button Click ko bhi isi function se connect kar dein
 document.getElementById('exit-btn').onclick = triggerExitLogic;
     </script>
+    <script type="module" src="globalManager.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
