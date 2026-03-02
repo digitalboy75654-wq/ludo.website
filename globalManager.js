@@ -34,6 +34,8 @@ const playInviteSound = () => {
 };
 
 // --- STATUS UPDATE LOGIC ---
+// --- STATUS UPDATE LOGIC ---
+// --- STATUS UPDATE LOGIC ---
 function updateUserStatus(uid) {
     const statusRef = ref(db, `users/${uid}/status`);
 
@@ -41,18 +43,36 @@ function updateUserStatus(uid) {
     onDisconnect(statusRef).set({ state: 'offline' });
 
     // 2. Check karein user abhi kahan hai
-    if (window.location.href.includes("match2.html")) {
-        // Agar Game Page par hai to -> PLAYING (Busy)
-        set(statusRef, { state: 'playing' });
+    const currentUrl = window.location.href.toLowerCase();
+    
+    // Agar Game Page par hai
+    if (currentUrl.includes("match2.html") || currentUrl.includes("game2.html") || currentUrl.includes("game.html")) {
+        
+        // URL se gameId nikalne ki koshish karein
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('gameId') || null;
+
+        if (gameId) {
+             // Agar Game ID mil jaye, to usay status ke sath save karein
+            set(statusRef, { 
+                state: 'playing',
+                currentGameId: gameId // Spectators ke liye room id save ki
+            });
+        } else {
+             // Agar sirf page khola ho game id na ho
+            set(statusRef, { state: 'playing' }); 
+        }
+
     } else {
-        // Agar kisi aur page par hai to -> ONLINE
-        set(statusRef, { state: 'online' });
+        // Agar kisi aur page par hai to -> ONLINE (Game ID remove kardi)
+        set(statusRef, { state: 'online', currentGameId: null });
     }
 }
 
 // --- GLOBAL LISTENER ---
 onAuthStateChanged(auth, (user) => {
     if (user) {
+        
         // 🔥 Status Update Call
         updateUserStatus(user.uid);
 
