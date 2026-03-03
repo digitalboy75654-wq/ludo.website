@@ -272,6 +272,10 @@
         <div class="loader"></div>
         <h2 style="margin-top:20px; font-family: 'Orbitron';">MATCHING...</h2>
         <p id="match-status">Searching for real player...</p>
+        
+        <button id="retry-btn" style="display:none; margin-top:15px; padding:10px 25px; background:var(--yellow); color:black; border:none; border-radius:20px; font-weight:bold; cursor:pointer; font-family: 'Poppins';" onclick="window.location.reload()">
+            <i class="fas fa-sync"></i> TRY AGAIN
+        </button>
     </div>
 
     <button id="exit-btn" style="position: fixed; top: 15px; left: 15px; z-index: 6000; padding: 8px 15px; background: #ff4757; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-family: 'Poppins'; box-shadow: 0 4px 10px rgba(255,71,87,0.3);">
@@ -735,6 +739,18 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
 
     window.Game.init();
     listenToLiveUpdates(roomRef);
+    setTimeout(() => {
+        const overlay = document.getElementById('waiting-overlay');
+        const retryBtn = document.getElementById('retry-btn');
+        const statusText = document.getElementById('match-status');
+        
+        // Agar 10 second baad bhi matching screen atki hui hai
+        if (overlay && overlay.style.display !== 'none' && retryBtn) {
+            statusText.innerText = "Connection slow hai ya opponent nahi aaya...";
+            statusText.style.color = "#ff4757"; // Red color
+            retryBtn.style.display = 'block';   // Button show kar do
+        }
+    }, 10000);
 }
     
         function listenToLiveUpdates(gameRef) {
