@@ -654,9 +654,7 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
     }
 }
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) { currentUser = user; await startMatchmaking(); } else { window.location.href = "index.html"; }
-        });
+        
 
         async function startMatchmaking() {
     if (!GAME_ID) {
@@ -707,10 +705,16 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
     }
 
     if (!isFound) {
-        alert(`Match Ended ya Room ID: ${cleanRoom} nahi mila.`);
-        window.location.href = "home.html";
-        return;
-    }
+        // ✨ FIX: "Try Again" Popup for Slow Internet
+        let retry = confirm("Aapka internet slow hai aur game connect nahi ho saki.\n\nKya aap dobara TRY AGAIN karna chahte hain?");
+        if (retry) {
+            document.getElementById('match-status').innerText = "Retrying connection...";
+            startMatchmaking(); // Function ko dobara chala kar enter hone ki koshish karega
+        } else {
+            window.location.href = "home.html"; // Cancel karega toh wapis Home par jayega
+        }
+        return;
+    }
 
     const overlay = document.getElementById('waiting-overlay');
     if (overlay) overlay.style.display = 'none';
@@ -946,13 +950,16 @@ if (!this.firstSyncDone) {
         if (newToks[i] > oldToks[i]) { movedIdx = i; break; } 
     }
 
-    if (movedIdx !== -1) {
-        let start = oldToks[movedIdx] === 0 ? 1 : oldToks[movedIdx];
-        this.animateOpponentMove(opp, movedIdx, start, newToks[movedIdx]);
-    }
-
     // 3. UI aur Turn Update
     this.tokens = state.tokens;
+    
+    if (movedIdx !== -1) {
+        let start = oldToks[movedIdx] === 0 ? 1 : oldToks[movedIdx];
+        this.tokens[opp][movedIdx] = start; // Animation ke liye wapis piche rakho
+        this.animateOpponentMove(opp, movedIdx, start, newToks[movedIdx]);
+    } else {
+        this.renderAll();
+    }
     if (this.turn !== state.turn) { this.hasRolled = false; this.isRolling = false; }
     this.turn = state.turn;
     this.renderAll();
@@ -960,8 +967,13 @@ if (!this.firstSyncDone) {
 },
 
             async animateOpponentMove(color, idx, start, end) {
-                for (let s = start + 1; s <= end; s++) { AudioSys.move(); await new Promise(r => setTimeout(r, 250)); }
-            },
+    for (let s = start + 1; s <= end; s++) { 
+        this.tokens[color][idx] = s;
+        this.renderAll();
+        AudioSys.move(); 
+        await new Promise(r => setTimeout(r, 150)); 
+    }
+},
 
             updateUI() {
                 document.querySelectorAll('.player-corner').forEach(e => e.classList.remove('active-turn'));
@@ -1392,22 +1404,7 @@ async finalizeRoll(diceBox, val) {
        // --- NEW EXIT LOGIC (Secure) ---
        // Jahan exit button ka code hai:
 
-document.getElementById('exit-btn').onclick = async function() {
-    // Message change kiya hai taake user ko pata ho paise wapas nahi milenge
-    if (confirm("Are you sure you want to leave the game? Your entry fee will not be refunded and you will forfeit the match.")) {
 
-        // 1. Yahan se balance deduction ka code HATA DIYA hai.
-        // (Kyunki paise ab 'startMatchmaking' mein shuru mein hi kat chuke hain)
-
-        // 2. Database mein apna status 'left' set karein
-        // Is se Opponent ke paas 'You Win' ka popup aayega
-        const myStatusRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/players/${currentUser.uid}/online`);
-        await set(myStatusRef, "left");
-saveHistory(db, currentUser.uid, -entry, "Left Game", "loss");
-        // 3. User ko foran Home bhej dein
-        window.location.href = "home.html";
-    }
-};
 
         window.Game = Game;
 
