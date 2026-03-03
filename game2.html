@@ -716,7 +716,7 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
         } else {
             window.location.href = "home.html"; // Agar user cancel kare toh wapis Home par
         }
-        return;
+        
     }
 
     const overlay = document.getElementById('waiting-overlay');
@@ -821,6 +821,10 @@ if (window.initSkipDisplay) {
                 // data.players aik object hota hai jiske andar UID keys hoti hain
                 if (data.players) {
                     const playerIds = Object.keys(data.players);
+                    // Nayi lines: Agar internet slow hone se color nahi mila tha, toh ab set kar lo
+    if (!myColor && data.players[currentUser.uid]) {
+        myColor = data.players[currentUser.uid].color;
+    }
                     console.log("Players in room:", playerIds.length);
 
                     // Agar 2 players hain toh matching screen hatao
