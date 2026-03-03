@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -134,8 +135,8 @@
 
         /* --- TOKENS --- */
         .token { width: 20px; height: 20px; border-radius: 50%; position: absolute; z-index: 50;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.4); border: 2px solid white; 
-        transition: top 0.2s linear, left 0.2s linear; /* Fast & Smooth for slow net */
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.4); border: 2px solid white; transition: top 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28),
+                left 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
         pointer-events: none; }
         .t-red { background: var(--red); } .t-yellow { background: var(--yellow); }
         .clickable { cursor: pointer; animation: pulse 0.8s infinite; z-index: 100; box-shadow: 0 0 15px gold; pointer-events: auto !important; }
@@ -659,70 +660,76 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
         });
 
         async function startMatchmaking() {
-            if (!GAME_ID) { window.location.href = "home.html"; return; }
+    if (!GAME_ID) {
+        window.location.href = "home.html";
+        return;
+    }
 
-            let cleanEntry = ENTRY_FEE.toString().trim();
-            const cleanRoom = GAME_ID.toString().trim().toLowerCase(); 
-            let roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
-            let isFound = false;
+    let cleanEntry = ENTRY_FEE.toString().trim();
+    const cleanRoom = GAME_ID.toString().trim().toLowerCase(); 
+    let roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
+    let isFound = false;
 
-            if (isSpectator) {
-                const poolSnap = await get(ref(db, 'matchmaking_pool'));
-                if (poolSnap.exists()) {
-                    const allPools = poolSnap.val();
-                    for (const fee in allPools) {
-                        if (allPools[fee][cleanRoom]) {
-                            cleanEntry = fee; 
-                            const actualFee = parseInt(fee) || 0;
-                            const prizeSpan = document.getElementById('win-prize-val');
-                            if (prizeSpan) prizeSpan.innerText = (actualFee * 2) - (actualFee * 2 * 0.10);
-                            
-                            roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
-                            myColor = 'spectator';
-                            isFound = true; 
-                            break;
-                        }
-                    }
+    if (isSpectator) {
+        // ✨ VIEWER LOGIC: Poore database mein fee wale folders check karo
+        const poolSnap = await get(ref(db, 'matchmaking_pool'));
+        if (poolSnap.exists()) {
+            const allPools = poolSnap.val();
+            for (const fee in allPools) {
+                if (allPools[fee][cleanRoom]) {
+                    cleanEntry = fee; // Asal fee mil gayi!
+                    
+                    // Banner par amount set karein
+                    const actualFee = parseInt(fee) || 0;
+                    const correctWin = (actualFee * 2) - (actualFee * 2 * 0.10);
+                    const prizeSpan = document.getElementById('win-prize-val');
+                    if (prizeSpan) prizeSpan.innerText = correctWin;
+                    
+                    roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
+                    myColor = 'spectator';
+                    isFound = true;
+                    break;
                 }
-            } else {
-                // ✨ FIX: Robust Connection Logic (Bina kisi error ke)
-                if (!ENTRY_FEE) { window.location.href = "home.html"; return; }
-                
-                isFound = await new Promise((resolve) => {
-                    const timeout = setTimeout(() => { resolve(false); }, 15000); 
-                    const tempUnsub = onValue(roomRef, (snap) => {
-                        const roomData = snap.val();
-                        if (roomData && roomData.players && roomData.players[currentUser.uid]) {
-                            myColor = roomData.players[currentUser.uid].color;
-                            clearTimeout(timeout);
-                            tempUnsub(); 
-                            resolve(true);
-                        }
-                    });
-                });
             }
-
-            if (!isFound) {
-                alert(`Match Ended ya Room ID nahi mila.`);
-                window.location.href = "home.html";
-                return;
-            }
-
-            const overlay = document.getElementById('waiting-overlay');
-            if (overlay) overlay.style.display = 'none';
-
-            if (isSpectator) {
-                const inbox = document.querySelector('.inbox-trigger');
-                if(inbox) inbox.style.display = 'none'; 
-                const specRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}/spectators/${currentUser.uid}`);
-                set(specRef, true);
-                onDisconnect(specRef).remove();
-            }
-
-            window.Game.init();
-            listenToLiveUpdates(roomRef);
         }
+    } else {
+        // ✨ PLAYERS LOGIC
+        if (!ENTRY_FEE) { window.location.href = "home.html"; return; }
+        for (let i = 0; i < 5; i++) {
+            const snap = await get(roomRef);
+            const roomData = snap.val();
+            if (roomData && roomData.players && roomData.players[currentUser.uid]) {
+                myColor = roomData.players[currentUser.uid].color;
+                isFound = true;
+                break; 
+            }
+            await new Promise(r => setTimeout(r, 2000)); 
+        }
+    }
 
+    if (!isFound) {
+        alert(`Match Ended ya Room ID: ${cleanRoom} nahi mila.`);
+        window.location.href = "home.html";
+        return;
+    }
+
+    const overlay = document.getElementById('waiting-overlay');
+    if (overlay) overlay.style.display = 'none';
+
+    // ✨ VIEWER SETTINGS (Chat hide, counter start)
+    if (isSpectator) {
+        const inbox = document.querySelector('.inbox-trigger');
+        if(inbox) inbox.style.display = 'none'; 
+        
+        const specRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}/spectators/${currentUser.uid}`);
+        set(specRef, true);
+        onDisconnect(specRef).remove();
+        window.currentRoomPath = `matchmaking_pool/${cleanEntry}/${cleanRoom}`;
+    }
+
+    window.Game.init();
+    listenToLiveUpdates(roomRef);
+}
     
         function listenToLiveUpdates(gameRef) {
             unsubscribeGame = onValue(gameRef, (snapshot) => {
@@ -868,19 +875,12 @@ if (p.uid !== currentUser.uid && p.online === "left" && !isSpectator) {
                 }
 
                 // 3. GAME STATE SYNC
-                // 3. GAME STATE SYNC (Optimized)
                 if (data.gameState && window.Game) {
-                    // Agar turn badal gayi hai ya goti move hui hai tabhi update karega
-                    const stateChanged = JSON.stringify(window.Game.tokens) !== JSON.stringify(data.gameState.tokens) || window.Game.turn !== data.gameState.turn;
-                    
                     if (data.lastRoll && data.lastRoll.color === data.gameState.turn) {
                         window.Game.hasRolled = true;
                         window.Game.diceVal = data.lastRoll.value;
                     }
-
-                    if (stateChanged || data.gameState.winner) {
-                        window.Game.sync(data.gameState);
-                    }
+                    window.Game.sync(data.gameState);
                 }
             });
         }
@@ -923,53 +923,45 @@ if (p.uid !== currentUser.uid && p.online === "left" && !isSpectator) {
                     if (rS) rS.innerText = `Skips: ${state.skips.red || 0}/5`;
                     if (yS) yS.innerText = `Skips: ${state.skips.yellow || 0}/5`;
                 }
+    // 1. Agar Firebase mein winner mil jaye
+    if (state.winner) {
+        // Game timers aur listeners ko stop karo
+        if (unsubscribeGame) unsubscribeGame();
+        if (this.turnTimer) clearInterval(this.turnTimer);
+        
+        // Winner/Loser popup aur cleanup logic call karo
+        handleForcedEnd(state.winner); 
+        return; 
+    }
+if (!this.firstSyncDone) {
+        this.tokens = JSON.parse(JSON.stringify(state.tokens));
+        this.firstSyncDone = true;
+    }
+    // 2. Tokens Movement Sync (Opponent ki goti chalne ki animation)
+    const opp = myColor === 'red' ? 'yellow' : 'red';
+    const oldToks = this.tokens[opp];
+    const newToks = state.tokens[opp];
+    
+    let movedIdx = -1;
+    for(let i=0; i<4; i++) { 
+        if (newToks[i] > oldToks[i]) { movedIdx = i; break; } 
+    }
 
-                if (state.winner) {
-                    if (unsubscribeGame) unsubscribeGame();
-                    if (this.turnTimer) clearInterval(this.turnTimer);
-                    handleForcedEnd(state.winner); 
-                    return; 
-                }
+    if (movedIdx !== -1) {
+        let start = oldToks[movedIdx] === 0 ? 1 : oldToks[movedIdx];
+        this.animateOpponentMove(opp, movedIdx, start, newToks[movedIdx]);
+    }
 
-                if (!this.firstSyncDone) {
-                    this.tokens = JSON.parse(JSON.stringify(state.tokens));
-                    this.firstSyncDone = true;
-                }
-
-                const opp = myColor === 'red' ? 'yellow' : 'red';
-                const oldToks = this.tokens[opp];
-                const newToks = state.tokens[opp];
-                
-                let movedIdx = -1;
-                for(let i=0; i<4; i++) { 
-                    if (newToks[i] > oldToks[i]) { movedIdx = i; break; } 
-                }
-
-                // UI aur Turn Update
-                this.tokens = state.tokens;
-
-                // ✨ FIX: Opponent Token Smooth Animation
-                if (movedIdx !== -1) {
-                    let start = oldToks[movedIdx] === 0 ? 1 : oldToks[movedIdx];
-                    this.tokens[opp][movedIdx] = start; // Animation ke liye wapis piche rakho
-                    this.animateOpponentMove(opp, movedIdx, start, newToks[movedIdx]);
-                } else {
-                    this.renderAll();
-                }
-
-                if (this.turn !== state.turn) { this.hasRolled = false; this.isRolling = false; }
-                this.turn = state.turn;
-                this.updateUI();
-            },
+    // 3. UI aur Turn Update
+    this.tokens = state.tokens;
+    if (this.turn !== state.turn) { this.hasRolled = false; this.isRolling = false; }
+    this.turn = state.turn;
+    this.renderAll();
+    this.updateUI();
+},
 
             async animateOpponentMove(color, idx, start, end) {
-                // ✨ FIX: Goti ko har kadam (step) par aagy badhana
-                for (let s = start + 1; s <= end; s++) { 
-                    this.tokens[color][idx] = s;
-                    this.renderAll();
-                    AudioSys.move(); 
-                    await new Promise(r => setTimeout(r, 150)); 
-                }
+                for (let s = start + 1; s <= end; s++) { AudioSys.move(); await new Promise(r => setTimeout(r, 250)); }
             },
 
             updateUI() {
