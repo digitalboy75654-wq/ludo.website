@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -368,22 +367,13 @@ const rawId = urlParams.get('gameId');
 // Agar URL mein "ROOM_1" bhi aaya, toh ye usay "room_1" kar dega
 const GAME_ID = rawId ? rawId.toLowerCase().trim() : null; 
 const ENTRY_FEE = urlParams.get('entry') || "0";
-const isSpectator = urlParams.get('spectator') === 'true';
         let currentUser = null, myColor = null, lastProcessedRoll = null;
         let unsubscribeGame = null; // Yeh line lazmi add karein
 // Winning Amount (Entry * 2 - 15% Fee) display karne ka code
 const entry = parseInt(new URLSearchParams(window.location.search).get('entry')) || 0;
 const winAmount = (entry * 2) - (entry * 2 * 0.10);
-
-// ✨ Naya Banner aur Viewer Badge
-document.body.insertAdjacentHTML('afterbegin', `
-    <div style="position:fixed;top:0;width:100%;background:linear-gradient(to right,#f1c40f,#e67e22);color:#000;text-align:center;padding:10px;font-family:'Orbitron';font-weight:900;z-index:4500;box-shadow:0 2px 10px rgba(0,0,0,0.5);">
-        <i class="fas fa-trophy"></i> WINNING PRIZE: <span id="win-prize-val">${winAmount}</span> Balance
-    </div>
-    <div id="viewer-badge" style="position: fixed; top: 50px; left: 15px; z-index: 5000; background: rgba(0,0,0,0.8); border: 1px solid #f1c40f; color: #f1c40f; padding: 5px 12px; border-radius: 20px; font-family: 'Orbitron'; font-size: 12px; display: none; align-items: center; gap: 5px; box-shadow: 0 0 10px rgba(241,196,15,0.3);">
-        <i class="fas fa-eye"></i> <span id="viewer-count">0</span>
-    </div>
-`);
+document.body.insertAdjacentHTML('afterbegin', `<div style="position:fixed;top:0;width:100%;background:linear-gradient(to right,#f1c40f,#e67e22);color:#000;text-align:center;padding:10px;font-family:'Orbitron';font-weight:900;z-index:4500;box-shadow:0 2px 10px rgba(0,0,0,0.5);"><i class="fas fa-trophy"></i> WINNING PRIZE: ${winAmount} Balance</div>`);
+// index.html ke script tag ke andar sabse upar
 
         const AudioSys = {
             ctx: null,
@@ -583,15 +573,7 @@ onAuthStateChanged(auth, async (user) => {
     const homeBtn = document.getElementById('home-btn');
 
     winOverlay.style.display = 'flex';
-if (isSpectator) {
-        statusTitle.innerText = "MATCH ENDED";
-        statusTitle.style.color = "gold";
-        amountText.innerText = `Winner: ${winnerColor.toUpperCase()}`;
-        collectBtn.style.display = 'none';
-        homeBtn.style.display = 'block';
-        homeBtn.onclick = () => window.location.href = "home.html";
-        return; // Spectator ke liye code yahi ruk jayega
-    }
+
     // Calculation: 15% Admin fee nikal kar
     const entry = parseInt(ENTRY_FEE);
     const totalPot = entry * 2;
@@ -660,73 +642,45 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
         });
 
         async function startMatchmaking() {
-    if (!GAME_ID) {
+    if (!GAME_ID || !ENTRY_FEE) {
         window.location.href = "home.html";
         return;
     }
 
-    let cleanEntry = ENTRY_FEE.toString().trim();
+    // 1. Path ko clean aur lowercase karein
+    const cleanEntry = ENTRY_FEE.toString().trim();
     const cleanRoom = GAME_ID.toString().trim().toLowerCase(); 
-    let roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
+
+    const roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
+    console.log("Checking DB Path:", `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
+
     let isFound = false;
 
-    if (isSpectator) {
-        // ✨ VIEWER LOGIC: Poore database mein fee wale folders check karo
-        const poolSnap = await get(ref(db, 'matchmaking_pool'));
-        if (poolSnap.exists()) {
-            const allPools = poolSnap.val();
-            for (const fee in allPools) {
-                if (allPools[fee][cleanRoom]) {
-                    cleanEntry = fee; // Asal fee mil gayi!
-                    
-                    // Banner par amount set karein
-                    const actualFee = parseInt(fee) || 0;
-                    const correctWin = (actualFee * 2) - (actualFee * 2 * 0.10);
-                    const prizeSpan = document.getElementById('win-prize-val');
-                    if (prizeSpan) prizeSpan.innerText = correctWin;
-                    
-                    roomRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}`);
-                    myColor = 'spectator';
-                    isFound = true;
-                    break;
-                }
-            }
+    // 2. Retry Logic: 5 baar check karega (Total 10 seconds)
+    // Takke internet slow hone par bhi data mil jaye
+    for (let i = 0; i < 5; i++) {
+        const snap = await get(roomRef);
+        const roomData = snap.val();
+
+        if (roomData && roomData.players && roomData.players[currentUser.uid]) {
+            myColor = roomData.players[currentUser.uid].color;
+            isFound = true;
+            break; 
         }
-    } else {
-        // ✨ PLAYERS LOGIC
-        if (!ENTRY_FEE) { window.location.href = "home.html"; return; }
-        for (let i = 0; i < 5; i++) {
-            const snap = await get(roomRef);
-            const roomData = snap.val();
-            if (roomData && roomData.players && roomData.players[currentUser.uid]) {
-                myColor = roomData.players[currentUser.uid].color;
-                isFound = true;
-                break; 
-            }
-            await new Promise(r => setTimeout(r, 2000)); 
-        }
+        
+        console.warn(`Attempt ${i+1}: Waiting for server sync...`);
+        await new Promise(r => setTimeout(r, 2000)); 
     }
 
     if (!isFound) {
-        alert(`Match Ended ya Room ID: ${cleanRoom} nahi mila.`);
+        alert(`Session Expired!\nRoom ID: ${cleanRoom} nahi mila.\nLobby se dobara join karein.`);
         window.location.href = "home.html";
         return;
     }
 
+    // SUCCESS
     const overlay = document.getElementById('waiting-overlay');
     if (overlay) overlay.style.display = 'none';
-
-    // ✨ VIEWER SETTINGS (Chat hide, counter start)
-    if (isSpectator) {
-        const inbox = document.querySelector('.inbox-trigger');
-        if(inbox) inbox.style.display = 'none'; 
-        
-        const specRef = ref(db, `matchmaking_pool/${cleanEntry}/${cleanRoom}/spectators/${currentUser.uid}`);
-        set(specRef, true);
-        onDisconnect(specRef).remove();
-        window.currentRoomPath = `matchmaking_pool/${cleanEntry}/${cleanRoom}`;
-    }
-
     window.Game.init();
     listenToLiveUpdates(roomRef);
 }
@@ -737,20 +691,6 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
                 console.log("Firebase Data Received:", data); // Debugging ke liye
 
                 if (!data) return;
-                // ✨ Live Viewer Counter
-                const vBadge = document.getElementById('viewer-badge');
-                const vCount = document.getElementById('viewer-count');
-                if (data.spectators) {
-                    const count = Object.keys(data.spectators).length;
-                    if (count > 0 && vBadge) {
-                        vBadge.style.display = 'flex';
-                        vCount.innerText = count;
-                    } else if (vBadge) {
-                        vBadge.style.display = 'none';
-                    }
-                } else if (vBadge) {
-                    vBadge.style.display = 'none';
-                }
                 // --- 🤝 FRIEND SYSTEM LOGIC ---
 
 // 1. Pehle ye function define karein jo button dikhayega sirf opponent ke liye
@@ -845,10 +785,9 @@ if (window.initSkipDisplay) {
                         }
 
                         // Check if opponent left
-                        // Check if opponent left (Lekin Spectator ke jane se game end na ho)
-if (p.uid !== currentUser.uid && p.online === "left" && !isSpectator) {
-    handleForcedEnd(myColor); // I win since opponent left
-}
+                        if (p.uid !== currentUser.uid && p.online === "left") {
+                            handleForcedEnd(myColor); // I win since opponent left
+                        }
                     });
                 }
 
@@ -1487,23 +1426,19 @@ window.onpopstate = function () {
 };
 
 // 3. Exit Logic Function (Common for Exit Button & Back Button)
-// 3. Exit Logic Function (Common for Exit Button & Back Button)
 async function triggerExitLogic() {
-    // ✨ VIEWER DIRECT WAPIS JAYEGA (Koi warning nahi)
-    if (isSpectator) {
-        window.location.href = "home.html";
-        return;
-    }
-
-    // PLAYERS KO WARNING MILEGI
     const confirmExit = confirm("Are you sure you want to leave? Your entry fee will not be refunded and you will lose the match.");
     
     if (confirmExit) {
+        // Database mein status 'left' update karein
         if (currentUser && GAME_ID) {
-            let cleanEntry = ENTRY_FEE.toString().trim();
-            const myStatusRef = ref(db, `matchmaking_pool/${cleanEntry}/${GAME_ID}/players/${currentUser.uid}/online`);
+            const myStatusRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/players/${currentUser.uid}/online`);
             await set(myStatusRef, "left");
-            saveHistory(db, currentUser.uid, -entry, "Left Game", "loss");
+            
+            // History log save karein
+            saveHistory(db, currentUser.uid, -entry, "Left Game (Back Button)", "loss");
+            
+            // Home bhej dein
             window.location.href = "home.html";
         }
     }
@@ -1513,6 +1448,5 @@ async function triggerExitLogic() {
 document.getElementById('exit-btn').onclick = triggerExitLogic;
     </script>
     <script src="script.js"></script>
-    <script type="module" src="globalManager.js"></script>
 </body>
 </html>
