@@ -708,10 +708,16 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
     }
 
     if (!isFound) {
-        alert(`Match Ended ya Room ID: ${cleanRoom} nahi mila.`);
-        window.location.href = "home.html";
-        return;
-    }
+        // ✨ FIX: Slow internet hone par Try Again ka option
+        let retry = confirm("Aapka internet slow hai ya connection nahi ban pa raha.\n\nKya aap dobara TRY AGAIN karna chahte hain?");
+        if (retry) {
+            document.getElementById('match-status').innerText = "Retrying connection...";
+            startMatchmaking(); // Function khud ko dobara chalayega (Retry)
+        } else {
+            window.location.href = "home.html"; // Agar user cancel kare toh wapis Home par
+        }
+        return;
+    }
 
     const overlay = document.getElementById('waiting-overlay');
     if (overlay) overlay.style.display = 'none';
