@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1043,7 +1045,6 @@ get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${activeCo
 
             /* --- FAST ROLL LOGIC (Paste inside Game object) --- */
 
-// --- FAST ROLL LOGIC WITH ADMIN CONTROL ---
 async rollDice() {
     AudioSys.init();
     
@@ -1060,30 +1061,17 @@ async rollDice() {
     diceBox.classList.add('rolling'); 
     try { AudioSys.roll(); } catch(e){}
 
-    // 3. --- MAGIC FIX: Check Admin Forced Dice ---
-    let val = Math.floor(Math.random() * 6) + 1; // Default Random
-
-    try {
-        // Firebase se check karo ke admin ne koi number to nahi bheja is color ke liye?
-        const forcedRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/forcedDice/${myColor}`);
-        const snap = await get(forcedRef);
-        
-        if (snap.exists() && snap.val() >= 1 && snap.val() <= 6) {
-            val = snap.val(); // Random ko over-write kardo Admin wale number se!
-            
-            // Ek baar 6 lane ke baad us force command ko delete kardo taake agli baar random ho
-            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/forcedDice`), { [myColor]: null });
-        }
-    } catch (e) { console.log("Force check failed", e); }
-
+    // 3. --- MAGIC FIX: Number pehle hi decide kar lo ---
+    const val = Math.floor(Math.random() * 6) + 1;
     this.diceVal = val;
 
-    // 4. --- FAST UPDATE: Firebase ko FORAN bata do ---
+    // 4. --- FAST UPDATE: Firebase ko FORAN bata do (Animation se pehle) ---
+    // Is se opponent ko signal 1 second jaldi milega
     update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), { 
         lastRoll: { color: myColor, value: val, ts: Date.now() } 
     });
 
-    // 5. Local Animation
+    // 5. Local Animation (Apne liye)
     let rollCount = 0;
     if (this.rollInterval) clearInterval(this.rollInterval);
 
@@ -1091,11 +1079,11 @@ async rollDice() {
         diceBox.innerHTML = this.getDiceHTML(Math.floor(Math.random() * 6) + 1);
         rollCount++;
         
-        if (rollCount > 6) { 
+        if (rollCount > 8) { 
             clearInterval(this.rollInterval); 
-            this.finalizeRoll(diceBox, val); // Admin wala (ya random) number screen par layega
+            this.finalizeRoll(diceBox, val); // Value pass kar di
         }
-    }, 60);
+    }, 70);
 },
 
 async finalizeRoll(diceBox, val) {
@@ -1545,4 +1533,3 @@ setInterval(() => {
     <script type="module" src="globalManager.js"></script>
 </body>
 </html>
-
