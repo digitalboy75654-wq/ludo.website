@@ -135,13 +135,18 @@
         .center::after { content: '🏆'; font-size: 30px; filter: drop-shadow(0 0 10px gold); }
 
         /* --- TOKENS --- */
+        /* --- TOKENS (Optimized for Speed) --- */
         .token { width: 20px; height: 20px; border-radius: 50%; position: absolute; z-index: 50;
-        box-shadow: 2px 2px 5px rgba(0,0,0,0.4); border: 2px solid white; transition: top 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28),
-                left 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.4); border: 2px solid white; 
+        transition: transform 0.2s ease-out; /* TOP/LEFT ki jagah Transform use kiya aur speed 0.2s kardi */
         pointer-events: none; }
         .t-red { background: var(--red); } .t-yellow { background: var(--yellow); }
-        .clickable { cursor: pointer; animation: pulse 0.8s infinite; z-index: 100; box-shadow: 0 0 15px gold; pointer-events: auto !important; }
-        @keyframes pulse { 50% { transform: scale(1.3); } }
+        /* Fixed Clickable Animation (Bina uper-nichy jump kiye) */
+        .clickable { cursor: pointer; animation: pulse-glow 0.8s infinite; z-index: 100; pointer-events: auto !important; }
+        @keyframes pulse-glow { 
+            0%, 100% { filter: drop-shadow(0 0 5px gold) brightness(1); } 
+            50% { filter: drop-shadow(0 0 25px #fff) brightness(1.4); } 
+        }
 
         /* Timer Styles */
         .timer-container {
@@ -738,11 +743,15 @@ saveHistory(db, currentUser.uid, -entry, "1vs1 Loss", "loss");
     listenToLiveUpdates(roomRef);
 }
     
+        let lastFirebaseUpdate = 0; // Throttle variable
         function listenToLiveUpdates(gameRef) {
             unsubscribeGame = onValue(gameRef, (snapshot) => {
-                const data = snapshot.val();
-                console.log("Firebase Data Received:", data); // Debugging ke liye
+                const now = Date.now();
+                // Agar 100 milliseconds se pehle data dubara aa jaye, toh usay roko (Browser ko hang hone se bachaye)
+                if (now - lastFirebaseUpdate < 100) return; 
+                lastFirebaseUpdate = now;
 
+                const data = snapshot.val();
                 if (!data) return;
                 // ✨ Live Viewer Counter
                 const vBadge = document.getElementById('viewer-badge');
@@ -903,7 +912,10 @@ if (p.uid !== currentUser.uid && p.online === "left" && !isSpectator) {
             winP: { red: [[13,7],[12,7],[11,7],[10,7],[9,7],[8,7]], yellow: [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7]] },
 
             init() { 
-                this.drawGrid(); this.spawnTokens();
+                this.drawGrid(); 
+                this.spawnTokens();
+                this.renderAll(); // ✨ JADOO: Shuru mein hi gotiyon ko unke ghar bhej dega!
+                
                 setTimeout(() => {
                     const dRed = document.getElementById('dice-red');
                     const dYellow = document.getElementById('dice-yellow');
@@ -1327,7 +1339,8 @@ async finalizeRoll(diceBox, val) {
             t.className = `token t-${c}`;
             
             // ✨ MAGIC LINE: Goti ko board se -100px ooper phenk do
-            t.style.top = "-100px"; 
+            t.style.top = "0px"; 
+            t.style.left = "0px"; 
             
             g.appendChild(t);
         }
@@ -1335,78 +1348,80 @@ async finalizeRoll(diceBox, val) {
 },
 
             renderAll() {
-    // 1. Pehle ek dictionary banayein taake pata chale kis box par kitni gotiyan hain
-    const positionsCount = {};
-    const tokenData = []; // Har token ka data store karne ke liye
+                const size = 340 / 15; 
+                const positionsCount = {};
+                const tokenData = []; 
 
-    ['red', 'yellow'].forEach(c => {
-        this.tokens[c].forEach((p, i) => {
-            const el = document.getElementById(`t-${c}-${i}`);
-            let r, col, isHome = false, isWin = false;
+                ['red', 'yellow'].forEach(c => {
+                    this.tokens[c].forEach((p, i) => {
+                        const el = document.getElementById(`t-${c}-${i}`);
+                        if (!el) return;
+
+                        let r, col, isHome = false, isWin = false;
+                        
+                        // 1. Position nikalna
+                        if (p === 0) {
+                            [r, col] = this.homes[c][i];
+                            isHome = true;
+                        } else if (p > 51) {
+                            [r, col] = this.winP[c][p - 52];
+                            isWin = true;
+                        } else {
+                            let gi = this.toGlobal(c, p); 
+                            [r, col] = this.path[gi]; 
+                        }
+
+                        let posKey = isHome ? `home-${c}-${i}` : `${r}-${col}`;
+                        
+                        if (!positionsCount[posKey]) {
+                            positionsCount[posKey] = { count: 0, tokens: [] };
+                        }
+                        
+                        tokenData.push({ el, r, col, isHome, posKey });
+                        positionsCount[posKey].count++;
+                        positionsCount[posKey].tokens.push(el);
+                    });
+                });
+
+                tokenData.forEach(data => {
+                    const { el, r, col, isHome, posKey } = data;
+                    const totalInBox = positionsCount[posKey].count;
+                    const indexInBox = positionsCount[posKey].tokens.indexOf(el);
+
+                    let offsetX = 0;
+                    let offsetY = 0;
+                    let scale = 1;
+
+                    // 2. Agar ek hi box mein zyada gotiyan hain (aur wo ghar mein nahi hain)
+                    if (totalInBox > 1 && !isHome) {
+                        scale = 0.75; 
+                        
+                        // Sirf 4 gotiyon ki position shift karni hai
+                        if (indexInBox === 0) { offsetX = -5; offsetY = -5; }
+                        else if (indexInBox === 1) { offsetX = 5; offsetY = 5; }
+                        else if (indexInBox === 2) { offsetX = -5; offsetY = 5; }
+                        else if (indexInBox === 3) { offsetX = 5; offsetY = -5; }
+                        
+                        el.style.zIndex = 100 + indexInBox;
+                    } else {
+                        // Ghar mein ya akeli goti ki normal setting
+                        el.style.zIndex = 50;
+                    }
+
+                    // 3. ✨ JADOO: CSS Top/Left ko Hamesha Zero rakhein!
+                    // Is se double-calculation ka bug theek ho jayega
+                    el.style.top = "0px";
+                    el.style.left = "0px";
+
+                    // 4. Transform se position set karein
+                    // + 2 border adjust karne ke liye hai
+                    const x = (col * size) + 2 + offsetX;
+                    const y = (r * size) + 2 + offsetY;
+                    
+                    // Goti hilne ki animation yahan apply hogi
+                    el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+                });
             
-            // Coordinates nikalna
-            if (p === 0) {
-                [r, col] = this.homes[c][i];
-                isHome = true;
-            } else if (p > 51) {
-                [r, col] = this.winP[c][p - 52];
-                isWin = true;
-            } else {
-                let gi = this.toGlobal(c, p); 
-                [r, col] = this.path[gi]; 
-            }
-
-            // Box ki key banayein (e.g., "5-6" ya "home-red-1")
-            let posKey = isHome ? `home-${c}-${i}` : `${r}-${col}`;
-            
-            // Count barhayein
-            if (!positionsCount[posKey]) {
-                positionsCount[posKey] = { count: 0, tokens: [] };
-            }
-            
-            tokenData.push({ el, r, col, isHome, posKey });
-            positionsCount[posKey].count++;
-            positionsCount[posKey].tokens.push(el);
-        });
-    });
-
-    // 2. Ab gotiyon ko screen par draw karein (offset ke sath)
-    const size = 340 / 15; // Box ka size
-
-    tokenData.forEach(data => {
-        const { el, r, col, isHome, posKey } = data;
-        const totalInBox = positionsCount[posKey].count;
-        const indexInBox = positionsCount[posKey].tokens.indexOf(el);
-
-        let offsetX = 0;
-        let offsetY = 0;
-        let scale = 1;
-
-        // Agar ek se zyada gotiyan hain aur woh home mein nahi hain
-        if (totalInBox > 1 && !isHome) {
-            // Gotiyan chhoti hongi taake fit aa saken
-            scale = 0.7; 
-
-            // Offset logic (Max 4 gotiyan ek box mein ho sakti hain)
-            if (indexInBox === 0) { offsetX = -4; offsetY = -4; }
-            if (indexInBox === 1) { offsetX = 4; offsetY = 4; }
-            if (indexInBox === 2) { offsetX = -4; offsetY = 4; }
-            if (indexInBox === 3) { offsetX = 4; offsetY = -4; }
-            
-            // Z-index adjust karein taake baad wali goti oopar nazar aaye
-            el.style.zIndex = 50 + indexInBox;
-        } else {
-            el.style.zIndex = 50;
-        }
-
-        // Apply Position
-        // "+ 2" default border offset ke liye hai
-        el.style.top = (r * size + 2 + offsetY) + 'px'; 
-        el.style.left = (col * size + 2 + offsetX) + 'px';
-        
-        // Scale apply karein taake agar ek jageh hain to chhoti nazar aayein
-        el.style.transform = `scale(${scale})`;
-    });
             }
         };
 
