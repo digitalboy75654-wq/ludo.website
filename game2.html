@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1047,7 +1046,6 @@ get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${activeCo
             /* --- FAST ROLL LOGIC (Paste inside Game object) --- */
 
 // --- FAST ROLL LOGIC WITH ADMIN CONTROL ---
-// --- FAST ROLL LOGIC WITH ADMIN CONTROL ---
 async rollDice() {
     AudioSys.init();
     
@@ -1543,12 +1541,9 @@ setInterval(() => {
         document.getElementById('match-status').innerText = "Reconnecting...";
         window.location.reload();
     }
-}, 12000); // 12000 milliseconds = 12 seconds
+}, 15000); // 5000 milliseconds = 5 seconds
     </script>
     <script src="script.js"></script>
     <script type="module" src="globalManager.js"></script>
 </body>
 </html>
-
-
-
