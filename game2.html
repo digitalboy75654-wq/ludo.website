@@ -367,6 +367,7 @@
         import { getDatabase, ref, onValue, update, get, set, onDisconnect, runTransaction } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
 import { saveHistory } from './historyLog.js';
+import { getDatabase, ref, onValue, update, get, set, onDisconnect, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         const firebaseConfig = { 
             apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
             authDomain: "ludo-d46ab.firebaseapp.com", 
@@ -1008,40 +1009,40 @@ if (!this.firstSyncDone) {
             startTimer(type) {
                 if (this.turnTimer) clearInterval(this.turnTimer);
 
-                let timeLeft = 20;
                 const activeColor = this.turn;
                 const bar = document.getElementById(`timer-${activeColor}`);
-                
-                // Security: Record current time jab bari shuru hui
-                this.turnStartTime = Date.now(); 
 
                 this.turnTimer = setInterval(() => {
-                    timeLeft--;
-                    let percentage = (timeLeft / 20) * 100;
-                    if (bar) {
-                        bar.style.width = percentage + '%';
-                        bar.style.backgroundColor = timeLeft > 5 ? '#2ecc71' : '#ff4757';
-                    }
+                    // 🛡️ Firebase se check karo kitna time guzar gaya
+                    get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/turnStartTime`)).then(snap => {
+                        let startTime = snap.val();
+                        if (!startTime) return;
 
-                    // 🛡️ Logic: Agar 20 second ke baad mazeed 3 second (Grace time) guzar jayein
-                    if (timeLeft <= -3) { 
-                        clearInterval(this.turnTimer);
+                        // Calculate remaining time based on current time vs Server Start Time
+                        let passedSeconds = (Date.now() - startTime) / 1000;
+                        let timeLeft = 20 - passedSeconds;
 
-                        // 1. Agar MERI bari thi (Maine chali nahi ya mera net band tha)
-                        if (activeColor === myColor) {
-                            console.log("Mera time khatam, skip bhej raha hoon...");
-                            this.processSkip(myColor);
-                        } 
-                        // 2. Agar OPPONENT ki bari thi aur wo net off karke baith gaya
-                        // Toh MERA browser (jo online hai) uska skip trigger kar dega
-                        else if (myColor !== 'spectator' && myColor !== null) { 
-                            console.log("Opponent offline hai, main uska skip bhej raha hoon...");
-                            this.processSkip(activeColor); 
+                        // UI Update
+                        let percentage = (timeLeft / 20) * 100;
+                        if (bar) {
+                            bar.style.width = Math.max(0, percentage) + '%';
+                            bar.style.backgroundColor = timeLeft > 5 ? '#2ecc71' : '#ff4757';
                         }
-                    }
+
+                        // Agar 20 second poore ho gaye (+ 2 sec grace)
+                        if (timeLeft <= -2) { 
+                            clearInterval(this.turnTimer);
+
+                            // Agar online banda dekh raha hai ke active color ka time khatam ho gaya
+                            // Toh wo seedha active color (jiski bari thi) ka skip bhej dega
+                            if (myColor !== 'spectator' && myColor !== null) { 
+                                console.log(`${activeColor} ka time khatam! Skip counting...`);
+                                this.processSkip(activeColor); // 🎯 Hamesha USI KA skip hoga jiski bari thi
+                            }
+                        }
+                    });
                 }, 1000);
             },
-
             async processSkip(colorToSkip) {
                 const skipRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${colorToSkip}`);
                 
@@ -1230,7 +1231,10 @@ async finalizeRoll(diceBox, val) {
 },
             passTurn(repeat) {
                 const opp = myColor === 'red' ? 'yellow' : 'red';
-                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { turn: repeat ? myColor : opp });
+                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                    turn: repeat ? myColor : opp,
+                    turnStartTime: serverTimestamp() // ✨ MAGIC: Ab time server se count hoga!
+                });
             },
 
             simulateOpponentTurn() {
