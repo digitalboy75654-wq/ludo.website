@@ -1025,20 +1025,20 @@ if (!this.firstSyncDone) {
                     if (timeLeft <= 0) {
                         clearInterval(this.turnTimer);
 
-                        // 🟢 1. AGAR MERI BARI THI
+                        // 🟢 1. AGAR MERI BARI THI (Aur maine nahi khela)
                         if (activeColor === myColor) {
                             get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${myColor}`)).then(snap => {
                                 let skips = (snap.val() || 0) + 1;
                                 
                                 if (skips >= 5) {
-                                    // 5 Skip par Opponent automatically WIN kar jayega
+                                    // 5 Skip par Opponent automatically WIN karega
                                     const opp = myColor === 'red' ? 'yellow' : 'red';
                                     update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
                                         winner: opp,
                                         [`skips/${myColor}`]: skips 
                                     });
                                 } else {
-                                    // 1 Skip lagao aur Turn Foran Opponent ko pass kardo
+                                    // 1 Skip count karo aur Bari doosre ko pass kardo
                                     const opp = myColor === 'red' ? 'yellow' : 'red';
                                     update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
                                         turn: opp,
@@ -1047,22 +1047,22 @@ if (!this.firstSyncDone) {
                                 }
                             });
                         } 
-                        // 🔴 2. AGAR OPPONENT KI BARI THI (Aur wo offline ya inactive hai)
+                        // 🔴 2. AGAR OPPONENT KI BARI THI (Aur wo game chhor gaya hai)
                         else {
-                            // 2 second wait karenge taake double clash na ho
+                            // 2 second wait karenge taake double skip na lagay
                             setTimeout(() => {
                                 if (this.turn === activeColor) { 
                                     get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${activeColor}`)).then(snap => {
                                         let skips = (snap.val() || 0) + 1;
                                         
                                         if (skips >= 5) {
-                                            // Opponent ke 5 Skip ho gaye, MAIN (You) WIN kar gaya!
+                                            // Uske 5 Skip poore, MAIN (You) WIN kar gaya
                                             update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
                                                 winner: myColor,
                                                 [`skips/${activeColor}`]: skips 
                                             });
                                         } else {
-                                            // Opponent ko 1 skip de kar bari khud chheen lo
+                                            // Bari khud le lo aur usay skip do
                                             update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
                                                 turn: myColor,
                                                 [`skips/${activeColor}`]: skips 
@@ -1242,41 +1242,12 @@ async finalizeRoll(diceBox, val) {
                 update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { turn: repeat ? myColor : opp });
             },
 
-            async simulateOpponentTurn() {
-                // 1. Agar opponent ne roll nahi kiya, toh auto-roll karein
-                if (!this.hasRolled) {
-                    const fakeVal = Math.floor(Math.random() * 6) + 1;
-                    this.diceVal = fakeVal;
-
-                    // Firebase mein roll update karein taake jab wo wapis aaye to usay value dikhe
-                    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), {
-                        lastRoll: { color: this.turn, value: fakeVal, ts: Date.now() }
-                    });
-
-                    // 2. Thora wait karke auto-move karein
-                    setTimeout(() => {
-                        this.autoMoveForOpponent(fakeVal);
-                    }, 1000);
-                }
-                else {
-                    this.autoMoveForOpponent(this.diceVal);
-                }
+            simulateOpponentTurn() {
+                // Ise khali chhor dein
             },
 
             autoMoveForOpponent(val) {
-                const opp = this.turn;
-                let movableTokens = [];
-                this.tokens[opp].forEach((p, i) => {
-                    if ((p === 0 && val === 6) || (p > 0 && p + val <= 57)) movableTokens.push(i);
-                });
-
-                if (movableTokens.length > 0) {
-                    // Opponent ki pehli possible goti chal dein
-                    this.handleMoveForColor(opp, movableTokens[0], val);
-                } else {
-                    this.passTurn(false);
-                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { turn: myColor });
-                }
+                // Ise khali chhor dein
             },
 
             async handleMoveForColor(color, id, val) {
