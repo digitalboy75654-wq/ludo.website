@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1023,34 +1024,57 @@ if (!this.firstSyncDone) {
 
                     if (timeLeft <= 0) {
                         clearInterval(this.turnTimer);
-get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${activeColor}`)).then(snap => {
-                            let s = (snap.val() || 0) + 1;
-                            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips`), { [activeColor]: s });
-                            if(s >= 5) update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { winner: activeColor === 'red' ? 'yellow' : 'red' });
-                        });
-                        // AGAR MERI BARI HAI (Lekin main offline hoon ya move nahi kar raha)
+
+                        // 🟢 1. AGAR MERI BARI THI
                         if (activeColor === myColor) {
-                            if (type === 'roll' && !this.hasRolled) this.rollDice();
-                            else if (type === 'move' && this.hasRolled) this.autoMove();
-                        }
-                        if (window.handleMissedTurnLogic) {
-    window.handleMissedTurnLogic({
-        db, ref, get, update, GAME_ID, ENTRY_FEE, myColor, currentUser, activeColor: this.turn
-    });
-    if (this.turn !== myColor) { this.simulateOpponentTurn(); }
-}
-
-
-                        // AGAR OPPONENT KI BARI HAI (Aur uska internet chala gaya hai)
+                            get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${myColor}`)).then(snap => {
+                                let skips = (snap.val() || 0) + 1;
+                                
+                                if (skips >= 5) {
+                                    // 5 Skip par Opponent automatically WIN kar jayega
+                                    const opp = myColor === 'red' ? 'yellow' : 'red';
+                                    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                        winner: opp,
+                                        [`skips/${myColor}`]: skips 
+                                    });
+                                } else {
+                                    // 1 Skip lagao aur Turn Foran Opponent ko pass kardo
+                                    const opp = myColor === 'red' ? 'yellow' : 'red';
+                                    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                        turn: opp,
+                                        [`skips/${myColor}`]: skips 
+                                    });
+                                }
+                            });
+                        } 
+                        // 🔴 2. AGAR OPPONENT KI BARI THI (Aur wo offline ya inactive hai)
                         else {
-                            console.log("Opponent is inactive, auto-simulating for him...");
-                            // Hum opponent ke liye dice roll aur move ka faisla yahan se karwa sakte hain
-                            this.simulateOpponentTurn();
+                            // 2 second wait karenge taake double clash na ho
+                            setTimeout(() => {
+                                if (this.turn === activeColor) { 
+                                    get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${activeColor}`)).then(snap => {
+                                        let skips = (snap.val() || 0) + 1;
+                                        
+                                        if (skips >= 5) {
+                                            // Opponent ke 5 Skip ho gaye, MAIN (You) WIN kar gaya!
+                                            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                                winner: myColor,
+                                                [`skips/${activeColor}`]: skips 
+                                            });
+                                        } else {
+                                            // Opponent ko 1 skip de kar bari khud chheen lo
+                                            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                                turn: myColor,
+                                                [`skips/${activeColor}`]: skips 
+                                            });
+                                        }
+                                    });
+                                }
+                            }, 2000); 
                         }
                     }
                 }, 1000);
             },
-
             autoMove() {
                 let movableTokens = [];
                 this.tokens[myColor].forEach((p, i) => {
