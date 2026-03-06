@@ -280,23 +280,10 @@
     box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
 }
 .add-friend-btn:active { transform: scale(0.9); }
-/* ✨ GHOST MODE CSS ✨ */
-        .ghost-mode-active {
-            filter: grayscale(0.4) contrast(1.1);
-            pointer-events: none; /* Auto mode mein click band */
-        }
-        #auto-label {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(255, 0, 0, 0.9); color: white; padding: 15px 30px;
-            border-radius: 30px; font-weight: bold; font-family: 'Orbitron'; z-index: 10000;
-            display: none; animation: auto-blink 1s infinite; font-size: 18px; text-align: center;
-            border: 2px solid white; box-shadow: 0 0 20px red; pointer-events: auto;
-        }
-        @keyframes auto-blink { 0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); } }
     </style>
 </head>
 <body>
-<div id="auto-label">AUTO MODE ACTIVE<br><span style="font-size:12px;">TOUCH ANYWHERE TO STOP</span></div>
+
     <div id="waiting-overlay" class="overlay">
         <div class="loader"></div>
         <h2 style="margin-top:20px; font-family: 'Orbitron';">MATCHING...</h2>
@@ -401,25 +388,6 @@ const isSpectator = urlParams.get('spectator') === 'true';
         let currentUser = null, myColor = null, lastProcessedRoll = null;
         let unsubscribeGame = null; // Yeh line lazmi add karein
 // Winning Amount (Entry * 2 - 15% Fee) display karne ka code
-// ✨ GHOST MODE (Touch anywhere to stop) ✨
-        window.isAutoMode = false;
-
-        document.body.addEventListener('click', () => {
-            if (window.isAutoMode) {
-                window.isAutoMode = false;
-                const autoLabel = document.getElementById('auto-label');
-                if (autoLabel) autoLabel.style.display = 'none';
-                document.body.classList.remove('ghost-mode-active');
-                
-                // Firebase mein skips zero kar do taake waqt dobara 15s ho jaye
-                if (ENTRY_FEE && GAME_ID && myColor) {
-                    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips`), {
-                        [myColor]: 0
-                    });
-                }
-                console.log("🟢 Auto Mode Disabled by User Touch");
-            }
-        });
 const entry = parseInt(new URLSearchParams(window.location.search).get('entry')) || 0;
 const winAmount = (entry * 2) - (entry * 2 * 0.10);
 
@@ -1041,82 +1009,72 @@ if (!this.firstSyncDone) {
             startTimer(type) {
                 if (this.turnTimer) clearInterval(this.turnTimer);
 
+                let timeLeft = 20;
                 const activeColor = this.turn;
                 const bar = document.getElementById(`timer-${activeColor}`);
-                
-                // Get fresh skip count
-                get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${activeColor}`)).then(snap => {
-                    let skipCount = snap.val() || 0;
-                    
-                    // ✨ 1. Sirf 1 Skip par Auto-Mode On
-                    if (skipCount >= 1 && activeColor === myColor && !window.isAutoMode) {
-                        window.isAutoMode = true;
-                        document.getElementById('auto-label').style.display = 'block';
-                        document.body.classList.add('ghost-mode-active');
+
+                this.turnTimer = setInterval(() => {
+                    timeLeft--;
+                    let percentage = (timeLeft / 20) * 100;
+                    if (bar) {
+                        bar.style.width = percentage + '%';
+                        if (timeLeft > 10) bar.style.backgroundColor = '#2ecc71';
+                        else if (timeLeft > 5) bar.style.backgroundColor = '#f1c40f';
+                        else bar.style.backgroundColor = '#ff4757';
                     }
 
-                    // ✨ 2. Aaram se Auto Roll (2.5 seconds wait)
-                    if (window.isAutoMode && activeColor === myColor && type === 'roll') {
-                        setTimeout(() => { if(window.isAutoMode) this.rollDice(); }, 2500);
-                    }
+                    if (timeLeft <= 0) {
+                        clearInterval(this.turnTimer);
 
-                    // ✨ 3. Sab ke liye Normal Timer (15 Seconds)
-                    let maxTime = 15; 
-                    if (!this.turnStartTime) this.turnStartTime = Date.now() + (window.serverOffset || 0);
-
-                    this.turnTimer = setInterval(() => {
-                        let trueServerTime = Date.now() + (window.serverOffset || 0);
-                        let passedMs = trueServerTime - this.turnStartTime;
-                        let timeLeft = maxTime - Math.floor(passedMs / 1000); 
-
-                        // UI Handle Progress Bar
-                        let percentage = (timeLeft / maxTime) * 100;
-                        if (bar) {
-                            bar.style.width = Math.max(0, percentage) + '%';
-                            if (timeLeft > 7) bar.style.backgroundColor = '#2ecc71';
-                            else if (timeLeft > 3) bar.style.backgroundColor = '#f1c40f';
-                            else bar.style.backgroundColor = '#ff4757';
-                        }
-
-                        // Time Khatam Hone Par Skip lagana
-                        if (timeLeft <= -1) { 
-                            clearInterval(this.turnTimer);
-                            this.turnStartTime = null; 
-
-                            // Agar timer finish ho jaye toh next bari pass karein
-                            if (activeColor !== myColor && myColor !== 'spectator' && myColor !== null) {
-                                this.processSkip(activeColor); 
-                            } else if (activeColor === myColor) {
-                                this.processSkip(myColor); // Khud ko skip do
-                            }
-                        }
-                    }, 1000);
-                });
-            },
-
-            async processSkip(colorToSkip) {
-                if (typeof window.isOnline !== 'undefined' && !window.isOnline) return;
-                
-                const skipRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${colorToSkip}`);
-                try {
-                    const result = await runTransaction(skipRef, (currentCount) => (currentCount || 0) + 1);
-                    if (result.committed) {
-                        const newSkips = result.snapshot.val();
-                        const nextTurn = colorToSkip === 'red' ? 'yellow' : 'red';
-                        const roomPath = `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`;
-                        
-                        // ✨ 4. 5-Skip Par Game Over HATA DIYA HAI. Game continue rahegi.
-                        update(ref(db, roomPath), {
-                            turn: nextTurn,
-                            turnStartTime: Date.now(), // Naya timer reset 
-                            [`skips/${colorToSkip}`]: newSkips 
-                        });
-                        
-                        if (colorToSkip === myColor) {
-                            this.hasRolled = false;
+                        // 🟢 1. AGAR MERI BARI THI (Aur maine nahi khela)
+                        if (activeColor === myColor) {
+                            get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${myColor}`)).then(snap => {
+                                let skips = (snap.val() || 0) + 1;
+                                
+                                if (skips >= 5) {
+                                    // 5 Skip par Opponent automatically WIN karega
+                                    const opp = myColor === 'red' ? 'yellow' : 'red';
+                                    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                        winner: opp,
+                                        [`skips/${myColor}`]: skips 
+                                    });
+                                } else {
+                                    // 1 Skip count karo aur Bari doosre ko pass kardo
+                                    const opp = myColor === 'red' ? 'yellow' : 'red';
+                                    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                        turn: opp,
+                                        [`skips/${myColor}`]: skips 
+                                    });
+                                }
+                            });
+                        } 
+                        // 🔴 2. AGAR OPPONENT KI BARI THI (Aur wo game chhor gaya hai)
+                        else {
+                            // 2 second wait karenge taake double skip na lagay
+                            setTimeout(() => {
+                                if (this.turn === activeColor) { 
+                                    get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${activeColor}`)).then(snap => {
+                                        let skips = (snap.val() || 0) + 1;
+                                        
+                                        if (skips >= 5) {
+                                            // Uske 5 Skip poore, MAIN (You) WIN kar gaya
+                                            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                                winner: myColor,
+                                                [`skips/${activeColor}`]: skips 
+                                            });
+                                        } else {
+                                            // Bari khud le lo aur usay skip do
+                                            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                                turn: myColor,
+                                                [`skips/${activeColor}`]: skips 
+                                            });
+                                        }
+                                    });
+                                }
+                            }, 2000); 
                         }
                     }
-                } catch (e) { console.error("Skip Error:", e); }
+                }, 1000);
             },
             autoMove() {
                 let movableTokens = [];
@@ -1188,39 +1146,32 @@ async rollDice() {
 },
 
 async finalizeRoll(diceBox, val) {
-                diceBox.innerHTML = this.getDiceHTML(val);
-                diceBox.classList.remove('rolling');
+    // 6. Dots Set karo
+    diceBox.innerHTML = this.getDiceHTML(val);
+    diceBox.classList.remove('rolling');
 
-                this.isRolling = false;
-                this.hasRolled = true;
+    this.isRolling = false;
+    this.hasRolled = true;
 
-                let movableTokens = [];
-                this.tokens[myColor].forEach((p, i) => {
-                    if ((p === 0 && val === 6) || (p > 0 && p + val <= 57)) {
-                        movableTokens.push(i);
-                    }
-                });
+    // Note: Firebase update humne upar hi kar diya tha, dubara nahi karna.
 
-                if (movableTokens.length > 0) {
-                    // ✨ 5. Aaram se Auto Move (1.5 seconds wait)
-                    if (window.isAutoMode || movableTokens.length === 1) {
-                        setTimeout(() => {
-                            this.handleMove(movableTokens[0]);
-                        }, 1500);
-                    } else {
-                        // Agar manual mode hai aur > 1 gotiyan hain
-                        movableTokens.forEach(i => {
-                            const tokenEl = document.getElementById(`t-${myColor}-${i}`);
-                            tokenEl.classList.add('clickable');
-                            tokenEl.onclick = () => this.handleMove(i);
-                        });
-                        this.startTimer('move');
-                    }
-                } else {
-                    // Koi goti nahi chal sakti, delay ke sath pass karo
-                    setTimeout(() => this.passTurn(false), 1500);
-                }
-            },
+    // 7. Check Move Logic
+    let canMove = false;
+    this.tokens[myColor].forEach((p, i) => {
+        if ((p === 0 && val === 6) || (p > 0 && p + val <= 57)) {
+            const tokenEl = document.getElementById(`t-${myColor}-${i}`);
+            tokenEl.classList.add('clickable');
+            tokenEl.onclick = () => this.handleMove(i);
+            canMove = true;
+        }
+    });
+
+    if (canMove) {
+        this.startTimer('move'); // Goti chalne ke liye 20 sec dobara shuru
+    } else {
+        setTimeout(() => this.passTurn(false), 1000);
+    }
+},
 
             async handleMove(id) {
     // 1. Click foran band karo taake user bar bar click na kare
