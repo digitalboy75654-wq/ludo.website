@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -367,7 +368,6 @@
         import { getDatabase, ref, onValue, update, get, set, onDisconnect, runTransaction } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
 import { saveHistory } from './historyLog.js';
-import { getDatabase, ref, onValue, update, get, set, onDisconnect, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         const firebaseConfig = { 
             apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
             authDomain: "ludo-d46ab.firebaseapp.com", 
@@ -1009,63 +1009,72 @@ if (!this.firstSyncDone) {
             startTimer(type) {
                 if (this.turnTimer) clearInterval(this.turnTimer);
 
+                let timeLeft = 20;
                 const activeColor = this.turn;
                 const bar = document.getElementById(`timer-${activeColor}`);
 
                 this.turnTimer = setInterval(() => {
-                    // 🛡️ Firebase se check karo kitna time guzar gaya
-                    get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/turnStartTime`)).then(snap => {
-                        let startTime = snap.val();
-                        if (!startTime) return;
-
-                        // Calculate remaining time based on current time vs Server Start Time
-                        let passedSeconds = (Date.now() - startTime) / 1000;
-                        let timeLeft = 20 - passedSeconds;
-
-                        // UI Update
-                        let percentage = (timeLeft / 20) * 100;
-                        if (bar) {
-                            bar.style.width = Math.max(0, percentage) + '%';
-                            bar.style.backgroundColor = timeLeft > 5 ? '#2ecc71' : '#ff4757';
-                        }
-
-                        // Agar 20 second poore ho gaye (+ 2 sec grace)
-                        if (timeLeft <= -2) { 
-                            clearInterval(this.turnTimer);
-
-                            // Agar online banda dekh raha hai ke active color ka time khatam ho gaya
-                            // Toh wo seedha active color (jiski bari thi) ka skip bhej dega
-                            if (myColor !== 'spectator' && myColor !== null) { 
-                                console.log(`${activeColor} ka time khatam! Skip counting...`);
-                                this.processSkip(activeColor); // 🎯 Hamesha USI KA skip hoga jiski bari thi
-                            }
-                        }
-                    });
-                }, 1000);
-            },
-            async processSkip(colorToSkip) {
-                const skipRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${colorToSkip}`);
-                
-                try {
-                    // 🛡️ Transaction ensures ke skip sirf ek baar hi count ho
-                    const result = await runTransaction(skipRef, (currentCount) => {
-                        return (currentCount || 0) + 1;
-                    });
-
-                    if (result.committed) {
-                        const newSkips = result.snapshot.val();
-                        const opp = colorToSkip === 'red' ? 'yellow' : 'red';
-                        const roomPath = `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`;
-                        
-                        // Bari pass karo aur check karo kya 5 skips ho gaye?
-                        update(ref(db, roomPath), {
-                            turn: opp,
-                            winner: newSkips >= 5 ? opp : null
-                        });
+                    timeLeft--;
+                    let percentage = (timeLeft / 20) * 100;
+                    if (bar) {
+                        bar.style.width = percentage + '%';
+                        if (timeLeft > 10) bar.style.backgroundColor = '#2ecc71';
+                        else if (timeLeft > 5) bar.style.backgroundColor = '#f1c40f';
+                        else bar.style.backgroundColor = '#ff4757';
                     }
-                } catch (e) {
-                    console.error("Skip Error:", e);
-                }
+
+                    if (timeLeft <= 0) {
+                        clearInterval(this.turnTimer);
+
+                        // 🟢 1. AGAR MERI BARI THI (Aur maine nahi khela)
+                        if (activeColor === myColor) {
+                            get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${myColor}`)).then(snap => {
+                                let skips = (snap.val() || 0) + 1;
+                                
+                                if (skips >= 5) {
+                                    // 5 Skip par Opponent automatically WIN karega
+                                    const opp = myColor === 'red' ? 'yellow' : 'red';
+                                    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                        winner: opp,
+                                        [`skips/${myColor}`]: skips 
+                                    });
+                                } else {
+                                    // 1 Skip count karo aur Bari doosre ko pass kardo
+                                    const opp = myColor === 'red' ? 'yellow' : 'red';
+                                    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                        turn: opp,
+                                        [`skips/${myColor}`]: skips 
+                                    });
+                                }
+                            });
+                        } 
+                        // 🔴 2. AGAR OPPONENT KI BARI THI (Aur wo game chhor gaya hai)
+                        else {
+                            // 2 second wait karenge taake double skip na lagay
+                            setTimeout(() => {
+                                if (this.turn === activeColor) { 
+                                    get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${activeColor}`)).then(snap => {
+                                        let skips = (snap.val() || 0) + 1;
+                                        
+                                        if (skips >= 5) {
+                                            // Uske 5 Skip poore, MAIN (You) WIN kar gaya
+                                            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                                winner: myColor,
+                                                [`skips/${activeColor}`]: skips 
+                                            });
+                                        } else {
+                                            // Bari khud le lo aur usay skip do
+                                            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                                turn: myColor,
+                                                [`skips/${activeColor}`]: skips 
+                                            });
+                                        }
+                                    });
+                                }
+                            }, 2000); 
+                        }
+                    }
+                }, 1000);
             },
             autoMove() {
                 let movableTokens = [];
@@ -1231,10 +1240,7 @@ async finalizeRoll(diceBox, val) {
 },
             passTurn(repeat) {
                 const opp = myColor === 'red' ? 'yellow' : 'red';
-                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
-                    turn: repeat ? myColor : opp,
-                    turnStartTime: serverTimestamp() // ✨ MAGIC: Ab time server se count hoga!
-                });
+                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { turn: repeat ? myColor : opp });
             },
 
             simulateOpponentTurn() {
