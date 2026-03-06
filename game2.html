@@ -365,7 +365,7 @@
 </div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getDatabase, ref, onValue, update, get, set, onDisconnect, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getDatabase, ref, onValue, update, get, set, onDisconnect, runTransaction } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
 import { saveHistory } from './historyLog.js';
         const firebaseConfig = { 
@@ -901,34 +901,17 @@ if (p.uid !== currentUser.uid && p.online === "left" && !isSpectator) {
                 }
 
                 // 3. GAME STATE SYNC
-                // 3. GAME STATE SYNC
                 if (data.gameState && window.Game) {
-                    // 🐛 BUG FIX: Pichli bari ke (Old) rolls ko ignore karne ka logic
-                    let turnStart = data.gameState.turnStartTime || 0;
-                    
-                    // Agar roll naye turn ke start hone ke BAAD hua hai, tabhi usay accept karo
-                    if (data.lastRoll && data.lastRoll.color === data.gameState.turn && data.lastRoll.ts > turnStart) {
+                    if (data.lastRoll && data.lastRoll.color === data.gameState.turn) {
                         window.Game.hasRolled = true;
                         window.Game.diceVal = data.lastRoll.value;
-                    } else {
-                        // Warna isko naya turn samjho aur dice ko ON (Unlock) kardo
-                        window.Game.hasRolled = false; 
                     }
-
                     window.Game.sync(data.gameState);
                 }
             });
         }
 
-        // ✨ NAYA LOGIC: Server aur Local Time ko Sync karne ke liye
-        window.serverOffset = 0;
-        onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
-            window.serverOffset = snap.val() || 0;
-        });
-
         const Game = {
-            tokens: { red: [0,0,0,0], yellow: [0,0,0,0] },
-            // ... (baqi apka code waise hi rahega)
             tokens: { red: [0,0,0,0], yellow: [0,0,0,0] },
             turn: 'red', diceVal: 0,
             isRolling: false, hasRolled: false, rollInterval: null,
@@ -999,11 +982,9 @@ if (!this.firstSyncDone) {
     }
 
     // 3. UI aur Turn Update
-    // 3. UI aur Turn Update
     this.tokens = state.tokens;
     if (this.turn !== state.turn) { this.hasRolled = false; this.isRolling = false; }
     this.turn = state.turn;
-    this.turnStartTime = state.turnStartTime || Date.now(); // ✨ Firebase wala time pakra
     this.renderAll();
     this.updateUI();
 },
@@ -1028,64 +1009,72 @@ if (!this.firstSyncDone) {
             startTimer(type) {
                 if (this.turnTimer) clearInterval(this.turnTimer);
 
+                let timeLeft = 20;
                 const activeColor = this.turn;
                 const bar = document.getElementById(`timer-${activeColor}`);
 
                 this.turnTimer = setInterval(() => {
-                    // 🛡️ Firebase aur Phone ke Time ko bilkul perfect match karo
-                    let trueServerTime = Date.now() + (window.serverOffset || 0);
-                    
-                    let passedMs = trueServerTime - (this.turnStartTime || trueServerTime);
-                    let timeLeft = 20 - Math.floor(passedMs / 1000); 
-
-                    // UI Handle
+                    timeLeft--;
                     let percentage = (timeLeft / 20) * 100;
                     if (bar) {
-                        bar.style.width = Math.max(0, percentage) + '%';
+                        bar.style.width = percentage + '%';
                         if (timeLeft > 10) bar.style.backgroundColor = '#2ecc71';
                         else if (timeLeft > 5) bar.style.backgroundColor = '#f1c40f';
                         else bar.style.backgroundColor = '#ff4757';
                     }
 
-                    // 🛡️ ANTI-GLITCH LOGIC
-                    if (timeLeft <= 0) { 
+                    if (timeLeft <= 0) {
+                        clearInterval(this.turnTimer);
+
+                        // 🟢 1. AGAR MERI BARI THI (Aur maine nahi khela)
                         if (activeColor === myColor) {
-                            // Agar meri bari hai, toh main exactly 0 par skip count karunga
-                            clearInterval(this.turnTimer);
-                            this.processSkip(myColor);
+                            get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${myColor}`)).then(snap => {
+                                let skips = (snap.val() || 0) + 1;
+                                
+                                if (skips >= 5) {
+                                    // 5 Skip par Opponent automatically WIN karega
+                                    const opp = myColor === 'red' ? 'yellow' : 'red';
+                                    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                        winner: opp,
+                                        [`skips/${myColor}`]: skips 
+                                    });
+                                } else {
+                                    // 1 Skip count karo aur Bari doosre ko pass kardo
+                                    const opp = myColor === 'red' ? 'yellow' : 'red';
+                                    update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                        turn: opp,
+                                        [`skips/${myColor}`]: skips 
+                                    });
+                                }
+                            });
                         } 
-                        // 👇 Yahan MAGIC hai: Opponent 3 second extra wait karega (Double skip bug fix)
-                        else if (timeLeft <= -3 && myColor !== 'spectator' && myColor !== null) { 
-                            clearInterval(this.turnTimer);
-                            this.processSkip(activeColor); 
+                        // 🔴 2. AGAR OPPONENT KI BARI THI (Aur wo game chhor gaya hai)
+                        else {
+                            // 2 second wait karenge taake double skip na lagay
+                            setTimeout(() => {
+                                if (this.turn === activeColor) { 
+                                    get(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${activeColor}`)).then(snap => {
+                                        let skips = (snap.val() || 0) + 1;
+                                        
+                                        if (skips >= 5) {
+                                            // Uske 5 Skip poore, MAIN (You) WIN kar gaya
+                                            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                                winner: myColor,
+                                                [`skips/${activeColor}`]: skips 
+                                            });
+                                        } else {
+                                            // Bari khud le lo aur usay skip do
+                                            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                                                turn: myColor,
+                                                [`skips/${activeColor}`]: skips 
+                                            });
+                                        }
+                                    });
+                                }
+                            }, 2000); 
                         }
                     }
                 }, 1000);
-            },
-            // ✨ Skip ka alag, saaf aur secure logic
-            async processSkip(colorToSkip) {
-                const skipRef = ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState/skips/${colorToSkip}`);
-                try {
-                    // Transaction isliye taake double skip na lag jaye
-                    const result = await runTransaction(skipRef, (currentCount) => {
-                        return (currentCount || 0) + 1;
-                    });
-
-                    if (result.committed) {
-                        const newSkips = result.snapshot.val();
-                        const opp = colorToSkip === 'red' ? 'yellow' : 'red';
-                        const roomPath = `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`;
-                        
-                        // Bari aur Time dono update karein
-                        update(ref(db, roomPath), {
-                            turn: opp,
-                            winner: newSkips >= 5 ? opp : null,
-                            turnStartTime: serverTimestamp() // ✨ Agle player ka time start
-                        });
-                    }
-                } catch (e) {
-                    console.error("Skip process failed:", e);
-                }
             },
             autoMove() {
                 let movableTokens = [];
@@ -1216,12 +1205,10 @@ async finalizeRoll(diceBox, val) {
     if (winner) nextTurn = null;
 
     // UPDATE FIREBASE NOW (Bina animation ka wait kiye)
-    // UPDATE FIREBASE NOW (Bina animation ka wait kiye)
     update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
         tokens: tempTokens, 
         turn: nextTurn, 
-        winner: winner,
-        turnStartTime: serverTimestamp() // ✨ Time refresh kiya
+        winner: winner 
     });
 
     // 3. --- AB APNI SCREEN PAR ANIMATION CHALAO ---
@@ -1253,10 +1240,7 @@ async finalizeRoll(diceBox, val) {
 },
             passTurn(repeat) {
                 const opp = myColor === 'red' ? 'yellow' : 'red';
-                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
-                    turn: repeat ? myColor : opp,
-                    turnStartTime: serverTimestamp() // ✨ Time refresh kiya
-                });
+                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { turn: repeat ? myColor : opp });
             },
 
             simulateOpponentTurn() {
