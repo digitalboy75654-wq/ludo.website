@@ -1115,18 +1115,43 @@ if (!this.firstSyncDone) {
                     const result = await runTransaction(skipRef, (currentCount) => (currentCount || 0) + 1);
                     if (result.committed) {
                         const newSkips = result.snapshot.val();
-                        const nextTurn = colorToSkip === 'red' ? 'yellow' : 'red';
-                        const roomPath = `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`;
                         
-                        // ✨ 4. 5-Skip Par Game Over HATA DIYA HAI. Game continue rahegi.
-                        update(ref(db, roomPath), {
-                            turn: nextTurn,
-                            turnStartTime: Date.now(), // Naya timer reset 
+                        // 1. Skips update karein (Bari change nahi karni)
+                        update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), {
                             [`skips/${colorToSkip}`]: newSkips 
                         });
                         
+                        // 2. Agar MERI bari skip hui hai
                         if (colorToSkip === myColor) {
-                            this.hasRolled = false;
+                            window.isAutoMode = true; 
+                            document.getElementById('auto-label').style.display = 'block';
+                            document.body.classList.add('ghost-mode-active');
+                            
+                            // Foran Dice Roll karo (Aaram se - 1 second delay)
+                            setTimeout(() => { if(window.isAutoMode) this.rollDice(); }, 1000); 
+                        } 
+                        // 3. Agar OPPONENT skip hua hai (Mere browser se uski bari handle hogi)
+                        else if (myColor !== 'spectator') {
+                            let val = Math.floor(Math.random() * 6) + 1;
+                            
+                            // Firebase par roll update karein
+                            update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), { 
+                                lastRoll: { color: colorToSkip, value: val, ts: Date.now() } 
+                            });
+
+                            // Check movable tokens for opponent
+                            let movable = [];
+                            this.tokens[colorToSkip].forEach((p, i) => {
+                                if ((p === 0 && val === 6) || (p > 0 && p + val <= 57)) movable.push(i);
+                            });
+
+                            if (movable.length > 0) {
+                                // Opponent ki goti system auto chalwa dega
+                                setTimeout(() => this.handleMoveForColor(colorToSkip, movable[0], val), 1500);
+                            } else {
+                                // Goti nahi nikal sakti toh turn pass karein
+                                setTimeout(() => this.passTurn(false), 1500);
+                            }
                         }
                     }
                 } catch (e) { console.error("Skip Error:", e); }
