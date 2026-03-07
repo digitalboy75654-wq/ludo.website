@@ -1194,7 +1194,8 @@ async finalizeRoll(diceBox, val) {
     update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
         tokens: tempTokens, 
         turn: nextTurn, 
-        winner: winner 
+        winner: winner,
+        [`skips/${myColor}`]: 0 // ✨ NAYA: Jese hi goti chal di, skips wapis ZERO!
     });
 
     // 3. --- AB APNI SCREEN PAR ANIMATION CHALAO ---
@@ -1226,7 +1227,10 @@ async finalizeRoll(diceBox, val) {
 },
             passTurn(repeat) {
                 const opp = myColor === 'red' ? 'yellow' : 'red';
-                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { turn: repeat ? myColor : opp });
+                update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+                    turn: repeat ? myColor : opp,
+                    [`skips/${myColor}`]: 0 // ✨ NAYA: Dice roll kiya par move nahi thi, phir bhi skips ZERO!
+                });
             },
 
             simulateOpponentTurn() {
