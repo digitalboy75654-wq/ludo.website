@@ -1541,18 +1541,32 @@ async function triggerExitLogic() {
 
 // 4. Purane Exit Button Click ko bhi isi function se connect kar dein
 document.getElementById('exit-btn').onclick = triggerExitLogic;
-// --- AUTO REFRESH LOGIC (Har 5 second baad check karega) ---
-setInterval(() => {
+// --- OPTIMIZED 20-SECOND REFRESH LOGIC ---
+setTimeout(() => {
     const overlay = document.getElementById('waiting-overlay');
-    // Agar Matching wali screen abhi tak samne hai, toh page khud refresh kardo
+    
+    // Agar 20 second baad bhi matching screen (Overlay) nazar aa rahi hai
     if (overlay && overlay.style.display !== 'none') {
-        console.log("Auto-refreshing to connect...");
-        document.getElementById('match-status').innerText = "Reconnecting...";
-        window.location.reload();
+        
+        // Pehle check karein internet hai ya nahi
+        if (navigator.onLine) {
+            console.log("Slow connection! Reconnecting...");
+            document.getElementById('match-status').innerText = "Slow internet detected. Reconnecting...";
+            
+            // Sirf ek baar reload karein
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000); 
+        } else {
+            // Agar internet hi band hai toh refresh ka faida nahi, error dikhao
+            document.getElementById('match-status').innerHTML = 
+                "<span style='color:#ff4757;'>No Internet Connection!</span>";
+        }
     }
-}, 15000); // 5000 milliseconds = 5 seconds
+}, 20000); // Perfect 20 Seconds
     </script>
     <script src="script.js"></script>
     <script type="module" src="globalManager.js"></script>
 </body>
 </html>
+
