@@ -1,6 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+  // Silent Anti-Debugger Loop
+  (function() {
+    setInterval(function() {
+      // 1. Debugger statement ko check karo
+      var start = new Date().getTime();
+      debugger; // Agar DevTools khula hai, yahan execution ruk jayegi
+      var end = new Date().getTime();
+      
+      // 2. Agar delay 100ms se zyada hai, matlab DevTools khula hai
+      if (end - start > 100) {
+        // RAM ko full karne ka logic ya page reload
+        while(true) { 
+           console.log("Security Lock Enabled"); 
+           window.location.reload(); 
+        }
+      }
+    }, 500);
+  })();
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ludo Pro - Friend Challenge</title>
@@ -668,3 +688,4 @@ let removeHtml = "";
     <script src="script.js"></script>
 </body>
 </html>
+
