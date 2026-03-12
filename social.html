@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta property="og:title" content="Ludo Pro - Play & Win">
-<meta property="og:image" content="https://ludo.website/icon1.png">
-<meta property="og:description" content="Click karke join karein aur jeetein!">
-    <title>Share & Earn - Ludo Pro</title>
+    <title>Refer & Earn - Ludo Pro</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -14,6 +11,7 @@
             --primary: #6c5ce7; --gold: #f1c40f; --neon: #00d2d3;
             --bg-dark: #0f0c29; --card-bg: rgba(255, 255, 255, 0.08);
             --glass-border: rgba(255, 255, 255, 0.15);
+            --bronze: #cd7f32; --silver: #bdc3c7;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         body {
@@ -22,175 +20,122 @@
             height: 100vh; color: white; display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* HEADER */
+        /* --- HEADER --- */
         .header {
             padding: 15px 20px; display: flex; align-items: center; gap: 15px;
             background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border); flex-shrink: 0;
         }
-        .back-btn { font-size: 20px; cursor: pointer; color: white; }
-        .page-title { font-family: 'Orbitron'; font-size: 16px; font-weight: 700; color: var(--gold); }
+        .back-btn { font-size: 20px; cursor: pointer; color: white; transition: 0.3s; }
+        .back-btn:hover { color: var(--gold); }
+        .page-title { font-family: 'Orbitron'; font-size: 16px; font-weight: 700; color: var(--gold); letter-spacing: 1px; }
 
-        .container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 150px; text-align: center; }
+        .container { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 120px; }
 
-        /* REWARD BANNER */
-        .reward-banner {
-            background: linear-gradient(135deg, rgba(241, 196, 15, 0.2), rgba(108, 92, 231, 0.2));
-            padding: 20px; border-radius: 20px; border: 1px solid var(--gold);
-            margin-bottom: 25px; position: relative;
+        /* --- TOP DASHBOARD (STATS) --- */
+        .mini-dash {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;
         }
-        .reward-banner i { font-size: 40px; color: var(--gold); margin-bottom: 10px; }
-        .reward-banner h2 { margin: 5px 0; font-size: 24px; color: #fff; }
-        .reward-amount { font-size: 32px; font-weight: 800; color: var(--gold); font-family: 'Orbitron'; }
+        .dash-item {
+            background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(0,0,0,0.3));
+            padding: 20px 10px; border-radius: 15px;
+            border: 1px solid var(--neon); text-align: center; 
+            box-shadow: 0 4px 15px rgba(0, 210, 211, 0.15);
+        }
+        .dash-item i { color: var(--gold); font-size: 24px; margin-bottom: 8px; }
+        .dash-item h3 { margin: 5px 0 0 0; font-family: 'Orbitron'; font-size: 22px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .dash-item p { margin: 4px 0 0 0; font-size: 11px; opacity: 0.9; text-transform: uppercase; font-weight: 600; color: var(--neon); }
 
-        /* REFERRAL BOX */
+        /* --- SPECIAL BONUS BANNER --- */
+        .bonus-banner {
+            background: linear-gradient(135deg, rgba(241, 196, 15, 0.15), rgba(230, 126, 34, 0.15));
+            border: 1px solid var(--gold);
+            border-radius: 15px; padding: 15px; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 4px 15px rgba(241, 196, 15, 0.1);
+        }
+        .bonus-icon { font-size: 35px; color: var(--gold); animation: float 2s infinite ease-in-out; }
+        .bonus-text { font-size: 13px; line-height: 1.5; font-weight: 500; }
+        .bonus-text b { color: var(--gold); font-family: 'Orbitron', sans-serif; font-size: 14px; letter-spacing: 0.5px;}
+        .highlight-amount { color: #2ecc71; font-weight: 800; font-size: 15px; }
+        @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0); } }
+
+        /* --- REFERRAL LINK BOX --- */
         .refer-card {
-            background: var(--card-bg); border-radius: 20px; padding: 25px;
-            border: 1px solid var(--glass-border); backdrop-filter: blur(10px);
+            background: var(--card-bg); border-radius: 20px; padding: 18px;
+            border: 1px solid var(--glass-border); margin-bottom: 25px;
         }
-        .link-label { font-size: 11px; color: var(--neon); letter-spacing: 1px; font-weight: 600; }
+        .link-title { font-size: 12px; color: var(--neon); font-weight: 700; letter-spacing: 1px; text-align: center; margin-bottom: 5px;}
         .link-box {
-            background: rgba(0,0,0,0.4); padding: 12px; border-radius: 12px;
-            border: 1px dashed var(--neon); margin: 15px 0;
+            background: rgba(0,0,0,0.5); padding: 12px; border-radius: 12px;
+            border: 1px dashed var(--neon); margin: 10px 0;
             display: flex; align-items: center; justify-content: space-between; gap: 10px;
         }
-        #refer-url { font-size: 12px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; text-align: left; opacity: 0.8; }
-        .copy-btn { background: var(--neon); color: black; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer; }
+        #refer-url { font-size: 12px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; opacity: 0.9; }
+        .copy-btn { background: var(--neon); color: black; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 800; font-size: 11px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .copy-btn:active { transform: scale(0.95); }
 
-        /* STEPS */
-        .steps-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 25px; }
-        .step-box { background: rgba(255,255,255,0.03); padding: 15px 5px; border-radius: 15px; border: 1px solid var(--glass-border); }
-        .step-box i { font-size: 20px; color: var(--gold); margin-bottom: 8px; }
-        .step-box p { font-size: 9px; margin: 0; line-height: 1.3; opacity: 0.8; }
+        .share-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .s-btn { padding: 12px; border-radius: 12px; border: none; color: white; font-weight: 700; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: 0.3s; }
+        .s-btn:active { transform: scale(0.95); }
+        .wa { background: #25D366; } .fb { background: #1877F2; }
 
-        /* SHARE BUTTONS */
-        .share-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
-        .share-btn {
-            padding: 15px; border: none; border-radius: 15px; color: white;
-            font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px;
-            cursor: pointer; transition: 0.2s;
+        /* --- MILESTONES SECTION --- */
+        .section-label { font-family: 'Orbitron'; font-size: 15px; color: var(--gold); margin: 0 0 15px 5px; display: flex; align-items: center; gap: 8px; }
+        
+        .m-card {
+            background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px;
+            margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; gap: 10px; position: relative;
         }
-        .btn-whatsapp { background: #25D366; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3); }
-        .btn-facebook { background: #1877F2; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3); }
-        .btn-main { background: var(--primary); grid-column: span 2; margin-top: 5px; }
+        .m-top { display: flex; justify-content: space-between; align-items: center; }
+        .m-badge-info { display: flex; align-items: center; gap: 10px; }
+        .m-badge-info i { font-size: 24px; filter: drop-shadow(0 0 5px currentColor); }
+        .m-name { font-family: 'Orbitron'; font-size: 15px; font-weight: bold; letter-spacing: 1px; }
+        .m-reward { background: rgba(46, 204, 113, 0.2); color: #2ecc71; padding: 5px 12px; border-radius: 8px; font-weight: 800; font-size: 13px; border: 1px solid #2ecc71; }
+        
+        .m-target-text { font-size: 12px; color: #ccc; line-height: 1.4; }
+        .m-target-text b { color: #fff; }
 
-       .bottom-nav {
-    position: fixed; bottom: 20px; left: 20px; right: 20px; height: 70px;
-    background: rgba(25, 25, 45, 0.95); backdrop-filter: blur(20px);
-    border-radius: 35px; display: flex; justify-content: space-around;
-    align-items: center; z-index: 1000; border: 1px solid rgba(255,255,255,0.1);
-}
+        /* Progress Details */
+        .progress-stats { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--neon); margin-top: 5px; }
+        .p-container { background: rgba(255,255,255,0.1); height: 8px; border-radius: 4px; width: 100%; overflow: hidden; margin-top: 2px; }
+        .p-bar { height: 100%; background: linear-gradient(90deg, var(--gold), #e67e22); width: 0%; transition: 1s ease-in-out; }
 
-/* --- FLOATING COMMAND DOCK --- */
-.navigation-dock {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 95%; /* Mobile par zyada jagah mile */
-    max-width: 450px;
-    height: 75px; /* Height thodi badhai taake text fit ho */
-    background: rgba(20, 20, 35, 0.95);
-    backdrop-filter: blur(15px);
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 10px;
-    z-index: 1000;
-}
+        .claim-btn {
+            background: linear-gradient(135deg, #00d2d3, #00a8ff); color: #000;
+            border: none; padding: 12px; border-radius: 10px; font-family: 'Orbitron';
+            font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; display: none; margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(0, 210, 211, 0.4); animation: pulse 1.5s infinite;
+        }
+        .claimed-tag {
+            text-align: center; color: #2ecc71; font-weight: bold; font-size: 13px;
+            margin-top: 10px; display: none; background: rgba(46,204,113,0.1); padding: 10px; border-radius: 8px;
+        }
 
-/* Normal Nav Items (Icon + Text) */
-.nav-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column; /* ✨ Icon upar, Text niche */
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    color: #777; 
-    cursor: pointer;
-    transition: all 0.3s ease;
-    gap: 4px; /* Icon aur text ke beech gap */
-}
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
-.nav-item i {
-    font-size: 20px; /* Icon size thoda chota kiya */
-    margin-bottom: 2px;
-    transition: 0.3s;
-}
-
-.nav-label {
-    font-size: 10px; /* Text size */
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-}
-
-/* Active State (Glow & Color) */
-.nav-item.active {
-    color: #f1c40f; /* Gold Text */
-    transform: translateY(-2px);
-}
-
-.nav-item.active i {
-    text-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
-    transform: scale(1.1);
-}
-
-/* --- CENTER FLOATING BUTTON (FAB) --- */
-.center-fab-container {
-    position: relative;
-    width: 80px;
-    height: 100%; /* Full height container */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end; /* Text bottom par */
-    margin-top: -35px; /* Button ko upar uthane ke liye */
-}
-
-.center-fab {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #f1c40f, #e67e22);
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #1a1a2e;
-    font-size: 24px;
-    box-shadow: 0 0 0 8px rgba(20, 20, 35, 1); /* Cutout effect */
-    cursor: pointer;
-    transition: 0.3s;
-    z-index: 10;
-}
-
-/* Home Label (Button ke niche) */
-.home-label {
-    font-size: 10px;
-    color: #777;
-    margin-top: 5px; /* Button aur text ka gap */
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-/* Home Active State */
-.center-fab.active {
-    background: #fff;
-    color: #f1c40f;
-    box-shadow: 0 0 20px #fff;
-}
-/* Jab Home active ho to niche text bhi gold ho */
-.center-fab.active ~ .home-label {
-    color: #f1c40f;
-}
-
-.center-fab:active {
-    transform: scale(0.95);
-}
+        /* --- NAVIGATION DOCK --- */
+        .navigation-dock {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 450px; height: 65px;
+            background: rgba(20, 20, 35, 0.95); backdrop-filter: blur(15px);
+            border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+        }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #777; font-size: 18px; cursor: pointer; transition: 0.3s; }
+        .nav-item:hover { color: white; }
+        .nav-label { font-size: 9px; margin-top: 4px; font-weight: 600; text-transform: uppercase; }
+        .nav-item.active { color: var(--gold); }
+        
+        .center-fab-container { position: relative; margin-top: -30px; }
+        .center-fab { 
+            width: 60px; height: 60px; background: linear-gradient(135deg, #f1c40f, #e67e22); 
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            color: #1a1a2e; font-size: 24px; border: 5px solid var(--bg-dark); cursor: pointer;
+            box-shadow: 0 5px 15px rgba(241, 196, 15, 0.4); transition: 0.3s;
+        }
+        .center-fab:active { transform: scale(0.9); }
     </style>
 </head>
 <body>
@@ -201,85 +146,124 @@
     </div>
 
     <div class="container">
-        <div class="reward-banner">
-            <i class="fas fa-hand-holding-usd"></i>
-            <h2>Get Instant Reward</h2>
-            <div class="reward-amount">Rs. 50.00</div>
-            <p style="font-size: 11px; margin-top: 10px; opacity: 0.9;">For every successful referral deposit!</p>
+        
+        <div class="mini-dash">
+            <div class="dash-item">
+                <i class="fas fa-users"></i>
+                <h3 id="total-refs">0</h3>
+                <p>Total Referrals</p>
+            </div>
+            <div class="dash-item">
+                <i class="fas fa-wallet"></i>
+                <h3 id="total-earnings">Rs. 0</h3>
+                <p>Total Earned</p>
+            </div>
+        </div>
+
+        <div class="bonus-banner">
+            <div class="bonus-icon"><i class="fas fa-gift"></i></div>
+            <div class="bonus-text">
+                <b>INSTANT <span class="highlight-amount">RS. 200</span> BONUS!</b><br>
+                Agar aapka invite kiya hua dost <b>Rs. 200</b> ya us se zyada deposit karta hai, toh aapko milenge <span class="highlight-amount">Rs. 200</span> aapke wallet mein bilkul free!
+            </div>
         </div>
 
         <div class="refer-card">
-            <span class="link-label">YOUR PERSONAL INVITE LINK</span>
+            <div class="link-title">YOUR PERSONAL INVITE LINK</div>
             <div class="link-box">
                 <span id="refer-url">Loading link...</span>
                 <button class="copy-btn" onclick="copyLink()">COPY</button>
             </div>
-
-            <div class="steps-container">
-                <div class="step-box">
-                    <i class="fas fa-share-nodes"></i>
-                    <p><b>STEP 1</b><br>Share Link</p>
-                </div>
-                <div class="step-box">
-                    <i class="fas fa-user-check"></i>
-                    <p><b>STEP 2</b><br>Friend Joins</p>
-                </div>
-                <div class="step-box">
-                    <i class="fas fa-wallet"></i>
-                    <p><b>STEP 3</b><br>Get Rs. 50</p>
-                </div>
+            <div class="share-row">
+                <button class="s-btn wa" onclick="shareWA()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                <button class="s-btn fb" onclick="shareFB()"><i class="fab fa-facebook-f"></i> Facebook</button>
             </div>
         </div>
 
-        <div class="share-actions">
-            <button class="share-btn btn-whatsapp" onclick="shareWA()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-            <button class="share-btn btn-facebook" onclick="shareFB()"><i class="fab fa-facebook-f"></i> Facebook</button>
-            <button class="share-btn btn-main" onclick="nativeShare()"><i class="fas fa-share-nodes"></i> Share More Options</button>
+        <div class="section-label">
+            <i class="fas fa-trophy"></i> MILESTONE BONUSES
         </div>
 
-        <div style="margin-top: 25px; font-size: 10px; opacity: 0.5; line-height: 1.5;">
-            *Reward will be credited automatically once your referred friend completes their first deposit successfully.
+        <div id="milestone-list">
+            <div class="m-card" id="m1">
+                <div class="m-top">
+                    <div class="m-badge-info"><i class="fas fa-medal" style="color:var(--bronze)"></i><span class="m-name" style="color:var(--bronze)">BRONZE</span></div>
+                    <div class="m-reward">+ Rs. 500</div>
+                </div>
+                <div class="m-target-text">Target: <b>5 Referrals</b> AND Total <b>Rs. 1,000 Deposit</b></div>
+                <div class="progress-stats">
+                    <span id="stat-r-1">Refs: 0/5</span>
+                    <span id="stat-d-1">Dep: 0/1000</span>
+                </div>
+                <div class="p-container"><div class="p-bar" id="p1"></div></div>
+                <button class="claim-btn" id="btn1" onclick="claim(1, 500, 'Bronze Badge')">CLAIM RS. 500</button>
+                <div class="claimed-tag" id="claimed1"><i class="fas fa-check-circle"></i> CLAIMED</div>
+            </div>
+
+            <div class="m-card" id="m2">
+                <div class="m-top">
+                    <div class="m-badge-info"><i class="fas fa-medal" style="color:var(--silver)"></i><span class="m-name" style="color:var(--silver)">SILVER</span></div>
+                    <div class="m-reward">+ Rs. 1,100</div>
+                </div>
+                <div class="m-target-text">Target: <b>10 Referrals</b> AND Total <b>Rs. 2,000 Deposit</b></div>
+                <div class="progress-stats">
+                    <span id="stat-r-2">Refs: 0/10</span>
+                    <span id="stat-d-2">Dep: 0/2000</span>
+                </div>
+                <div class="p-container"><div class="p-bar" id="p2"></div></div>
+                <button class="claim-btn" id="btn2" onclick="claim(2, 1100, 'Silver Badge')">CLAIM RS. 1,100</button>
+                <div class="claimed-tag" id="claimed2"><i class="fas fa-check-circle"></i> CLAIMED</div>
+            </div>
+
+            <div class="m-card" id="m3">
+                <div class="m-top">
+                    <div class="m-badge-info"><i class="fas fa-medal" style="color:var(--gold)"></i><span class="m-name" style="color:var(--gold)">GOLD</span></div>
+                    <div class="m-reward">+ Rs. 2,300</div>
+                </div>
+                <div class="m-target-text">Target: <b>20 Referrals</b> AND Total <b>Rs. 4,000 Deposit</b></div>
+                <div class="progress-stats">
+                    <span id="stat-r-3">Refs: 0/20</span>
+                    <span id="stat-d-3">Dep: 0/4000</span>
+                </div>
+                <div class="p-container"><div class="p-bar" id="p3"></div></div>
+                <button class="claim-btn" id="btn3" onclick="claim(3, 2300, 'Gold Badge')">CLAIM RS. 2,300</button>
+                <div class="claimed-tag" id="claimed3"><i class="fas fa-check-circle"></i> CLAIMED</div>
+            </div>
+
+            <div class="m-card" id="m4">
+                <div class="m-top">
+                    <div class="m-badge-info"><i class="fas fa-crown" style="color:#e74c3c"></i><span class="m-name" style="color:#e74c3c">LUDO KING</span></div>
+                    <div class="m-reward">+ Rs. 5,000</div>
+                </div>
+                <div class="m-target-text">Target: <b>50 Referrals</b> AND Total <b>Rs. 10,000 Deposit</b></div>
+                <div class="progress-stats">
+                    <span id="stat-r-4">Refs: 0/50</span>
+                    <span id="stat-d-4">Dep: 0/10000</span>
+                </div>
+                <div class="p-container"><div class="p-bar" id="p4"></div></div>
+                <button class="claim-btn" id="btn4" onclick="claim(4, 5000, 'Ludo King Title')">CLAIM RS. 5,000</button>
+                <div class="claimed-tag" id="claimed4"><i class="fas fa-check-circle"></i> CLAIMED</div>
+            </div>
         </div>
-        <div style="height: 60px; width: 100%;"></div>
+
     </div>
 
     <div class="navigation-dock">
-    <div class="nav-item" id="nav-social" onclick="window.location.href='social.html'">
-        <i class="fas fa-share-alt"></i>
-        <span class="nav-label">Share</span>
-    </div>
-    
-    <div class="nav-item" id="nav-rank" onclick="window.location.href='ranking.html'">
-        <i class="fas fa-chart-bar"></i>
-        <span class="nav-label">Rank</span>
-    </div>
-
-    <div class="center-fab-container">
-        <div class="center-fab" onclick="window.location.href='home.html'">
-            <div class="fab-icon">
-                <i class="fas fa-home"></i>
-            </div>
+        <div class="nav-item active"><i class="fas fa-share-alt"></i><span class="nav-label">Share</span></div>
+        <div class="nav-item" onclick="window.location.href='ranking.html'"><i class="fas fa-chart-bar"></i><span class="nav-label">Rank</span></div>
+        <div class="center-fab-container">
+            <div class="center-fab" onclick="window.location.href='home.html'"><i class="fas fa-home"></i></div>
         </div>
-        <span class="home-label">Home</span>
+        <div class="nav-item" onclick="window.location.href='friend_challenge.html'"><i class="fas fa-user-friends"></i><span class="nav-label">Friends</span></div>
+        <div class="nav-item" onclick="window.location.href='profile.html'"><i class="fas fa-user"></i><span class="nav-label">Profile</span></div>
     </div>
-
-    <div class="nav-item" id="nav-friends" onclick="window.location.href='friend_challenge.html'">
-        <i class="fas fa-user-friends"></i>
-        <span class="nav-label">Friends</span>
-    </div>
-    
-    <div class="nav-item" id="nav-profile" onclick="window.location.href='profile.html'">
-        <i class="fas fa-user"></i>
-        <span class="nav-label">Profile</span>
-    </div>
-</div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getDatabase, ref, onValue, set, push, get } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-        // Firebase Config (Must match your app)
+        // Yahan Apna Firebase Config Dalein
         const firebaseConfig = { 
             apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
             authDomain: "ludo-d46ab.firebaseapp.com", 
@@ -290,150 +274,145 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        let myReferralLink = "";
-        const shareText = "Play Ludo Pro and Win Real Cash! 🎲 Join using my link and start winning today: ";
+        let userUID = null;
+        let userName = "User";
+        let myLink = "";
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // Generate link with UID as referral parameter
-                myReferralLink = window.location.origin + "/index.html?ref=" + user.uid;
-                document.getElementById('refer-url').innerText = myReferralLink;
+                userUID = user.uid;
+                userName = user.displayName || "Ludo Player";
+                myLink = window.location.origin + "/index.html?ref=" + user.uid;
+                document.getElementById('refer-url').innerText = myLink;
+                loadDashboardData(user.uid);
+            } else { 
+                window.location.href = "index.html"; 
+            }
+        });
 
-                // Support Notification Listener
-                onValue(ref(db, 'support_tickets'), (snap) => {
-                    let showDot = false;
-                    if(snap.exists()){
-                        Object.values(snap.val()).forEach(t => {
-                            if(t.userId === user.uid && t.reply && t.userRead !== true) showDot = true;
-                        });
-                    }
-                    document.getElementById('sup-dot').style.display = showDot ? 'block' : 'none';
+        function loadDashboardData(uid) {
+            onValue(ref(db, `users/${uid}`), (snap) => {
+                const data = snap.val() || {};
+                
+                // Fetch stats from DB (agar null ho toh 0 maanein)
+                const totalRefs = data.referralCount || 0;
+                const totalDep = data.referralDepositAmount || 0;
+                const totalEarned = data.totalReferralEarnings || 0;
+
+                // Update Top Dashboard Clearly
+                document.getElementById('total-refs').innerText = totalRefs;
+                document.getElementById('total-earnings').innerText = "Rs. " + totalEarned;
+
+                // Update Milestones Progress
+                updateMilestoneUI(1, totalRefs, totalDep, 5, 1000);
+                updateMilestoneUI(2, totalRefs, totalDep, 10, 2000);
+                updateMilestoneUI(3, totalRefs, totalDep, 20, 4000);
+                updateMilestoneUI(4, totalRefs, totalDep, 50, 10000);
+            });
+        }
+
+        async function updateMilestoneUI(id, curR, curD, tarR, tarD) {
+            // Update Text
+            document.getElementById(`stat-r-${id}`).innerText = `Refs: ${curR}/${tarR}`;
+            document.getElementById(`stat-d-${id}`).innerText = `Dep: ${curD}/${tarD}`;
+
+            // Calculate Progress Percentage
+            let refPer = (curR / tarR) * 100;
+            let depPer = (curD / tarD) * 100;
+            if(refPer > 100) refPer = 100;
+            if(depPer > 100) depPer = 100;
+            
+            let totalProgress = (refPer + depPer) / 2;
+            document.getElementById(`p${id}`).style.width = totalProgress + "%";
+
+            // Check if Milestone Target is Completed
+            if (curR >= tarR && curD >= tarD) {
+                const claimSnap = await get(ref(db, `milestone_claims/${userUID}_m${id}`));
+                
+                if (!claimSnap.exists()) {
+                    // Claim nahi kiya, Button dikhao
+                    document.getElementById(`btn${id}`).style.display = 'block';
+                    document.getElementById(`claimed${id}`).style.display = 'none';
+                } else {
+                    // Claim kar chuka hai
+                    document.getElementById(`btn${id}`).style.display = 'none';
+                    document.getElementById(`claimed${id}`).style.display = 'block';
+                    document.getElementById(`m${id}`).style.opacity = '0.7'; 
+                }
+            } else {
+                // Target poora nahi hua
+                document.getElementById(`btn${id}`).style.display = 'none';
+                document.getElementById(`claimed${id}`).style.display = 'none';
+            }
+        }
+
+        // --- CLAIM FUNCTION ---
+        window.claim = async (id, amount, title) => {
+            const claimKey = `${userUID}_m${id}`;
+            const btn = document.getElementById(`btn${id}`);
+            
+            btn.innerText = "PROCESSING...";
+            btn.disabled = true;
+
+            try {
+                // Admin Notification
+                const notifyRef = push(ref(db, 'admin_notifications'));
+                await set(notifyRef, {
+                    type: 'MILESTONE_REWARD',
+                    userId: userUID,
+                    userName: userName,
+                    milestone: title,
+                    rewardAmount: amount,
+                    timestamp: Date.now(),
+                    status: 'pending'
                 });
-            } else { window.location.href = "index.html"; }
-        });
 
+                // Add entry to prevent double claim
+                await set(ref(db, `milestone_claims/${claimKey}`), { 
+                    status: 'pending',
+                    amount: amount,
+                    timestamp: Date.now()
+                });
+
+                alert(`🎉 Congratulations! Request sent to Admin. Rs. ${amount} will be added to your wallet soon.`);
+                
+                // Update UI
+                btn.style.display = 'none';
+                document.getElementById(`claimed${id}`).innerText = "PENDING APPROVAL";
+                document.getElementById(`claimed${id}`).style.display = 'block';
+                document.getElementById(`claimed${id}`).style.color = "#f1c40f"; 
+
+            } catch (error) {
+                console.error("Error claiming reward:", error);
+                alert("Something went wrong. Please try again.");
+                btn.innerText = `CLAIM RS. ${amount}`;
+                btn.disabled = false;
+            }
+        };
+
+        // --- SHARE FUNCTIONS ---
         window.copyLink = () => {
-    const linkText = myReferralLink;
-    
-    // Modern Method
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(linkText).then(() => {
-            alert("✅ Link Copied Successfully!");
-        }).catch(err => {
-            // Agar modern method fail ho jaye to niche wala chalega
-            fallbackCopy(linkText);
-        });
-    } else {
-        // Fallback Method for non-https/older devices
-        fallbackCopy(linkText);
-    }
-};
-// --- SHARE FUNCTIONS ---
-        
-        // 1. WhatsApp Share
+            if(navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(myLink).then(() => alert("✅ Link Copied!"));
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = myLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try { document.execCommand('copy'); alert("✅ Link Copied!"); } 
+                catch (err) { alert("Failed to copy"); }
+                document.body.removeChild(textArea);
+            }
+        };
+
         window.shareWA = () => {
-            if (!myReferralLink) return alert("Please wait, link is loading...");
-            const text = encodeURIComponent(shareText + "\n\n" + myReferralLink);
+            const text = encodeURIComponent("Play Ludo Pro & Win Cash! Join using my link: " + myLink);
             window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
         };
 
-        // 2. Facebook Share
         window.shareFB = () => {
-            if (!myReferralLink) return alert("Please wait, link is loading...");
-            const url = encodeURIComponent(myReferralLink);
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(myLink)}`, '_blank');
         };
-
-        // 3. Native Share (Mobile ka apna share menu)
-        window.nativeShare = async () => {
-            if (!myReferralLink) return alert("Please wait, link is loading...");
-            
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Ludo Pro - Play & Win',
-                        text: 'Play Ludo Pro and Win Real Cash! 🎲 Join using my link:\n',
-                        url: myReferralLink
-                    });
-                } catch (err) {
-                    console.log('User cancelled share');
-                }
-            } else {
-                alert("Native share is not supported on this browser. Please copy the link manually.");
-                copyLink(); // Agar share support na ho toh link copy kar de
-            }
-        };
-// --- Pakka Copy Method (Fallback) ---
-function fallbackCopy(text) {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    
-    // Isay screen se bahar rakhein
-    textArea.style.position = "fixed";
-    textArea.style.left = "-9999px";
-    textArea.style.top = "0";
-    document.body.appendChild(textArea);
-    
-    textArea.focus();
-    textArea.select();
-
-    try {
-        const successful = document.execCommand('copy');
-        if(successful) alert("✅ Link Copied!");
-        else alert("Failed to copy. Please select and copy manually.");
-    } catch (err) {
-        alert("Unable to copy. Please copy the link manually.");
-    }
-
-    document.body.removeChild(textArea);
-}
-        // --- 🚀 ADVANCED NAVIGATION LOGIC ---
-
-window.navigate = (page, index) => {
-    // Page redirect hone se pehle indicator ko move karein (Visual feel)
-    const indicator = document.getElementById('nav-indicator');
-    const itemWidth = document.querySelector('.bottom-nav').offsetWidth / 5;
-    const offset = (itemWidth * index) + (itemWidth / 2) - 22.5;
-    
-    indicator.style.left = `${offset}px`;
-    
-    // Thoda sa delay taake user animation dekh sake phir page change ho
-    setTimeout(() => {
-        window.location.href = page;
-    }, 1500); // 150ms delay
-};
-
-function initNavigation() {
-    const path = window.location.pathname;
-    const indicator = document.getElementById('nav-indicator');
-    
-    // Identify current page index
-    let index = 2; // Default Home (Center)
-    if (path.includes('social.html')) index = 0;
-    else if (path.includes('ranking.html')) index = 1;
-    else if (path.includes('home.html')) index = 2;
-    else if (path.includes('friend_challenge.html')) index = 3;
-    else if (path.includes('profile.html')) index = 4;
-
-    // Show and position indicator
-    indicator.style.display = 'block';
-    const navBar = document.querySelector('.bottom-nav');
-    if(navBar) {
-        const itemWidth = navBar.offsetWidth / 5;
-        const offset = (itemWidth * index) + (itemWidth / 2) - 22.5;
-        indicator.style.left = `${offset}px`;
-        
-        // Glow Active Class
-        const items = document.querySelectorAll('.nav-item');
-        if(items[index]) items[index].classList.add('active');
-    }
-}
-
-// Page load hote hi chalayein
-window.addEventListener('load', initNavigation);
     </script>
-    <script type="module" src="globalManager.js"></script>
-    <script src="navigation.js"></script>
-    <script src="script.js"></script>
 </body>
 </html>
