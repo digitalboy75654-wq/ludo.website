@@ -1,36 +1,31 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <script>
-  // Silent Anti-Debugger Loop
-  (function() {
-    setInterval(function() {
-      // 1. Debugger statement ko check karo
-      var start = new Date().getTime();
-      debugger; // Agar DevTools khula hai, yahan execution ruk jayegi
-      var end = new Date().getTime();
-      
-      // 2. Agar delay 100ms se zyada hai, matlab DevTools khula hai
-      if (end - start > 100) {
-        // RAM ko full karne ka logic ya page reload
-        while(true) { 
-           console.log("Security Lock Enabled"); 
-           window.location.reload(); 
-        }
-      }
-    }, 500);
-  })();
-</script>
+        // Silent Anti-Debugger Loop
+        (function() {
+            setInterval(function() {
+                var start = new Date().getTime();
+                debugger; 
+                var end = new Date().getTime();
+                if (end - start > 100) {
+                    while(true) { 
+                        console.log("Security Lock Enabled"); 
+                        window.location.reload(); 
+                    }
+                }
+            }, 500);
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta property="og:title" content="Ludo Lat - Play & Win">
-<meta property="og:image" content="https://ludo.Lat/icon1.png">
-<meta property="og:description" content="Click karke join karein aur jeetein!">
+    <meta property="og:image" content="https://ludo.Lat/icon1.png">
+    <meta property="og:description" content="Click karke join karein aur jeetein!">
     <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Ludo Lat">
-<link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ludo Lat">
+    <link rel="apple-touch-icon" href="icon.png">
     <title>Ludo Pro - Elite Login</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
@@ -73,30 +68,25 @@
             width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2);
             border-radius: 12px; background: white; color: #333;
             font-weight: 600; display: flex; align-items: center; justify-content: center;
-            gap: 10px; cursor: pointer;
+            gap: 10px; cursor: pointer; transition: 0.3s;
         }
         .btn-google img { width: 22px; }
         .switch-text { margin-top: 25px; font-size: 13px; opacity: 0.7; }
         .link { color: var(--accent); cursor: pointer; font-weight: bold; }
         #loader { display: none; margin-top: 15px; color: var(--accent); font-size: 13px; }
-        #form-container { display: none; } /* Pehle chhupa rahega jab tak auth check na ho */
-        
+        #form-container { display: none; } 
     </style>
     <link rel="manifest" href="manifest.json">
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
-</script>
 </head>
 <body>
 
     <div class="auth-card">
         <div id="install-container" style="display: none; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
-    <button id="install-btn" style="background: #3DDC84; color: black; padding: 12px; border: none; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer;">
-        <i class="fab fa-android"></i> DOWNLOAD LUDO APP
-    </button>
-</div>
+            <button id="install-btn" style="background: #3DDC84; color: black; padding: 12px; border: none; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer;">
+                <i class="fab fa-android"></i> DOWNLOAD LUDO APP
+            </button>
+        </div>
+        
         <div class="logo-icon"><i class="fas fa-dice"></i></div>
         <div class="title">LUDO.Lat</div>
 
@@ -126,6 +116,15 @@
     </div>
 
 <script type="module">
+    // --- 1. REFERRAL TRACKING LOGIC (ADDED) ---
+    // Agar URL mein ?ref=id hai toh save kar lo
+    const urlParams = new URLSearchParams(window.location.search);
+    const referralId = urlParams.get('ref');
+    if (referralId) {
+        localStorage.setItem('referredBy', referralId);
+    }
+
+    // --- PWA INSTALL LOGIC ---
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
@@ -143,6 +142,7 @@
             deferredPrompt = null;
         }
     });
+
     // --- SECURE BACKEND CONNECTION ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
@@ -171,30 +171,27 @@
         const form = document.getElementById('form-container');
         
         if (user) {
-            // Already Logged In -> Redirect
             window.location.href = "home.html";
         } else {
-            // Not Logged In -> Show Form
             loader.style.display = 'none';
             form.style.display = 'block';
         }
     });
 
-    // --- UI LOGIC ---
-    const toggleBtn = document.getElementById('toggle-btn');
+    // --- UI LOGIC (FIXED EVENT DELEGATION) ---
     const mainBtn = document.getElementById('main-btn');
     const googleBtn = document.getElementById('google-btn');
     const loader = document.getElementById('loader');
+    const toggleTextDiv = document.getElementById('toggle-text');
 
-    toggleBtn.onclick = () => {
-        isLogin = !isLogin;
-        mainBtn.innerText = isLogin ? "LOGIN" : "SIGN UP";
-        document.getElementById('toggle-text').innerHTML = isLogin ? 
-            `New player? <span class="link" id="toggle-btn">Create Account</span>` : 
-            `Have an account? <span class="link" id="toggle-btn">Login here</span>`;
-        
-        // Re-attach event listener due to innerHTML change
-        document.getElementById('toggle-btn').onclick = toggleBtn.onclick;
+    toggleTextDiv.onclick = (e) => {
+        if (e.target.id === 'toggle-btn') {
+            isLogin = !isLogin;
+            mainBtn.innerText = isLogin ? "LOGIN" : "SIGN UP";
+            toggleTextDiv.innerHTML = isLogin ? 
+                `New player? <span class="link" id="toggle-btn">Create Account</span>` : 
+                `Have an account? <span class="link" id="toggle-btn">Login here</span>`;
+        }
     };
 
     const setLoading = (loading) => {
@@ -236,7 +233,7 @@
             });
     };
 
-    // --- DATABASE SYNC ---
+    // --- DATABASE SYNC & REFERRAL AWARDING ---
     async function handleUserSuccess(user) {
         const userRef = ref(db, 'users/' + user.uid);
         
@@ -244,18 +241,48 @@
             const snapshot = await get(userRef);
             
             if (!snapshot.exists()) {
-                // New User Registration
-                await set(userRef, {
+                // NEW USER SETUP
+                let newUserData = {
                     username: user.displayName || user.email.split('@')[0],
                     email: user.email,
                     uid: user.uid,
-                    balance: 0,       // Starting Balance
+                    balance: 0, 
                     gamesPlayed: 0,
                     gamesWon: 0,
                     createdAt: Date.now()
-                });
+                };
+
+                // MAIN FIX: Doston ko Reward Dena!
+                const savedReferrerId = localStorage.getItem('referredBy');
+                if (savedReferrerId && savedReferrerId !== user.uid) {
+                    newUserData.referredBy = savedReferrerId;
+                    
+                    // 1. Jisne invite kiya uski History mein naye player ka naam add karo
+                    const referrerListRef = ref(db, `users/${savedReferrerId}/myReferrals/${user.uid}`);
+                    await set(referrerListRef, {
+                        name: newUserData.username,
+                        date: Date.now(),
+                        status: "success"
+                    });
+
+                    // 2. Uske Total Invites aur Balance update karo
+                    const referrerDbRef = ref(db, `users/${savedReferrerId}`);
+                    const referrerSnap = await get(referrerDbRef);
+                    if (referrerSnap.exists()) {
+                        let refData = referrerSnap.val();
+                        await update(referrerDbRef, {
+                            referralCount: (refData.referralCount || 0) + 1,
+                            totalReferralEarnings: (refData.totalReferralEarnings || 0) + 50 // Rs 50 reward (change it if needed)
+                        });
+                    }
+                }
+
+                await set(userRef, newUserData);
+                // Kaam hone ke baad link localStorage se clear kar do
+                localStorage.removeItem('referredBy');
+
             } else {
-                // Existing User - Update Last Login
+                // Existing User
                 await update(userRef, { lastLogin: Date.now() });
             }
 
@@ -268,7 +295,7 @@
         }
     }
 </script>
-    <script>
+<script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
@@ -280,9 +307,3 @@
 <script src="script.js"></script>
 </body>
 </html>
-
-
-
-
-
-
