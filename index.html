@@ -1,15 +1,36 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+  // Silent Anti-Debugger Loop
+  (function() {
+    setInterval(function() {
+      // 1. Debugger statement ko check karo
+      var start = new Date().getTime();
+      debugger; // Agar DevTools khula hai, yahan execution ruk jayegi
+      var end = new Date().getTime();
+      
+      // 2. Agar delay 100ms se zyada hai, matlab DevTools khula hai
+      if (end - start > 100) {
+        // RAM ko full karne ka logic ya page reload
+        while(true) { 
+           console.log("Security Lock Enabled"); 
+           window.location.reload(); 
+        }
+      }
+    }, 500);
+  })();
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta property="og:title" content="Ludo Lat - Play & Win">
-    <meta property="og:image" content="https://ludo.lat/icon1.png">
-    <meta property="og:description" content="Click karke join karein aur jeetein!">
+<meta property="og:image" content="https://ludo.Lat/icon1.png">
+<meta property="og:description" content="Click karke join karein aur jeetein!">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Ludo Lat">
-    <link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ludo Lat">
+<link rel="apple-touch-icon" href="icon.png">
     <title>Ludo Pro - Elite Login</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
@@ -29,7 +50,6 @@
             backdrop-filter: blur(20px); padding: 40px 30px; border-radius: 30px;
             border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5);
             text-align: center; animation: fadeIn 0.6s ease-out;
-            position: relative;
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .logo-icon { font-size: 50px; color: var(--accent); margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(255, 190, 11, 0.4)); }
@@ -59,35 +79,24 @@
         .switch-text { margin-top: 25px; font-size: 13px; opacity: 0.7; }
         .link { color: var(--accent); cursor: pointer; font-weight: bold; }
         #loader { display: none; margin-top: 15px; color: var(--accent); font-size: 13px; }
-        #form-container { display: none; } 
+        #form-container { display: none; } /* Pehle chhupa rahega jab tak auth check na ho */
         
-        /* Support Button Style */
-        .support-link {
-            margin-top: 25px;
-            font-size: 12px;
-        }
-        .support-link a {
-            color: #bdc3c7;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: 0.3s;
-        }
-        .support-link a:hover { color: white; }
     </style>
     <link rel="manifest" href="manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
 </head>
 <body>
 
     <div class="auth-card">
         <div id="install-container" style="display: none; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
-            <button id="install-btn" style="background: #3DDC84; color: black; padding: 12px; border: none; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer;">
-                <i class="fab fa-android"></i> DOWNLOAD LUDO APP
-            </button>
-        </div>
-        
+    <button id="install-btn" style="background: #3DDC84; color: black; padding: 12px; border: none; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer;">
+        <i class="fab fa-android"></i> DOWNLOAD LUDO APP
+    </button>
+</div>
         <div class="logo-icon"><i class="fas fa-dice"></i></div>
         <div class="title">LUDO.Lat</div>
 
@@ -109,10 +118,6 @@
             <div class="switch-text" id="toggle-text">
                 New player? <span class="link" id="toggle-btn">Create Account</span>
             </div>
-
-            <div class="support-link">
-                <a href="support.html"><i class="fas fa-headset"></i> Contact Support</a>
-            </div>
         </div>
 
         <div id="init-loader" style="margin-top:20px;">
@@ -121,14 +126,6 @@
     </div>
 
 <script type="module">
-    // --- REFERRAL LINK CAPTURE (SAVE TO LOCAL STORAGE) ---
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
-    if (refCode) {
-        localStorage.setItem('referredBy', refCode);
-    }
-
-    // --- PWA INSTALL LOGIC ---
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
@@ -146,7 +143,6 @@
             deferredPrompt = null;
         }
     });
-
     // --- SECURE BACKEND CONNECTION ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
@@ -175,8 +171,10 @@
         const form = document.getElementById('form-container');
         
         if (user) {
+            // Already Logged In -> Redirect
             window.location.href = "home.html";
         } else {
+            // Not Logged In -> Show Form
             loader.style.display = 'none';
             form.style.display = 'block';
         }
@@ -195,6 +193,7 @@
             `New player? <span class="link" id="toggle-btn">Create Account</span>` : 
             `Have an account? <span class="link" id="toggle-btn">Login here</span>`;
         
+        // Re-attach event listener due to innerHTML change
         document.getElementById('toggle-btn').onclick = toggleBtn.onclick;
     };
 
@@ -223,7 +222,6 @@
                 if(err.code === 'auth/wrong-password') msg = "Incorrect Password";
                 if(err.code === 'auth/user-not-found') msg = "User not found";
                 if(err.code === 'auth/email-already-in-use') msg = "Email already registered";
-                if(err.code === 'auth/weak-password') msg = "Password should be at least 6 characters";
                 alert(msg);
             });
     };
@@ -238,7 +236,7 @@
             });
     };
 
-    // --- DATABASE SYNC & REFERRAL UPDATE LOGIC ---
+    // --- DATABASE SYNC ---
     async function handleUserSuccess(user) {
         const userRef = ref(db, 'users/' + user.uid);
         
@@ -246,41 +244,18 @@
             const snapshot = await get(userRef);
             
             if (!snapshot.exists()) {
-                // Naya user ban raha hai
+                // New User Registration
                 await set(userRef, {
                     username: user.displayName || user.email.split('@')[0],
                     email: user.email,
                     uid: user.uid,
-                    balance: 0,
+                    balance: 0,       // Starting Balance
                     gamesPlayed: 0,
                     gamesWon: 0,
-                    createdAt: Date.now(),
-                    referralCount: 0,
-                    referralDepositAmount: 0,
-                    totalReferralEarnings: 0
+                    createdAt: Date.now()
                 });
-
-                // --- REFERRAL BONUS LOGIC YAHAN HAI ---
-                const referredBy = localStorage.getItem('referredBy');
-                // Check karein ke kisi ne refer kiya tha, aur usne khud ko refer na kiya ho
-                if (referredBy && referredBy !== user.uid) {
-                    const referrerRef = ref(db, `users/${referredBy}`);
-                    const referrerSnap = await get(referrerRef);
-                    
-                    if (referrerSnap.exists()) {
-                        const currentCount = referrerSnap.val().referralCount || 0;
-                        // Purane user ka count 1 se barha dein
-                        await update(referrerRef, { 
-                            referralCount: currentCount + 1 
-                        });
-                        console.log("Referral count added to:", referredBy);
-                    }
-                    // Ek baar update hone ke baad localStorage saaf kar dein
-                    localStorage.removeItem('referredBy');
-                }
-                
             } else {
-                // Purana user sirf login kar raha hai
+                // Existing User - Update Last Login
                 await update(userRef, { lastLogin: Date.now() });
             }
 
@@ -293,8 +268,7 @@
         }
     }
 </script>
-
-<script>
+    <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
@@ -306,3 +280,9 @@
 <script src="script.js"></script>
 </body>
 </html>
+
+
+
+
+
+
