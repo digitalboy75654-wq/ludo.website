@@ -3,337 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta property="og:title" content="Ludo Pro - Play & Win">
+    
+    <meta property="og:title" content="Ludo Pro - Share & Earn">
     <meta property="og:image" content="https://ludo.website/icon1.png">
-    <meta property="og:description" content="Click karke join karein aur jeetein!">
+    <meta property="og:description" content="Join karke real cash jeetein!">
+    
     <title>Share & Earn - Ludo Pro</title>
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #6c5ce7; --gold: #f1c40f; --neon: #00d2d3;
-            --bg-dark: #0f0c29; --card-bg: rgba(255, 255, 255, 0.08);
-            --glass-border: rgba(255, 255, 255, 0.15);
-        }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-        body {
-            margin: 0; padding: 0; font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            height: 100vh; color: white; display: flex; flex-direction: column; overflow: hidden;
-        }
-
-        /* HEADER */
-        .header {
-            padding: 15px 20px; display: flex; align-items: center; gap: 15px;
-            background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--glass-border);
-        }
-        .back-btn { font-size: 20px; cursor: pointer; color: white; }
-        .page-title { font-family: 'Orbitron'; font-size: 16px; font-weight: 700; color: var(--gold); }
-
-        .container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 150px; text-align: center; }
-
-        /* LIVE STATS GRID */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 15px; border: 1px solid rgba(0, 210, 211, 0.3); text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .stat-card i { color: var(--gold); font-size: 22px; margin-bottom: 8px; }
-        .stat-val { display: block; font-family: 'Orbitron'; font-size: 22px; color: #fff; font-weight: bold; }
-        .stat-label { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; display: block; }
-
-        /* REWARD BANNER */
-        .reward-banner {
-            background: linear-gradient(135deg, rgba(241, 196, 15, 0.2), rgba(108, 92, 231, 0.2));
-            padding: 20px; border-radius: 20px; border: 1px solid var(--gold);
-            margin-bottom: 25px; position: relative;
-        }
-        .reward-banner i { font-size: 35px; color: var(--gold); margin-bottom: 10px; }
-        .reward-banner h2 { margin: 5px 0; font-size: 20px; color: #fff; }
-        .reward-amount { font-size: 30px; font-weight: 800; color: var(--gold); font-family: 'Orbitron'; }
-
-        /* REFERRAL BOX */
-        .refer-card {
-            background: var(--card-bg); border-radius: 20px; padding: 25px;
-            border: 1px solid var(--glass-border); backdrop-filter: blur(10px);
-        }
-        .link-label { font-size: 11px; color: var(--neon); letter-spacing: 1px; font-weight: 600; }
-        .link-box {
-            background: rgba(0,0,0,0.4); padding: 12px; border-radius: 12px;
-            border: 1px dashed var(--neon); margin: 15px 0;
-            display: flex; align-items: center; justify-content: space-between; gap: 10px;
-        }
-        #refer-url { font-size: 12px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; text-align: left; opacity: 0.8; }
-        .copy-btn { background: var(--neon); color: black; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; font-size: 12px; cursor: pointer; }
-
-        /* STEPS */
-        .steps-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 25px; }
-        .step-box { background: rgba(255,255,255,0.03); padding: 15px 5px; border-radius: 15px; border: 1px solid var(--glass-border); }
-        .step-box i { font-size: 20px; color: var(--gold); margin-bottom: 8px; }
-        .step-box p { font-size: 9px; margin: 0; line-height: 1.3; opacity: 0.8; }
-
-        /* SHARE BUTTONS */
-        .share-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 25px; }
-        .share-btn {
-            padding: 15px; border: none; border-radius: 15px; color: white;
-            font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px;
-            cursor: pointer; transition: 0.2s;
-        }
-        .btn-whatsapp { background: #25D366; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3); }
-        .btn-facebook { background: #1877F2; box-shadow: 0 4px 12px rgba(24, 119, 242, 0.3); }
-        .btn-main { background: var(--primary); grid-column: span 2; margin-top: 5px; }
-
-        /* HISTORY SECTION */
-        .history-section { margin-top: 30px; text-align: left; background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border); backdrop-filter: blur(10px); }
-        .section-header { font-size: 14px; font-weight: 700; color: var(--gold); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-family: 'Orbitron'; }
-        .history-list { display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; }
-        .history-item { background: rgba(0,0,0,0.3); padding: 12px 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--primary); }
-        .friend-info h4 { margin: 0; font-size: 13px; color: #fff; font-weight: 600; }
-        .friend-info p { margin: 0; font-size: 10px; opacity: 0.6; margin-top: 4px; }
-        .status-tag { font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: bold; text-transform: uppercase; }
-        .status-pending { background: rgba(241, 196, 15, 0.2); color: #f1c40f; }
-        .status-success { background: rgba(0, 210, 211, 0.2); color: #00d2d3; }
-
-        /* NAV DOCK (Kept EXACTLY as you provided) */
-        .navigation-dock {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 95%; max-width: 450px; height: 75px;
-            background: rgba(20, 20, 35, 0.95); backdrop-filter: blur(15px);
-            border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            display: flex; justify-content: space-between; align-items: center; padding: 0 10px; z-index: 1000;
-        }
-        .nav-item { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; color: #777; cursor: pointer; transition: all 0.3s ease; gap: 4px; }
-        .nav-item i { font-size: 20px; margin-bottom: 2px; transition: 0.3s; }
-        .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
-        .nav-item.active { color: #f1c40f; transform: translateY(-2px); }
-        .nav-item.active i { text-shadow: 0 0 15px rgba(241, 196, 15, 0.6); transform: scale(1.1); }
-        .center-fab-container { position: relative; width: 80px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; margin-top: -35px; }
-        .center-fab { width: 60px; height: 60px; background: linear-gradient(135deg, #f1c40f, #e67e22); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #1a1a2e; font-size: 24px; box-shadow: 0 0 0 8px rgba(20, 20, 35, 1); cursor: pointer; transition: 0.3s; z-index: 10; }
-        .home-label { font-size: 10px; color: #777; margin-top: 5px; font-weight: bold; text-transform: uppercase; }
-        .center-fab.active { background: #fff; color: #f1c40f; box-shadow: 0 0 20px #fff; }
-        .center-fab.active ~ .home-label { color: #f1c40f; }
-        .center-fab:active { transform: scale(0.95); }
-    </style>
 </head>
 <body>
 
-    <div class="header">
-        <i class="fas fa-arrow-left back-btn" onclick="window.location.href='home.html'"></i>
-        <div class="page-title">REFER & EARN</div>
-    </div>
-
     <div class="container">
+        <div class="header">
+            <div class="neon-circle">
+                <i class="fas fa-gift"></i>
+            </div>
+            <h1>REFER & EARN</h1>
+            <p>Invite friends and get <span class="highlight">50% Commission</span> on their first deposit!</p>
+        </div>
+
         <div class="stats-grid">
             <div class="stat-card">
-                <i class="fas fa-users"></i>
-                <span class="stat-val" id="total-friends">0</span>
-                <span class="stat-label">Total Invites</span>
+                <div class="card-glow"></div>
+                <i class="fas fa-users-viewfinder"></i>
+                <div class="stat-label">Total Referrals</div>
+                <div class="stat-value" id="ref-count">0</div>
             </div>
             <div class="stat-card">
-                <i class="fas fa-wallet"></i>
-                <span class="stat-val" id="total-earned">₹0</span>
-                <span class="stat-label">Total Earned</span>
+                <div class="card-glow"></div>
+                <i class="fas fa-hand-holding-dollar"></i>
+                <div class="stat-label">Total Earned</div>
+                <div class="stat-value">₹<span id="ref-earned">0</span></div>
             </div>
         </div>
 
-        <div class="reward-banner">
-            <i class="fas fa-hand-holding-usd"></i>
-            <h2>Get Instant Reward</h2>
-            <div class="reward-amount">Rs. 50.00</div>
-            <p style="font-size: 11px; margin-top: 10px; opacity: 0.9;">For every successful referral deposit!</p>
+        <div class="link-section">
+            <div class="link-label">
+                <i class="fas fa-rocket"></i> YOUR UNIQUE REFERRAL LINK
+            </div>
+            <div class="link-box-container">
+                <div class="link-box" id="link-text">Fetching your link...</div>
+                <button class="btn-copy" id="copy-btn">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
         </div>
 
-        <div class="refer-card">
-            <span class="link-label">YOUR PERSONAL INVITE LINK</span>
-            <div class="link-box">
-                <span id="refer-url">Loading link...</span>
-                <button class="copy-btn" onclick="copyLink()">COPY</button>
-            </div>
+        <div class="share-title">Invite friends via:</div>
+        <div class="share-row">
+            <button class="share-btn whatsapp" id="wa-share">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp</span>
+            </button>
+            <button class="share-btn facebook" id="fb-share">
+                <i class="fab fa-facebook-f"></i>
+                <span>Facebook</span>
+            </button>
+        </div>
 
-            <div class="steps-container">
-                <div class="step-box">
-                    <i class="fas fa-share-nodes"></i>
-                    <p><b>STEP 1</b><br>Share Link</p>
+        <div class="guide-container">
+            <h3 class="guide-title">How to get Bonus?</h3>
+            
+            <div class="guide-item">
+                <div class="step-num">1</div>
+                <div class="guide-text">
+                    <h4>Share Link</h4>
+                    <p>Apna referral link doston ko WhatsApp par bhein.</p>
                 </div>
-                <div class="step-box">
-                    <i class="fas fa-user-check"></i>
-                    <p><b>STEP 2</b><br>Friend Joins</p>
+            </div>
+
+            <div class="guide-item">
+                <div class="step-num">2</div>
+                <div class="guide-text">
+                    <h4>Friend Joins</h4>
+                    <p>Aapka dost aapke link se account banata hai.</p>
                 </div>
-                <div class="step-box">
-                    <i class="fas fa-wallet"></i>
-                    <p><b>STEP 3</b><br>Get Rs. 50</p>
+            </div>
+
+            <div class="guide-item">
+                <div class="step-num">3</div>
+                <div class="guide-text">
+                    <h4>Instant Cash</h4>
+                    <p>Dost ke pehle deposit par aapko 50% commission mil jayega.</p>
                 </div>
             </div>
         </div>
-
-        <div class="share-actions">
-            <button class="share-btn btn-whatsapp" onclick="shareWA()"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-            <button class="share-btn btn-facebook" onclick="shareFB()"><i class="fab fa-facebook-f"></i> Facebook</button>
-            <button class="share-btn btn-main" onclick="nativeShare()"><i class="fas fa-share-nodes"></i> Share More Options</button>
-        </div>
-        
-        <div style="margin-top: 25px; font-size: 10px; opacity: 0.5; line-height: 1.5;">
-            *Reward will be credited automatically once your referred friend completes their first deposit successfully.
-        </div>
-
-        <div class="history-section">
-            <div class="section-header">
-                <span>MY REFERRALS</span>
-                <i class="fas fa-history"></i>
-            </div>
-            <div id="history-list" class="history-list">
-                <p style="text-align: center; opacity: 0.4; font-size: 12px; margin-top: 10px;">Loading data...</p>
-            </div>
-        </div>
-
-        <div style="height: 60px; width: 100%;"></div>
     </div>
 
-    <div class="navigation-dock">
-        <div class="nav-item active" id="nav-social" onclick="window.location.href='social.html'">
-            <i class="fas fa-share-alt"></i>
-            <span class="nav-label">Share</span>
+    
+<div class="navigation-dock">
+        <div class="nav-item" id="nav-social" onclick="window.location.href='social.html'">
+            <i class="fas fa-share-alt"></i><span class="nav-label">Share</span>
         </div>
         <div class="nav-item" id="nav-rank" onclick="window.location.href='ranking.html'">
-            <i class="fas fa-chart-bar"></i>
-            <span class="nav-label">Rank</span>
+            <i class="fas fa-chart-bar"></i><span class="nav-label">Rank</span>
         </div>
         <div class="center-fab-container">
             <div class="center-fab" onclick="window.location.href='home.html'">
-                <div class="fab-icon">
-                    <i class="fas fa-home"></i>
-                </div>
+                <div class="fab-icon"><i class="fas fa-home"></i></div>
             </div>
             <span class="home-label">Home</span>
         </div>
         <div class="nav-item" id="nav-friends" onclick="window.location.href='friend_challenge.html'">
-            <i class="fas fa-user-friends"></i>
-            <span class="nav-label">Friends</span>
+            <i class="fas fa-user-friends"></i><span class="nav-label">Friends</span>
         </div>
-        <div class="nav-item" id="nav-profile" onclick="window.location.href='profile.html'">
-            <i class="fas fa-user"></i>
-            <span class="nav-label">Profile</span>
+        <div class="nav-item active" id="nav-profile" onclick="window.location.href='profile.html'">
+            <i class="fas fa-user"></i><span class="nav-label">Profile</span>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+<style>
+    :root {
+        --primary: #6c5ce7; 
+        --gold: #f1c40f; 
+        --neon: #00d2d3;
+        --bg-dark: #0f0c29; 
+        --card-bg: rgba(255, 255, 255, 0.06);
+        --glass-border: rgba(255, 255, 255, 0.12);
+    }
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY", 
-            authDomain: "ludo-d46ab.firebaseapp.com", 
-            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com", 
-            projectId: "ludo-d46ab" 
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
+    /* --- Beautiful Zoom-Out Animation --- */
+    @keyframes pageZoomOut {
+        0% { transform: scale(1.1); opacity: 0; filter: blur(8px); }
+        100% { transform: scale(1); opacity: 1; filter: blur(0); }
+    }
 
-        let myReferralLink = "";
-        const shareText = "Play Ludo Pro and Win Real Cash! 🎲 Join using my link and start winning today: ";
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Generate link
-                myReferralLink = window.location.origin + "/index.html?ref=" + user.uid;
-                document.getElementById('refer-url').innerText = myReferralLink;
+    body {
+        margin: 0; padding: 0; font-family: 'Poppins', sans-serif;
+        background: radial-gradient(circle at top, #1a1a3a, #0a0a1a, #000);
+        color: white; min-height: 100vh; overflow-x: hidden;
+        animation: pageZoomOut 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+    }
 
-                // --- 1. FETCH TOTAL STATS REAL-TIME ---
-                onValue(ref(db, `users/${user.uid}`), (snap) => {
-                    if(snap.exists()){
-                        const data = snap.val();
-                        document.getElementById('total-friends').innerText = data.referralCount || 0;
-                        document.getElementById('total-earned').innerText = "₹" + (data.totalReferralEarnings || 0);
-                    }
-                });
+    .container { padding: 20px; max-width: 450px; margin: 0 auto; padding-bottom: 110px; }
 
-                // --- 2. FETCH REFERRAL HISTORY REAL-TIME ---
-                onValue(ref(db, `users/${user.uid}/myReferrals`), (snap) => {
-                    const listDiv = document.getElementById('history-list');
-                    listDiv.innerHTML = ""; // Clear loading text
-                    
-                    if(snap.exists()){
-                        const refs = snap.val();
-                        let htmlContent = "";
-                        // Reverse karke dikhana taake naye log upar aayein
-                        Object.keys(refs).reverse().forEach(key => {
-                            const item = refs[key];
-                            const date = new Date(item.date).toLocaleDateString();
-                            const statusClass = item.status === 'success' ? 'status-success' : 'status-pending';
-                            
-                            htmlContent += `
-                                <div class="history-item">
-                                    <div class="friend-info">
-                                        <h4>${item.name || 'New Player'}</h4>
-                                        <p>Joined: ${date}</p>
-                                    </div>
-                                    <span class="status-tag ${statusClass}">${item.status}</span>
-                                </div>
-                            `;
-                        });
-                        listDiv.innerHTML = htmlContent;
-                    } else {
-                        listDiv.innerHTML = `<p style="text-align: center; opacity: 0.4; font-size: 11px; margin-top: 10px;">Aapne abhi tak kisi ko invite nahi kiya.</p>`;
-                    }
-                });
+    /* Header Styling */
+    .header { text-align: center; margin: 30px 0; }
+    .neon-circle {
+        width: 70px; height: 70px; background: rgba(108, 92, 231, 0.2);
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 15px; font-size: 30px; color: var(--gold);
+        box-shadow: 0 0 20px rgba(241, 196, 15, 0.3); border: 2px solid var(--gold);
+    }
+    .header h1 { font-family: 'Orbitron', sans-serif; font-size: 24px; margin: 0; letter-spacing: 2px; }
+    .header p { font-size: 12px; opacity: 0.8; margin-top: 8px; }
+    .highlight { color: var(--neon); font-weight: 700; }
 
-            } else { 
-                window.location.href = "index.html"; 
-            }
-        });
+    /* Dashboard Stats */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+    .stat-card {
+        background: var(--card-bg); backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border); padding: 20px 10px; border-radius: 24px;
+        text-align: center; position: relative; overflow: hidden;
+    }
+    .card-glow {
+        position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+        background: radial-gradient(circle, rgba(108, 92, 231, 0.1) 0%, transparent 70%);
+    }
+    .stat-card i { font-size: 24px; color: var(--neon); margin-bottom: 10px; display: block; }
+    .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
+    .stat-value { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 700; margin-top: 5px; color: #fff; }
 
-        // --- COPY & SHARE FUNCTIONS ---
-        window.copyLink = () => {
-            const linkText = myReferralLink;
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(linkText).then(() => {
-                    alert("✅ Link Copied Successfully!");
-                }).catch(err => fallbackCopy(linkText));
-            } else {
-                fallbackCopy(linkText);
-            }
-        };
+    /* Referral Link Section */
+    .link-section { background: rgba(0,0,0,0.3); border-radius: 24px; padding: 20px; border: 1px solid var(--primary); }
+    .link-label { font-size: 11px; font-weight: 600; margin-bottom: 15px; color: var(--primary); text-align: center; }
+    .link-box-container { display: flex; gap: 10px; }
+    .link-box {
+        flex: 1; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px;
+        font-size: 11px; color: #bbb; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        border: 1px solid rgba(255,255,255,0.1); line-height: 20px;
+    }
+    .btn-copy {
+        background: var(--primary); color: white; border: none; width: 45px;
+        border-radius: 12px; cursor: pointer; font-size: 18px; transition: 0.3s;
+    }
+    .btn-copy:active { transform: scale(0.9); }
 
-        window.shareWA = () => {
-            if (!myReferralLink) return alert("Please wait, link is loading...");
-            const text = encodeURIComponent(shareText + "\n\n" + myReferralLink);
-            window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-        };
+    /* Share Buttons */
+    .share-title { text-align: center; font-size: 13px; margin: 25px 0 15px; opacity: 0.6; }
+    .share-row { display: flex; gap: 15px; }
+    .share-btn {
+        flex: 1; padding: 12px; border-radius: 15px; border: none; color: white;
+        display: flex; align-items: center; justify-content: center; gap: 10px;
+        font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.3s;
+    }
+    .whatsapp { background: #25D366; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.2); }
+    .facebook { background: #1877F2; box-shadow: 0 4px 15px rgba(24, 119, 242, 0.2); }
+    .share-btn:active { transform: translateY(2px); }
 
-        window.shareFB = () => {
-            if (!myReferralLink) return alert("Please wait, link is loading...");
-            const url = encodeURIComponent(myReferralLink);
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
-        };
+    /* Guide Section */
+    .guide-container { margin-top: 35px; background: var(--card-bg); border-radius: 24px; padding: 20px; }
+    .guide-title { font-size: 16px; margin-bottom: 20px; color: var(--gold); text-align: center; }
+    .guide-item { display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-start; }
+    .step-num {
+        background: var(--primary); width: 28px; height: 28px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0;
+    }
+    .guide-text h4 { margin: 0; font-size: 14px; color: #fff; }
+    .guide-text p { margin: 4px 0 0; font-size: 11px; opacity: 0.6; line-height: 1.5; }
 
-        window.nativeShare = async () => {
-            if (!myReferralLink) return alert("Please wait, link is loading...");
-            if (navigator.share) {
-                try {
-                    await navigator.share({ title: 'Ludo Pro', text: shareText, url: myReferralLink });
-                } catch (err) { console.log('User cancelled share'); }
-            } else {
-                alert("Native share is not supported. Link copied!");
-                copyLink();
-            }
-        };
-
-        function fallbackCopy(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed"; textArea.style.left = "-9999px"; textArea.style.top = "0";
-            document.body.appendChild(textArea);
-            textArea.focus(); textArea.select();
-            try {
-                const successful = document.execCommand('copy');
-                if(successful) alert("✅ Link Copied!");
-            } catch (err) {}
-            document.body.removeChild(textArea);
+    /* --- FLOATING COMMAND DOCK --- */
+        .navigation-dock {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 450px; height: 70px; 
+            background: rgba(20, 20, 35, 0.95); backdrop-filter: blur(15px);
+            border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 10px; z-index: 1000;
         }
+        .nav-item {
+            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            height: 100%; color: #777; cursor: pointer; transition: all 0.3s ease; gap: 4px;
+        }
+        .nav-item i { font-size: 18px; margin-bottom: 2px; transition: 0.3s; }
+        .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+        .nav-item.active { color: var(--gold); transform: translateY(-2px); }
+        .nav-item.active i { text-shadow: 0 0 15px rgba(241, 196, 15, 0.6); transform: scale(1.1); }
 
-    </script>
-    <script type="module" src="globalManager.js"></script>
+        .center-fab-container {
+            position: relative; width: 80px; height: 100%; display: flex;
+            flex-direction: column; align-items: center; justify-content: flex-end; margin-top: -30px;
+        }
+        .center-fab {
+            width: 55px; height: 55px; background: linear-gradient(135deg, #f1c40f, #e67e22);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            color: #1a1a2e; font-size: 22px; box-shadow: 0 0 0 6px rgba(20, 20, 35, 1); 
+            cursor: pointer; transition: 0.3s; z-index: 10;
+        }
+        .home-label { font-size: 10px; color: #777; margin-top: 5px; font-weight: bold; text-transform: uppercase; }
+        .center-fab.active { background: #fff; color: var(--gold); box-shadow: 0 0 20px #fff; }
+        .center-fab.active ~ .home-label { color: var(--gold); }
+        .center-fab:active { transform: scale(0.95); }
+</style>
+<script type="module">
+    // Firebase Libraries
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+
+    // Aapki Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY",
+        authDomain: "ludo-d46ab.firebaseapp.com",
+        databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com",
+        projectId: "ludo-d46ab"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let myReferralLink = "";
+    const shareMessage = "Join Ludo Pro! Best Ludo game with instant withdrawals. Register using my link to get a bonus: ";
+
+    // Auth State Check & Data Fetching
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // 1. Generate Unique Referral Link
+            // Ye automatic aapki website ka current URL uthayega aur usme ?ref=UID jod dega
+            const baseUrl = window.location.origin + window.location.pathname.replace('social.html', 'index.html');
+            myReferralLink = `${baseUrl}?ref=${user.uid}`;
+            
+            const linkDisplay = document.getElementById('link-text');
+            linkDisplay.innerText = myReferralLink;
+            linkDisplay.style.color = "#fff"; // Loading text hatne ke baad safed rang
+
+            // 2. Listen to User Stats (Live)
+            const userStatsRef = ref(db, `users/${user.uid}`);
+            onValue(userStatsRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    // Dashboard values update karein
+                    document.getElementById('ref-count').innerText = data.referralCount || 0;
+                    document.getElementById('ref-earned').innerText = data.totalReferralEarnings || 0;
+                }
+            });
+        } else {
+            // Agar login nahi hai toh login page par bhejein
+            window.location.href = "index.html";
+        }
+    });
+
+    // --- Button Actions ---
+
+    // Copy Link Function
+    document.getElementById('copy-btn').onclick = () => {
+        if (!myReferralLink) return;
+        
+        navigator.clipboard.writeText(myReferralLink).then(() => {
+            const btn = document.getElementById('copy-btn');
+            const icon = btn.querySelector('i');
+            
+            // Visual Feedback
+            icon.className = "fas fa-check"; 
+            btn.style.background = "#2ecc71";
+            
+            setTimeout(() => {
+                icon.className = "fas fa-copy";
+                btn.style.background = ""; // Original color
+            }, 2000);
+            
+            alert("✅ Referral Link Copied!");
+        }).catch(err => {
+            // Fallback for older browsers
+            const textArea = document.createElement("textarea");
+            textArea.value = myReferralLink;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert("✅ Link Copied!");
+        });
+    };
+
+    // WhatsApp Share
+    document.getElementById('wa-share').onclick = () => {
+        if (!myReferralLink) return;
+        const fullMsg = encodeURIComponent(shareMessage + "\n\n" + myReferralLink);
+        window.open(`https://wa.me/?text=${fullMsg}`, '_blank');
+    };
+
+    // Facebook Share
+    document.getElementById('fb-share').onclick = () => {
+        if (!myReferralLink) return;
+        const url = encodeURIComponent(myReferralLink);
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    };
+
+</script>
+
+<script type="module" src="globalManager.js"></script>
     <script src="navigation.js"></script>
     <script src="script.js"></script>
 </body>
