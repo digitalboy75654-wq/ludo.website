@@ -1,24 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>
-        // Silent Anti-Debugger Loop
-        (function() {
-            setInterval(function() {
-                var start = new Date().getTime();
-                debugger; 
-                var end = new Date().getTime();
-                if (end - start > 100) {
-                    while(true) { 
-                        console.log("Security Lock Enabled"); 
-                        window.location.reload(); 
-                    }
-                }
-            }, 500);
-        })();
-    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <meta property="og:title" content="Ludo Lat - Play & Win">
     <meta property="og:image" content="https://ludo.Lat/icon1.png">
     <meta property="og:description" content="Click karke join karein aur jeetein!">
@@ -26,63 +11,119 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Ludo Lat">
     <link rel="apple-touch-icon" href="icon.png">
+    
     <title>Ludo Pro - Elite Login</title>
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+
     <style>
         :root {
-            --primary: #6c5ce7; --accent: #ffbe0b;
+            --primary: #6c5ce7; 
+            --accent: #ffbe0b;
             --bg: radial-gradient(circle at top, #1e1e3f, #111122, #000000);
+            --glass: rgba(255, 255, 255, 0.05);
+            --input-bg: rgba(0, 0, 0, 0.4);
         }
+
         * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+
         body {
             margin: 0; background: var(--bg); height: 100vh;
             display: flex; align-items: center; justify-content: center;
             color: white; overflow: hidden;
         }
+
         .auth-card {
-            width: 90%; max-width: 400px; background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px); padding: 40px 30px; border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-            text-align: center; animation: fadeIn 0.6s ease-out;
+            width: 90%; max-width: 400px; background: var(--glass);
+            backdrop-filter: blur(25px); padding: 40px 30px; border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            text-align: center; position: relative;
+            animation: fadeIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .logo-icon { font-size: 50px; color: var(--accent); margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(255, 190, 11, 0.4)); }
-        .title { font-size: 24px; font-weight: 800; letter-spacing: 1px; margin-bottom: 30px; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .logo-icon { 
+            font-size: 55px; color: var(--accent); margin-bottom: 10px; 
+            filter: drop-shadow(0 0 15px rgba(255, 190, 11, 0.5));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float { 
+            0%, 100% { transform: translateY(0); } 
+            50% { transform: translateY(-10px); } 
+        }
+
+        .title { 
+            font-size: 26px; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 30px; text-transform: uppercase;
+            background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
         .input-box {
-            width: 100%; padding: 14px 15px; background: rgba(0,0,0,0.3);
+            width: 100%; padding: 15px 20px; background: var(--input-bg);
             border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-            color: white; margin-bottom: 15px; outline: none; transition: 0.3s;
+            color: white; margin-bottom: 15px; outline: none; transition: 0.3s; font-size: 14px;
         }
-        .input-box:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(108, 92, 231, 0.3); }
+
+        .input-box:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(108, 92, 231, 0.4); }
+
         .btn-primary {
-            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
             background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-            color: white; font-weight: bold; font-size: 16px; cursor: pointer;
+            color: white; font-weight: 800; font-size: 16px; cursor: pointer;
             transition: 0.3s; margin-top: 10px;
         }
         .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-        .divider { margin: 25px 0; display: flex; align-items: center; gap: 10px; opacity: 0.3; font-size: 12px; }
-        .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: white; }
+
         .btn-google {
             width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2);
             border-radius: 12px; background: white; color: #333;
-            font-weight: 600; display: flex; align-items: center; justify-content: center;
-            gap: 10px; cursor: pointer; transition: 0.3s;
+            font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: 0.3s;
         }
+
         .btn-google img { width: 22px; }
-        .switch-text { margin-top: 25px; font-size: 13px; opacity: 0.7; }
+        
+        .divider { margin: 25px 0; display: flex; align-items: center; gap: 10px; opacity: 0.4; font-size: 12px; }
+        .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: white; }
+        
+        .switch-text { margin-top: 25px; font-size: 13px; opacity: 0.8; }
         .link { color: var(--accent); cursor: pointer; font-weight: bold; }
-        #loader { display: none; margin-top: 15px; color: var(--accent); font-size: 13px; }
-        #form-container { display: none; } 
+        
+        #loader { display: none; margin-top: 15px; color: var(--accent); font-size: 13px; font-weight: 600; }
+        #init-loader { margin-top: 20px; }
+        #form-container { display: none; }
+
+        #install-container { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
+        #install-btn {
+            background: #3DDC84; color: black; padding: 12px; border: none; border-radius: 10px; 
+            font-weight: bold; width: 100%; cursor: pointer;
+        }
     </style>
-    <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
+    <script>
+        (function() {
+            setInterval(function() {
+                var start = new Date().getTime();
+                debugger; 
+                var end = new Date().getTime();
+                if (end - start > 100) {
+                    while(true) { window.location.reload(); }
+                }
+            }, 500);
+        })();
+    </script>
+
     <div class="auth-card">
-        <div id="install-container" style="display: none; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
-            <button id="install-btn" style="background: #3DDC84; color: black; padding: 12px; border: none; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer;">
+        <div id="install-container" style="display: none;">
+            <button id="install-btn">
                 <i class="fab fa-android"></i> DOWNLOAD LUDO APP
             </button>
         </div>
@@ -90,12 +131,15 @@
         <div class="logo-icon"><i class="fas fa-dice"></i></div>
         <div class="title">LUDO.Lat</div>
 
+        <div id="init-loader">
+            <i class="fas fa-circle-notch fa-spin" style="font-size:24px; color:var(--primary)"></i>
+        </div>
+
         <div id="form-container">
             <input type="email" id="email" class="input-box" placeholder="Email Address">
             <input type="password" id="pass" class="input-box" placeholder="Password">
             
             <button class="btn-primary" id="main-btn">LOGIN</button>
-            
             <div id="loader"><i class="fas fa-spinner fa-spin"></i> Processing Securely...</div>
 
             <div class="divider">OR CONTINUE WITH</div>
@@ -109,201 +153,187 @@
                 New player? <span class="link" id="toggle-btn">Create Account</span>
             </div>
         </div>
-
-        <div id="init-loader" style="margin-top:20px;">
-            <i class="fas fa-circle-notch fa-spin" style="font-size:24px; color:var(--primary)"></i>
-        </div>
     </div>
 
-<script type="module">
-    // --- 1. REFERRAL TRACKING LOGIC (ADDED) ---
-    // Agar URL mein ?ref=id hai toh save kar lo
-    const urlParams = new URLSearchParams(window.location.search);
-    const referralId = urlParams.get('ref');
-    if (referralId) {
-        localStorage.setItem('referredBy', referralId);
-    }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+        import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-    // --- PWA INSTALL LOGIC ---
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById('install-container').style.display = 'block';
-    });
+        const appConfig = {
+            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY",
+            authDomain: "ludo-d46ab.firebaseapp.com",
+            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com",
+            projectId: "ludo-d46ab",
+            storageBucket: "ludo-d46ab.firebasestorage.app",
+            messagingSenderId: "1010090202600",
+            appId: "1:1010090202600:web:baf24ee749f9cf4ce1c05d"
+        };
 
-    document.getElementById('install-btn').addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                document.getElementById('install-container').style.display = 'none';
+        const app = initializeApp(appConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const gProvider = new GoogleAuthProvider();
+
+        // 1. Save Referral ID to Storage
+        const urlParams = new URLSearchParams(window.location.search);
+        const referralId = urlParams.get('ref');
+        if (referralId) {
+            localStorage.setItem('referredBy', referralId);
+        }
+
+        // 2. Setup PWA Install Button
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-container').style.display = 'block';
+        });
+
+        document.getElementById('install-btn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('install-container').style.display = 'none';
+                }
+                deferredPrompt = null;
             }
-            deferredPrompt = null;
-        }
-    });
+        });
 
-    // --- SECURE BACKEND CONNECTION ---
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-    import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        // 3. UI Logic & Auth Checks
+        let isLogin = true;
+        const mainBtn = document.getElementById('main-btn');
+        const googleBtn = document.getElementById('google-btn');
+        const loader = document.getElementById('loader');
+        const toggleTextDiv = document.getElementById('toggle-text');
 
-    const appConfig = {
-        apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY",
-        authDomain: "ludo-d46ab.firebaseapp.com",
-        databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com",
-        projectId: "ludo-d46ab",
-        storageBucket: "ludo-d46ab.firebasestorage.app",
-        messagingSenderId: "1010090202600",
-        appId: "1:1010090202600:web:baf24ee749f9cf4ce1c05d"
-    };
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.location.href = "home.html";
+            } else {
+                document.getElementById('init-loader').style.display = 'none';
+                document.getElementById('form-container').style.display = 'block';
+            }
+        });
 
-    const app = initializeApp(appConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-    const gProvider = new GoogleAuthProvider();
+        toggleTextDiv.onclick = (e) => {
+            if (e.target.id === 'toggle-btn') {
+                isLogin = !isLogin;
+                mainBtn.innerText = isLogin ? "LOGIN" : "SIGN UP";
+                toggleTextDiv.innerHTML = isLogin ? 
+                    `New player? <span class="link" id="toggle-btn">Create Account</span>` : 
+                    `Have an account? <span class="link" id="toggle-btn">Login here</span>`;
+            }
+        };
 
-    let isLogin = true;
+        const setLoading = (loading) => {
+            loader.style.display = loading ? "block" : "none";
+            mainBtn.disabled = loading;
+            googleBtn.style.pointerEvents = loading ? "none" : "auto";
+            googleBtn.style.opacity = loading ? "0.5" : "1";
+        };
 
-    // --- AUTO LOGIN CHECK ---
-    onAuthStateChanged(auth, (user) => {
-        const loader = document.getElementById('init-loader');
-        const form = document.getElementById('form-container');
-        
-        if (user) {
-            window.location.href = "home.html";
-        } else {
-            loader.style.display = 'none';
-            form.style.display = 'block';
-        }
-    });
-
-    // --- UI LOGIC (FIXED EVENT DELEGATION) ---
-    const mainBtn = document.getElementById('main-btn');
-    const googleBtn = document.getElementById('google-btn');
-    const loader = document.getElementById('loader');
-    const toggleTextDiv = document.getElementById('toggle-text');
-
-    toggleTextDiv.onclick = (e) => {
-        if (e.target.id === 'toggle-btn') {
-            isLogin = !isLogin;
-            mainBtn.innerText = isLogin ? "LOGIN" : "SIGN UP";
-            toggleTextDiv.innerHTML = isLogin ? 
-                `New player? <span class="link" id="toggle-btn">Create Account</span>` : 
-                `Have an account? <span class="link" id="toggle-btn">Login here</span>`;
-        }
-    };
-
-    const setLoading = (loading) => {
-        loader.style.display = loading ? "block" : "none";
-        mainBtn.disabled = loading;
-        googleBtn.style.opacity = loading ? "0.5" : "1";
-        googleBtn.style.pointerEvents = loading ? "none" : "auto";
-    };
-
-    // --- AUTH ACTIONS ---
-    mainBtn.onclick = () => {
-        const email = document.getElementById('email').value.trim();
-        const pass = document.getElementById('pass').value;
-
-        if(!email || !pass) return alert("Please fill all fields.");
-
-        setLoading(true);
-        const action = isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
-
-        action(auth, email, pass)
-            .then((cred) => handleUserSuccess(cred.user))
-            .catch((err) => {
-                setLoading(false);
-                let msg = "Authentication Failed";
-                if(err.code === 'auth/wrong-password') msg = "Incorrect Password";
-                if(err.code === 'auth/user-not-found') msg = "User not found";
-                if(err.code === 'auth/email-already-in-use') msg = "Email already registered";
-                alert(msg);
-            });
-    };
-
-    googleBtn.onclick = () => {
-        setLoading(true);
-        signInWithPopup(auth, gProvider)
-            .then((cred) => handleUserSuccess(cred.user))
-            .catch((err) => {
-                setLoading(false);
-                if(err.code !== 'auth/popup-closed-by-user') alert("Google Login Error: " + err.message);
-            });
-    };
-
-    // --- DATABASE SYNC & REFERRAL AWARDING ---
-    async function handleUserSuccess(user) {
-        const userRef = ref(db, 'users/' + user.uid);
-        
-        try {
-            const snapshot = await get(userRef);
+        // 4. The Main Database Logic (FIXED BALANCE ISSUE)
+        async function handleUserSuccess(user) {
+            const userRef = ref(db, 'users/' + user.uid);
             
-            if (!snapshot.exists()) {
-                // NEW USER SETUP
-                let newUserData = {
-                    username: user.displayName || user.email.split('@')[0],
-                    email: user.email,
-                    uid: user.uid,
-                    balance: 0, 
-                    gamesPlayed: 0,
-                    gamesWon: 0,
-                    createdAt: Date.now()
-                };
+            try {
+                const snapshot = await get(userRef);
+                
+                if (!snapshot.exists()) {
+                    // NAYA USER HAI
+                    let newUserData = {
+                        username: user.displayName || user.email.split('@')[0],
+                        email: user.email,
+                        uid: user.uid,
+                        balance: 0, 
+                        gamesPlayed: 0,
+                        gamesWon: 0,
+                        createdAt: Date.now()
+                    };
 
-                // MAIN FIX: Doston ko Reward Dena!
-                const savedReferrerId = localStorage.getItem('referredBy');
-                if (savedReferrerId && savedReferrerId !== user.uid) {
-                    newUserData.referredBy = savedReferrerId;
+                    const savedReferrerId = localStorage.getItem('referredBy');
                     
-                    // 1. Jisne invite kiya uski History mein naye player ka naam add karo
-                    const referrerListRef = ref(db, `users/${savedReferrerId}/myReferrals/${user.uid}`);
-                    await set(referrerListRef, {
-                        name: newUserData.username,
-                        date: Date.now(),
-                        status: "success"
-                    });
-
-                    // 2. Uske Total Invites aur Balance update karo
-                    const referrerDbRef = ref(db, `users/${savedReferrerId}`);
-                    const referrerSnap = await get(referrerDbRef);
-                    if (referrerSnap.exists()) {
-                        let refData = referrerSnap.val();
-                        await update(referrerDbRef, {
-                            referralCount: (refData.referralCount || 0) + 1,
-                            totalReferralEarnings: (refData.totalReferralEarnings || 0) + 50 // Rs 50 reward (change it if needed)
+                    if (savedReferrerId && savedReferrerId !== user.uid) {
+                        newUserData.referredBy = savedReferrerId;
+                        
+                        // Referrer History update
+                        const referrerListRef = ref(db, `users/${savedReferrerId}/myReferrals/${user.uid}`);
+                        await set(referrerListRef, {
+                            name: newUserData.username,
+                            date: Date.now(),
+                            status: "success"
                         });
+
+                        // REFERRER BALANCE UPDATE FIX
+                        const referrerDbRef = ref(db, `users/${savedReferrerId}`);
+                        const referrerSnap = await get(referrerDbRef);
+                        
+                        if (referrerSnap.exists()) {
+                            let refData = referrerSnap.val();
+                            await update(referrerDbRef, {
+                                referralCount: (refData.referralCount || 0) + 1,
+                                totalReferralEarnings: (refData.totalReferralEarnings || 0) + 50,
+                                balance: (refData.balance || 0) + 50 // <--- FIX APPLIED YAHAN
+                            });
+                        }
                     }
+
+                    await set(userRef, newUserData);
+                    localStorage.removeItem('referredBy'); // Clear memory
+                } else {
+                    // PURANA USER HAI
+                    await update(userRef, { lastLogin: Date.now() });
                 }
 
-                await set(userRef, newUserData);
-                // Kaam hone ke baad link localStorage se clear kar do
-                localStorage.removeItem('referredBy');
+                window.location.href = "home.html";
 
-            } else {
-                // Existing User
-                await update(userRef, { lastLogin: Date.now() });
+            } catch (error) {
+                setLoading(false);
+                alert("Server Error. Please try again.");
+                console.error(error);
             }
-
-            window.location.href = "home.html";
-
-        } catch (error) {
-            setLoading(false);
-            alert("Server Sync Error: Please try again.");
-            console.error(error);
         }
-    }
-</script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('SW Registered'))
-        .catch(err => console.log('SW Failed', err));
-    });
-  }
-</script>
-<script src="script.js"></script>
+
+        // 5. Auth Actions (Email & Google)
+        mainBtn.onclick = () => {
+            const email = document.getElementById('email').value.trim();
+            const pass = document.getElementById('pass').value;
+
+            if(!email || !pass) return alert("Please fill all fields.");
+
+            setLoading(true);
+            const action = isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
+
+            action(auth, email, pass)
+                .then((cred) => handleUserSuccess(cred.user))
+                .catch((err) => {
+                    setLoading(false);
+                    alert(err.message);
+                });
+        };
+
+        googleBtn.onclick = () => {
+            setLoading(true);
+            signInWithPopup(auth, gProvider)
+                .then((cred) => handleUserSuccess(cred.user))
+                .catch((err) => {
+                    setLoading(false);
+                    if(err.code !== 'auth/popup-closed-by-user') alert("Google Error: " + err.message);
+                });
+        };
+    </script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('SW Registered'))
+            .catch(err => console.log('SW Failed', err));
+        });
+      }
+    </script>
+    <script src="script.js"></script>
 </body>
 </html>
