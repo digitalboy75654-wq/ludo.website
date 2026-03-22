@@ -153,7 +153,43 @@
         .b-pending { background: rgba(241, 196, 15, 0.15); color: var(--gold); border: 1px solid rgba(241, 196, 15, 0.3); }
         .b-approved { background: rgba(46, 204, 113, 0.15); color: var(--success); border: 1px solid rgba(46, 204, 113, 0.3); }
         .b-rejected { background: rgba(231, 76, 60, 0.15); color: var(--danger); border: 1px solid rgba(231, 76, 60, 0.3); }
+/* --- NEW BONUS CARDS STYLING --- */
+.bonus-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 cards ek line mein */
+    gap: 10px;
+    margin-bottom: 20px;
+}
 
+.bonus-card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 5px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.bonus-card .amt-val {
+    display: block;
+    font-size: 15px;
+    font-weight: 800;
+    color: white;
+}
+
+.bonus-card .bonus-txt {
+    display: block;
+    font-size: 9px;
+    color: var(--success);
+    font-weight: 600;
+}
+
+.bonus-card.active {
+    background: var(--primary);
+    border-color: var(--gold);
+    transform: scale(0.95);
+}
     </style>
 </head>
 <body>
@@ -191,7 +227,16 @@
             
             <div class="copy-btn" onclick="copyText()">Copy Account / Address</div>
         </div>
-
+<div class="section-label">Quick Select (With Bonus)</div>
+<div class="bonus-grid">
+    <div class="bonus-card" onclick="setBonusAmt(100, 0, this)"><span class="amt-val">100</span><span class="bonus-txt">No Bonus</span></div>
+    <div class="bonus-card" onclick="setBonusAmt(200, 10, this)"><span class="amt-val">200</span><span class="bonus-txt">+10 Bonus</span></div>
+    <div class="bonus-card" onclick="setBonusAmt(500, 40, this)"><span class="amt-val">500</span><span class="bonus-txt">+40 Bonus</span></div>
+    <div class="bonus-card" onclick="setBonusAmt(1000, 90, this)"><span class="amt-val">1000</span><span class="bonus-txt">+90 Bonus</span></div>
+    <div class="bonus-card" onclick="setBonusAmt(2000, 200, this)"><span class="amt-val">2000</span><span class="bonus-txt">+200 Bonus</span></div>
+    <div class="bonus-card" onclick="setBonusAmt(5000, 600, this)"><span class="amt-val">5000</span><span class="bonus-txt">+600 Bonus</span></div>
+    
+</div>
         <div class="section-label">Transaction Details</div>
         <div class="input-group">
             <input type="number" id="amount" class="input-field" placeholder="Enter Amount (e.g. 500)">
@@ -235,6 +280,17 @@
 
         let currentUser = null;
         let selectedMethod = "";
+        let selectedBonus = 0; // Ye line variable set karegi
+
+window.setBonusAmt = function(amt, bonus, el) {
+    // Input field mein auto-fill amount
+    document.getElementById('amount').value = amt;
+    selectedBonus = bonus; // Bonus ko yaad rakhega
+
+    // Design update (highlight selected)
+    document.querySelectorAll('.bonus-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+}
         let adminAccounts = {};
 
         // --- 1. AUTH CHECK & LOAD DATA ---
@@ -325,6 +381,10 @@
 
             const reqRef = push(ref(db, 'deposit_requests'));
             set(reqRef, {
+                // Isko set(...) ke andar daalna he
+amount: Number(amt),
+bonus: Number(selectedBonus),
+totalToCredit: Number(amt) + Number(selectedBonus), // Ye total amount hogi
                 userId: currentUser.uid,
                 method: selectedMethod,
                 amount: amt,
@@ -332,12 +392,14 @@
                 trxID: trx,
                 status: "Pending",
                 timestamp: Date.now()
+                
             }).then(() => {
                 alert("Deposit Request Sent Successfully! Admin will verify and approve shortly.");
                 document.getElementById('amount').value = "";
                 document.getElementById('trx').value = "";
                 document.getElementById('sender').value = "";
             }).catch(e => alert("Error processing request: " + e.message));
+            
         }
 
         // --- 4. LOAD HISTORY ---
@@ -383,4 +445,3 @@ function loadHistory(uid) {
     <script src="script.js"></script>
 </body>
 </html>
-
