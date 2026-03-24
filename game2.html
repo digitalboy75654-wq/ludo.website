@@ -1,8 +1,3 @@
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -850,26 +845,71 @@ window.requestFriend = async (color) => {
 
 // 3. 'listenToLiveUpdates' ke andar jahan data.players milta hai, wahan setupFriendButton call karein:
 // find this inside listenToLiveUpdates:
-if (data.players) {
-    setupFriendButton(data.players); // <--- Ye line add karein
-}
-                // Taake dono ke skips screen par nazar aayen
-if (window.initSkipDisplay) {
-    window.initSkipDisplay(db, ref, onValue, GAME_ID, ENTRY_FEE);
-}
-
-                // 1. WAITING OVERLAY FIX
-                // data.players aik object hota hai jiske andar UID keys hoti hain
+// 1. WAITING OVERLAY FIX & BOT INJECTION
                 if (data.players) {
+                    window.playersData = data.players; // Bot Brain کے لیے ڈیٹا محفوظ کر رہے ہیں
                     const playerIds = Object.keys(data.players);
                     console.log("Players in room:", playerIds.length);
 
-                    // Agar 2 players hain toh matching screen hatao
-                    if (playerIds.length >= 2) {
+                    // --- ✨ 15 SECONDS BOT TIMER ---
+                    // --- ✨ SMART BOT INJECTION WITH 100+ NAMES ---
+if (playerIds.length === 1 && !isSpectator) {
+    if (!window.botTimer) {
+        window.botTimer = setTimeout(async () => {
+            console.log("No real player found. Injecting a unique Bot...");
+
+            // 1. 100+ Unique Pakistani/Desi Names List
+            const botNames = [
+                "Zain_786 🇵🇰", "Ali_Khan 🇵🇰", "Hamza_Pro 🇵🇰", "Sajid_Malik", "Usman_Ghani", 
+                "Ahmad_King", "Fahad_Jatt", "Bilal_Warraich", "Umer_Pasha", "Raza_Ali",
+                "Arsalan_007", "Kamran_Lucky", "Daniyal_Victory", "Shoaib_Star", "Waqas_Legend",
+                "Babar_Azam_Fan", "Rizwan_Hero", "Shaheen_Speed", "Fakhar_Power", "Shadab_Khan",
+                "Irfan_Pathan", "Zeeshan_Gujjar", "Adeel_Butt", "Noman_Prince", "Hassan_Ali",
+                "Asad_Sial", "Muneeb_Sheikh", "Taimoor_Sethi", "Haris_Rauf", "Imran_Khan",
+                "Saif_Ullah", "Rehan_Lodhi", "Farhan_Siddiqui", "Ahsan_Mughal", "Khurram_Shah",
+                "Sufyan_Rider", "Tayyab_Don", "Nouman_Ch", "Abbas_Mustafa", "Hasnain_Ali",
+                "Zohaib_Awan", "Faisal_Mehmood", "Sarmad_Khoosat", "Junaid_Jamshed", "Atif_Aslam",
+                "Omer_Zahid", "Mudassir_Khan", "Sami_Ullah", "Tahir_Shah", "Amir_Liaquat",
+                "Nasir_Jamshed", "Azhar_Mahmood", "Saqlain_Mushtaq", "Wasim_Akram", "Waqar_Younis",
+                "Misbah_ul_Haq", "Younis_Khan", "Inzamam_ul_Haq", "Shoaib_Akhtar", "Shahid_Afridi",
+                "Umar_Akmal", "Kamran_Akmal", "Sharjeel_Khan", "Sarfraz_Ahmed", "Imad_Wasim",
+                "Asif_Ali", "Khushdil_Shah", "Iftikhar_Ahmed", "Mohammad_Amir", "Wahab_Riaz",
+                "Yasir_Shah", "Faheem_Ashraf", "Haider_Ali", "Azam_Khan", "Saim_Ayub",
+                "Tayyab_Tahir", "Mir_Hamza", "Zaman_Khan", "Ihsanullah_150", "Usama_Mir",
+                "Agha_Salman", "Shan_Masood", "Abdullah_Shafique", "Imam_ul_Haq", "Sohaib_Maqsood",
+                "Sharjeel_Pro", "Ahmed_Shehzad", "Junaid_Khan", "Sohail_Khan", "Rahat_Ali",
+                "Mohammad_Irfan", "Zulfiqar_Babri", "Bilawal_Bhatti", "Anwar_Ali", "Khurram_Manzoor",
+                "Fawad_Alam", "Sami_Aslam", "Saad_Nasim", "Mukhtar_Ahmed", "Riffat_Ullah"
+            ];
+
+            // 2. Random Name اور Photo منتخب کریں
+            const randomName = botNames[Math.floor(Math.random() * botNames.length)];
+            // pravatar کی مدد سے 70 مختلف انسانی شکلیں
+            const randomPhoto = `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`;
+            
+            const botId = "BOT_" + Date.now();
+            const botColor = myColor === 'red' ? 'yellow' : 'red';
+
+            // 3. Firebase میں بوٹ کا ڈیٹا بھیجیں
+            await set(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/players/${botId}`), {
+                uid: botId,
+                name: randomName,
+                photo: randomPhoto,
+                color: botColor,
+                isBot: true,
+                ready: true,
+                online: 'online'
+            });
+
+        }, 2000); // 2 second baad bot aa jayega
+    }
+
+                    } else if (playerIds.length >= 2) {
+                        if (window.botTimer) clearTimeout(window.botTimer); // اگر اصلی بندہ آ جائے تو ٹائمر کینسل
+                        
                         const overlay = document.getElementById('waiting-overlay');
                         if (overlay) {
                             overlay.style.display = 'none';
-                            console.log("Overlay Hidden");
                         }
                     }
 
@@ -880,7 +920,11 @@ if (window.initSkipDisplay) {
                         const imgEl = document.getElementById(`img-${p.color}`);
                         const badgeEl = document.getElementById(`badge-${p.color}`);
 
-                        if(nameEl) nameEl.innerText = p.name;
+                        if(nameEl) {
+                            nameEl.innerText = p.name;
+                            // ✨ بوٹ کا نام گولڈن کلر میں دکھائیں تاکہ پہچانا جائے
+                            if (p.isBot) nameEl.style.color = '#f1c40f'; 
+                        }
                         if(imgEl) imgEl.style.backgroundImage = `url('${p.photo}')`;
 
                         if (p.uid === currentUser.uid) {
@@ -892,13 +936,11 @@ if (window.initSkipDisplay) {
                         }
 
                         // Check if opponent left
-                        // Check if opponent left (Lekin Spectator ke jane se game end na ho)
-if (p.uid !== currentUser.uid && p.online === "left" && !isSpectator) {
-    handleForcedEnd(myColor); // I win since opponent left
-}
+                        if (p.uid !== currentUser.uid && p.online === "left" && !isSpectator && !p.isBot) {
+                            handleForcedEnd(myColor); 
+                        }
                     });
                 }
-
                 // 2. DICE SYNC FIX
                 if (data.lastRoll && data.lastRoll.ts !== lastProcessedRoll) {
                     lastProcessedRoll = data.lastRoll.ts;
@@ -1585,6 +1627,128 @@ setTimeout(() => {
         }
     }
 }, 20000); // Perfect 20 Seconds
+// ==========================================
+// 🤖 BOT BRAIN (AUTO-PLAY LOGIC)
+// ==========================================
+setInterval(async () => {
+    if (!window.Game || !window.playersData || !GAME_ID) return;
+
+    const turnColor = window.Game.turn;
+    const activePlayer = Object.values(window.playersData).find(p => p.color === turnColor);
+
+    // صرف تب چلے جب موجودہ باری بوٹ کی ہو، اور آپ Spectator نہ ہوں
+    if (activePlayer && activePlayer.isBot && myColor !== 'spectator' && myColor !== turnColor) {
+        
+        if (!window.Game.isRolling && !window.Game.hasRolled) {
+            window.Game.isRolling = true; // ڈبل رول سے بچنے کے لیے
+            
+            // 1. بوٹ ڈائس رول کر رہا ہے
+            let val = Math.floor(Math.random() * 6) + 1;
+            
+            // Firebase میں ڈائس کی ویلیو اپڈیٹ کریں (اس سے اینیمیشن خود بخود چلے گی)
+            await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), { 
+                lastRoll: { color: turnColor, value: val, ts: Date.now() } 
+            });
+
+            // 2. اینیمیشن ختم ہونے کا انتظار کریں، پھر گوٹی چلیں
+            setTimeout(() => {
+                botMoveToken(turnColor, val);
+            }, 1500); 
+        }
+    }
+}, 2000);
+
+// بوٹ کی گوٹی چلنے کا لاجک
+// ==========================================
+// 🤖 ULTRA-SMART BOT BRAIN (PRO STRATEGY)
+// ==========================================
+async function botMoveToken(color, val) {
+    let tokens = window.Game.tokens[color];
+    let oppColor = color === 'red' ? 'yellow' : 'red';
+    let oppTokens = window.Game.tokens[oppColor];
+    let movableTokens = [];
+    const safeZones = [1, 9, 14, 22, 27, 35, 40, 48]; // Ludo Star/Safe positions
+
+    // 1. Valid moves check karein
+    tokens.forEach((pos, i) => {
+        if ((pos === 0 && val === 6) || (pos > 0 && pos + val <= 57)) {
+            movableTokens.push({ index: i, position: pos });
+        }
+    });
+
+    if (movableTokens.length === 0) {
+        // Agar koi move nahi hai to turn pass karein
+        const nextTurn = oppColor;
+        await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
+            turn: nextTurn, [`skips/${color}`]: 0 
+        });
+        window.Game.isRolling = false; window.Game.hasRolled = false;
+        return;
+    }
+
+    let tokenToMove = -1;
+
+    // --- 🥇 Priority 1: Kill (Opponent ko marna) ---
+    for (let t of movableTokens) {
+        let nextPos = t.position + val;
+        // Check agar dushman us spot pe hai aur wo safe zone nahi hai
+        if (nextPos > 0 && nextPos < 52 && !safeZones.includes(nextPos)) {
+            if (oppTokens.includes(nextPos)) {
+                tokenToMove = t.index;
+                break; 
+            }
+        }
+    }
+
+    // --- 🥈 Priority 2: Safe Position (Star pe jana) ---
+    if (tokenToMove === -1) {
+        let safeMove = movableTokens.find(t => safeZones.includes(t.position + val));
+        if (safeMove) tokenToMove = safeMove.index;
+    }
+
+    // --- 🥉 Priority 3: Ghar se nikalna (Unlock piece on 6) ---
+    if (tokenToMove === -1 && val === 6) {
+        let unlockPiece = movableTokens.find(t => t.position === 0);
+        if (unlockPiece) tokenToMove = unlockPiece.index;
+    }
+
+    // --- 🏃 Priority 4: Finish ke kareeb (Home run) ---
+    if (tokenToMove === -1) {
+        // Jo piece 50 se aage hai usay pehle chalao
+        let homePiece = movableTokens.find(t => t.position > 50);
+        if (homePiece) tokenToMove = homePiece.index;
+    }
+
+    // --- ⚠️ Priority 5: Danger se bachna ---
+    if (tokenToMove === -1) {
+        // Aisi move dhoondo jo bot ko dushman ki range (1-6) se bahar nikale
+        let riskyMoves = movableTokens.filter(t => {
+            let nextPos = t.position + val;
+            return oppTokens.some(op => op > 0 && nextPos > op && nextPos - op <= 6);
+        });
+
+        // Agar saari moves risky nahi hain, to safe wali chuno
+        if (riskyMoves.length < movableTokens.length) {
+            let safeOptions = movableTokens.filter(t => !riskyMoves.includes(t));
+            if (safeOptions.length > 0) {
+                safeOptions.sort((a, b) => b.position - a.position);
+                tokenToMove = safeOptions[0].index;
+            }
+        }
+    }
+
+    // --- Default Move (Agar kuch match na ho) ---
+    if (tokenToMove === -1) {
+        movableTokens.sort((a, b) => b.position - a.position);
+        tokenToMove = movableTokens[0].index;
+    }
+
+    // Final Move Execution
+    await window.Game.handleMoveForColor(color, tokenToMove, val);
+    
+    window.Game.isRolling = false;
+    window.Game.hasRolled = false;
+}
     </script>
     <script src="script.js"></script>
     <script type="module" src="globalManager.js"></script>
