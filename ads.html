@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn Reward - Ads</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@600&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon-blue: #00d2d3; --neon-gold: #f1c40f; --bg-dark: #0f0c29; }
+        body { margin: 0; background: var(--bg-dark); color: white; font-family: 'Rajdhani', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .ad-card { width: 90%; max-width: 450px; background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(15px); border: 2px solid var(--neon-blue); border-radius: 25px; padding: 40px 20px; box-shadow: 0 0 40px rgba(0, 210, 211, 0.2); }
+        #ad-frame-container { width: 100%; height: 250px; background: #000; border-radius: 15px; margin-bottom: 20px; border: 1px solid #333; overflow: hidden; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .timer-display { font-family: 'Orbitron'; font-size: 3.5rem; color: var(--neon-gold); margin: 20px 0; }
+        .claim-btn { display: none; background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; border: none; padding: 18px 45px; font-size: 1.3rem; font-weight: bold; border-radius: 50px; cursor: pointer; font-family: 'Orbitron'; box-shadow: 0 5px 20px rgba(46, 204, 113, 0.4); }
+        .cooldown-msg { display: none; color: #ff4757; font-family: 'Orbitron'; font-size: 1.5rem; margin-top: 20px; }
+        #status-msg { margin-top: 15px; font-size: 1rem; color: #aaa; }
+    </style>
+</head>
+<body>
+
+    <div class="ad-card">
+        <h2 style="font-family:'Orbitron'; color:var(--neon-blue);">REWARD SYSTEM</h2>
+        
+        <div id="ad-area">
+            <p id="top-instruction">Wait for timer to claim ₹5 reward</p>
+            <div id="ad-frame-container">
+                <iframe src="https://eminentpercentvandalism.com/p35s5q96?key=77070273e5a947f730f950dfed2ae74b"></iframe>
+            </div>
+            <div class="timer-display" id="timer">20</div>
+            <button class="claim-btn" id="claimBtn">CLAIM ₹5</button>
+        </div>
+
+        <div id="cooldown-area" style="display:none;">
+            <i class="fas fa-clock" style="font-size: 3rem; color: #f1c40f; margin-bottom: 10px;"></i>
+            <h3>COOLDOWN ACTIVE</h3>
+            <p>You can watch next ad in:</p>
+            <div class="timer-display" id="cooldown-timer">00:00</div>
+            <button onclick="window.location.href='home.html'" style="background:transparent; border:1px solid white; color:white; padding:10px 20px; border-radius:5px; cursor:pointer;">Back to Home</button>
+        </div>
+
+        <p id="status-msg">Initializing...</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY",
+            authDomain: "ludo-d46ab.firebaseapp.com",
+            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com",
+            projectId: "ludo-d46ab"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+        let adTimeLeft = 20;
+        const cooldownTime = 10 * 10 * 1000; // 1 Hour
+
+        const timerEl = document.getElementById('timer');
+        const claimBtn = document.getElementById('claimBtn');
+        const statusEl = document.getElementById('status-msg');
+        const adArea = document.getElementById('ad-area');
+        const cooldownArea = document.getElementById('cooldown-area');
+        const cooldownTimerEl = document.getElementById('cooldown-timer');
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                checkUserStatus(user.uid);
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function checkUserStatus(uid) {
+            const userRef = ref(db, 'users/' + uid);
+            onValue(userRef, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                const lastTime = data.last_ad_time || 0;
+                const now = Date.now();
+                const diff = cooldownTime - (now - lastTime);
+
+                if (diff > 0) {
+                    // 1 Hour Timer Chalana Hai
+                    adArea.style.display = 'none';
+                    cooldownArea.style.display = 'block';
+                    statusEl.innerText = "Please wait for cooldown.";
+                    
+                    const m = Math.floor(diff / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    cooldownTimerEl.innerText = `${m}:${s < 10 ? '0'+s : s}`;
+                } else {
+                    // Ad dikhana hai
+                    adArea.style.display = 'block';
+                    cooldownArea.style.display = 'none';
+                    startAdTimer();
+                }
+            });
+        }
+
+        function startAdTimer() {
+            statusEl.innerText = "Watch the ad...";
+            const interval = setInterval(() => {
+                adTimeLeft--;
+                timerEl.innerText = adTimeLeft;
+                if (adTimeLeft <= 0) {
+                    clearInterval(interval);
+                    timerEl.style.display = 'none';
+                    claimBtn.style.display = 'inline-block';
+                    statusEl.innerText = "Claim your ₹5 now!";
+                }
+            }, 1000);
+        }
+
+        window.claimReward = async function() {
+            if (!currentUser) return;
+            claimBtn.disabled = true;
+            const userRef = ref(db, 'users/' + currentUser.uid);
+            
+            try {
+                const snap = await get(userRef);
+                const data = snap.val();
+                const newBal = (parseFloat(data.balance) || 0) + 5;
+                
+                await update(userRef, {
+                    balance: newBal,
+                    last_ad_time: Date.now()
+                });
+
+                alert("✅ Success! ₹5 added to balance.");
+                // Update ke baad onValue khud hi 1-hour timer shuru kar degi
+            } catch (e) {
+                alert("Error! Try again.");
+                claimBtn.disabled = false;
+            }
+        };
+
+        claimBtn.onclick = window.claimReward;
+    </script>
+</body>
+</html>
