@@ -46,6 +46,8 @@
             font-family: 'Orbitron';
             box-shadow: 0 0 15px var(--neon-blue);
             transition: 0.3s;
+            text-decoration: none; /* Link ke niche line hatane ke liye */
+            display: inline-block;
         }
 
         .timer-display { 
@@ -83,7 +85,10 @@
             <div id="ad-placeholder">
                 <i class="fas fa-play-circle" style="font-size: 3rem; color: var(--neon-blue); margin-bottom: 10px;"></i>
                 <p>Click below to open Ad & Start Timer</p>
-                <button class="watch-btn" id="watchBtn">WATCH AD</button>
+                
+                <a href="https://eminentpercentvandalism.com/p35s5q970273e5a947f730f950dfed2ae74b" target="_blank" id="watchBtn" class="watch-btn">
+                    WATCH AD
+                </a>
             </div>
 
             <div class="timer-display" id="timer">20</div>
@@ -118,7 +123,9 @@
         const auth = getAuth(app);
 
         let currentUser = null;
-        const cooldownTime = 60 * 60 * 1000; // 1 Hour
+        
+        // 1 Hour ka time set kar diya gaya hai. (Test karna ho to 60000 yani 1 minute kar lein)
+        const cooldownTime = 60 * 60 * 1000; 
 
         const watchBtn = document.getElementById('watchBtn');
         const timerEl = document.getElementById('timer');
@@ -163,12 +170,11 @@
             });
         }
 
-        // Jab User Watch Button dabaye
+        // Jab User Watch Link click karega (ab yeh button nahi link hai)
         watchBtn.onclick = () => {
-            // New Tab mein Ad khulegi (High Earning)
-            window.open("https://eminentpercentvandalism.com/p35s5q96?key=77070273e5a947f730f950dfed2ae74b");
+            // Hamein 'window.open' ki zaroorat nahi, HTML ka 'target="_blank"' khud ad khol dega.
             
-            // UI Update
+            // UI Update aur Timer shuru
             document.getElementById('ad-placeholder').style.display = 'none';
             timerEl.style.display = 'block';
             startAdTimer();
