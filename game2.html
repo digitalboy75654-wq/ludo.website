@@ -2,26 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>
-  // Silent Anti-Debugger Loop
-  (function() {
-    setInterval(function() {
-      // 1. Debugger statement ko check karo
-      var start = new Date().getTime();
-      debugger; // Agar DevTools khula hai, yahan execution ruk jayegi
-      var end = new Date().getTime();
-      
-      // 2. Agar delay 100ms se zyada hai, matlab DevTools khula hai
-      if (end - start > 100) {
-        // RAM ko full karne ka logic ya page reload
-        while(true) { 
-           console.log("Security Lock Enabled"); 
-           window.location.reload(); 
-        }
-      }
-    }, 500);
-  })();
-</script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ludo Live - Full Board Beautiful</title>
@@ -1629,144 +1610,242 @@ setTimeout(() => {
     }
 }, 20000); // Perfect 20 Seconds
 // ==========================================
-// 🤖 HUMAN-LEVEL THINK BOT
+// 💀 IMPOSSIBLE MODE BOT (AI + LUCK CONTROL)
 // ==========================================
 
 let isBotProcessing = false;
 
+// ==========================================
+// 🎲 SMART DICE (CONTROLLED)
+// ==========================================
+function getSmartDice(myTokens, oppTokens) {
+
+    let possible = [];
+
+    for (let d = 1; d <= 6; d++) {
+
+        let score = 0;
+
+        myTokens.forEach(pos => {
+
+            if (pos === 0 && d === 6) score += 50;
+
+            if (pos > 0) {
+                let next = pos + d;
+
+                // kill chance
+                if (oppTokens.includes(next)) score += 200;
+
+                // progress
+                score += next;
+            }
+        });
+
+        possible.push({ d, score });
+    }
+
+    possible.sort((a, b) => b.score - a.score);
+
+    // 🎭 randomness add (taake cheating feel na ho)
+    if (Math.random() < 0.3) {
+        return possible[Math.floor(Math.random() * 3)].d;
+    }
+
+    return possible[0].d;
+}
+
+
+// ==========================================
+// 🔁 DISTANCE FIX
+// ==========================================
+function getDistance(from, to) {
+    if (from === 0 || to === 0) return 100;
+    return (to - from + 52) % 52;
+}
+
+
+// ==========================================
+// 🎲 AUTO TURN
+// ==========================================
 setInterval(async () => {
+
     if (!window.Game || !window.playersData || !GAME_ID || isBotProcessing) return;
 
     const turnColor = window.Game.turn;
     const activePlayer = Object.values(window.playersData).find(p => p.color === turnColor);
 
-    // Sirf bot ka turn aur spectator nahi ho
     if (activePlayer && activePlayer.isBot && myColor !== 'spectator' && myColor !== turnColor) {
+
         if (!window.Game.isRolling && !window.Game.hasRolled) {
+
             isBotProcessing = true;
             window.Game.isRolling = true;
 
-            console.log("🎲 ThinkBot Rolling...");
-            let val = Math.floor(Math.random() * 6) + 1;
+            const Game = window.Game;
+            const myTokens = Game.tokens[turnColor];
+            const oppColor = turnColor === 'red' ? 'yellow' : 'red';
+            const oppTokens = Game.tokens[oppColor];
+
+            // 🎲 SMART DICE USE
+            let val = getSmartDice(myTokens, oppTokens);
 
             try {
-                await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), { 
-                    lastRoll: { color: turnColor, value: val, ts: Date.now() } 
+                await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), {
+                    lastRoll: { color: turnColor, value: val, ts: Date.now() }
                 });
 
-                // Slight delay to mimic human reaction
-                let reactionTime = 1200 + Math.floor(Math.random() * 600); // 1200-1800ms
-setTimeout(async () => {
-    await botMoveToken(turnColor, val);
-    isBotProcessing = false;
-}, reactionTime);
+                setTimeout(async () => {
+                    await botMoveToken(turnColor, val);
+                    isBotProcessing = false;
+                }, 800 + Math.random() * 600); // human delay
 
-            } catch (error) {
-                console.error("ThinkBot Roll Error:", error);
+            } catch (e) {
+                console.error(e);
                 isBotProcessing = false;
             }
         }
     }
+
 }, 1200);
 
 
 // ==========================================
-// 🧠 THINKBOT LOGIC
+// 🧠 MOVE LOGIC
 // ==========================================
-
 async function botMoveToken(color, val) {
+
     const Game = window.Game;
+
     const myTokens = Game.tokens[color];
     const oppColor = color === 'red' ? 'yellow' : 'red';
     const oppTokens = Game.tokens[oppColor];
+
     const safeZones = [1, 9, 14, 22, 27, 35, 40, 48];
 
-    let movableTokens = [];
+    let moves = [];
 
-    // Identify movable tokens
     myTokens.forEach((pos, i) => {
+
         if ((pos === 0 && val === 6) || (pos > 0 && pos + val <= 57)) {
-            let nextPos = (pos === 0) ? 1 : pos + val;
-            movableTokens.push({ index: i, current: pos, next: nextPos });
+
+            let next = (pos === 0) ? 1 : pos + val;
+
+            let score = 0;
+
+            // 🏆 WIN
+            if (next === 57) score += 5000;
+
+            // 🔥 KILL
+            oppTokens.forEach(op => {
+                if (op > 0 && !safeZones.includes(op)) {
+                    if (getDistance(pos, op) === val) {
+                        score += 4000;
+                    }
+                }
+            });
+
+            // ⚠️ SUICIDE BLOCK
+            let danger = oppTokens.some(op => {
+                let d = getDistance(op, next);
+                return d > 0 && d <= 6;
+            });
+
+            if (danger && !safeZones.includes(next)) {
+                score -= 5000;
+            }
+
+            // 🛡 SAFE
+            if (safeZones.includes(next)) score += 1200;
+
+            // 🧱 BLOCK
+            if (myTokens.filter(t => t === next).length === 1) {
+                score += 1500;
+            }
+
+            // 🏃 ESCAPE
+            let inDanger = oppTokens.some(op => {
+                let d = getDistance(op, pos);
+                return d > 0 && d <= 6;
+            });
+
+            if (inDanger && !danger) score += 1500;
+
+            // 🎯 FUTURE KILL
+            oppTokens.forEach(op => {
+                let d = getDistance(next, op);
+                if (d > 0 && d <= 6) score += 800;
+            });
+
+            // 🚀 EXIT
+            if (pos === 0 && val === 6) score += 1000;
+
+            // 📈 PROGRESS
+            score += next * 5;
+
+            moves.push({ index: i, score });
         }
     });
 
-    if (movableTokens.length === 0) {
-        await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
-            turn: oppColor 
-        });
+    if (moves.length === 0) {
+        await skipTurn(color, oppColor);
         return;
     }
 
-    let bestMove = null;
-    let bestScore = -Infinity;
+    moves.sort((a, b) => b.score - a.score);
 
-    movableTokens.forEach(m => {
-        let score = 0;
+    let best = moves[0];
 
-        // 1️⃣ WIN (priority)
-        if (m.next === 57) score += 5000;
+    await executeMove(color, best.index, val);
+}
 
-        // 2️⃣ SAFE KILL (Opponent gotti maarna)
-        let canKill = oppTokens.includes(m.next) && !safeZones.includes(m.next);
-        if (canKill) {
-            let safeAfterKill = !oppTokens.some(op => op > 0 && m.next > op && (m.next - op) <= 6);
-            score += safeAfterKill ? 400 : 200; // safe kill vs risky
-        }
 
-        // 3️⃣ ESCAPE (Danger se bachna)
-        let inDanger = oppTokens.some(op => op > 0 && m.current > op && (m.current - op) <= 6);
-        let willBeSafe = !oppTokens.some(op => op > 0 && m.next > op && (m.next - op) <= 6);
-        if (inDanger && willBeSafe) score += 300;
+// ==========================================
+// 🎮 EXECUTE
+// ==========================================
+async function executeMove(color, idx, val) {
 
-        // 4️⃣ SAFE ZONE ENTRY
-        if (safeZones.includes(m.next)) score += 180;
+    await window.Game.handleMoveForColor(color, idx, val);
 
-        // 5️⃣ HOME LANE BONUS
-        if (m.next >= 52) score += 220;
+    window.Game.isRolling = false;
+    window.Game.hasRolled = false;
 
-        // 6️⃣ PROGRESS (advance towards goal)
-        score += m.next * 2;
+    isBotProcessing = false;
+}
 
-        // 7️⃣ CURRENT DANGER PENALTY
-        let dangerNow = oppTokens.some(op => op > 0 && m.next > op && (m.next - op) <= 6);
-        if (dangerNow && !safeZones.includes(m.next)) score -= 400;
 
-        // 8️⃣ FUTURE RISK (2-step prediction)
-        let futureRisk = 0;
-        for (let dice = 1; dice <= 6; dice++) {
-            oppTokens.forEach(op => {
-                if (op === 0) return;
-                if (m.next - op > 0 && m.next - op <= 6) futureRisk += 150;
-            });
-        }
-        score -= futureRisk;
+// ==========================================
+// ⏭ SKIP
+// ==========================================
+async function skipTurn(color, oppColor) {
 
-        // 9️⃣ EXIT BASE BONUS
-        if (m.current === 0 && val === 6) score += 150;
-
-        // 🔟 STACK PENALTY (avoid overlapping own tokens)
-        let sameSpot = myTokens.filter(t => t === m.next).length;
-        if (sameSpot > 0) score -= 100;
-
-        // Choose move with highest score
-        if (score > bestScore) {
-            bestScore = score;
-            bestMove = m;
-        }
+    await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), {
+        turn: oppColor
     });
 
-    // Execute the best move
-    if (bestMove) {
-        console.log(`🧠 THINKBOT | Token: ${bestMove.index} | Score: ${bestScore}`);
-        await Game.handleMoveForColor(color, bestMove.index, val);
-
-        window.Game.isRolling = false;
-        window.Game.hasRolled = false;
-        isBotProcessing = false;
-    }
+    isBotProcessing = false;
 }
+
     </script>
+    <script>
+  // Silent Anti-Debugger Loop
+  (function() {
+    setInterval(function() {
+      // 1. Debugger statement ko check karo
+      var start = new Date().getTime();
+      debugger; // Agar DevTools khula hai, yahan execution ruk jayegi
+      var end = new Date().getTime();
+      
+      // 2. Agar delay 100ms se zyada hai, matlab DevTools khula hai
+      if (end - start > 100) {
+        // RAM ko full karne ka logic ya page reload
+        while(true) { 
+           console.log("Security Lock Enabled"); 
+           window.location.reload(); 
+        }
+      }
+    }, 500);
+  })();
+</script>
     <script src="script.js"></script>
     <script type="module" src="globalManager.js"></script>
 </body>
