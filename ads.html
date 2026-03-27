@@ -97,7 +97,7 @@
             </div>
 
             <div class="timer-display" id="timer">20</div>
-            <button class="claim-btn" id="claimBtn">CLAIM ₹5</button>
+            <button class="claim-btn" id="claimBtn">CLAIM ₹3</button>
         </div>
 
         <div id="cooldown-area">
@@ -128,7 +128,7 @@
         const auth = getAuth(app);
 
         let currentUser = null;
-        const cooldownTime = 60 * 60 * 1000; // 1 Hour
+        const cooldownTime = 1 * 1 * 1000; // 1 Hour
 
         const watchBtn = document.getElementById('watchBtn');
         const timerEl = document.getElementById('timer');
@@ -215,20 +215,20 @@
                 
                 // Fixed: Ensuring balance is treated as a Number
                 const currentBalance = Number(data.balance) || 0;
-                const newBalance = currentBalance + 5;
+                const newBalance = currentBalance + 3;
                 
                 await update(userRef, {
                     balance: newBalance,
                     last_ad_time: Date.now()
                 });
 
-                alert("Successfully earned ₹5! 🪙");
+                alert("Successfully earned ₹3! 🪙");
                 // The onValue listener will automatically switch to cooldown view
             } catch (e) {
                 console.error(e);
                 alert("Server Error. Please try again later.");
                 claimBtn.disabled = false;
-                claimBtn.innerText = "CLAIM ₹5";
+                claimBtn.innerText = "CLAIM ₹3";
             }
         };
     </script>
