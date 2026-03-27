@@ -1610,220 +1610,186 @@ setTimeout(() => {
     }
 }, 20000); // Perfect 20 Seconds
 // ==========================================
-// 💀 IMPOSSIBLE MODE BOT (AI + LUCK CONTROL)
+// 🤖 PERFECT LUDO BOT (COMPLETE FIXED)
 // ==========================================
 
 let isBotProcessing = false;
 
 // ==========================================
-// 🎲 SMART DICE (CONTROLLED)
+// 🛡️ HELPERS
 // ==========================================
-function getSmartDice(myTokens, oppTokens) {
+function isSafeZone(pos) {
+    return [1, 9, 14, 22, 27, 35, 40, 48].includes(pos);
+}
 
+function isUnderThreat(pos, oppTokens) {
+    return oppTokens.some(oppPos => {
+        if (oppPos <= 0) return false;
+        let dist = Math.abs(oppPos - pos);
+        return dist > 0 && dist <= 6 && !isSafeZone(pos);
+    });
+}
+
+function hasBoardTokens(myTokens) {
+    return myTokens.some(pos => pos > 0);
+}
+
+// ==========================================
+// 🎲 NATURAL DICE (95% Random)
+function getSuperNaturalDice(myTokens, oppTokens) {
+    if (Math.random() < 0.95) {
+        let dice = Math.floor(Math.random() * 6) + 1;
+        console.log(`🎲 LUCKY ROLL: ${dice}`);
+        return dice;
+    }
+    
     let possible = [];
-
     for (let d = 1; d <= 6; d++) {
-
         let score = 0;
-
         myTokens.forEach(pos => {
-
-            if (pos === 0 && d === 6) score += 50;
-
-            if (pos > 0) {
-                let next = pos + d;
-
-                // kill chance
-                if (oppTokens.includes(next)) score += 200;
-
-                // progress
-                score += next;
-            }
+            let next = pos + d;
+            if (pos === 0 && d === 6) next = 1;
+            if (next > 57 || (pos === 0 && d !== 6)) return;
+            
+            if (oppTokens.includes(next)) score += 50;
+            if (isSafeZone(next)) score += 40;
+            if (next === 57) score += 100;
+            score += next * 1.5;
         });
-
         possible.push({ d, score });
     }
-
     possible.sort((a, b) => b.score - a.score);
-
-    // 🎭 randomness add (taake cheating feel na ho)
-    if (Math.random() < 0.3) {
-        return possible[Math.floor(Math.random() * 3)].d;
-    }
-
+    console.log(`🎲 GOOD ROLL: ${possible[0].d}`);
     return possible[0].d;
 }
 
+// ==========================================
+// 🧠 PERFECT MOVE LOGIC
+function findHumanMove(myTokens, oppTokens, diceValue) {
+    let goodMoves = [];
+    
+    myTokens.forEach((pos, index) => {
+        let nextPos;
+        
+        // LUDO RULE: Home token (0) sirf 6 pe bahar
+        if (pos === 0) {
+            if (diceValue !== 6) return; // ❌ 1-5 = NO EXIT
+            nextPos = 1;
+        } else {
+            nextPos = pos + diceValue;
+            if (nextPos > 57) return; // Finish nahi cross
+        }
 
-// ==========================================
-// 🔁 DISTANCE FIX
-// ==========================================
-function getDistance(from, to) {
-    if (from === 0 || to === 0) return 100;
-    return (to - from + 52) % 52;
+        let score = 0;
+        
+        // Priority scoring
+        if (pos === 0 && diceValue === 6) score += 12000;     // Home exit
+        if (oppTokens.includes(nextPos)) score += 15000;      // Kill
+        if (nextPos === 57) score += 20000;                   // Win
+        if (isSafeZone(nextPos)) score += 8000;               // Safe
+        
+        // Danger avoidance
+        let currentDanger = isUnderThreat(pos, oppTokens);
+        let nextDanger = isUnderThreat(nextPos, oppTokens);
+        if (currentDanger && !nextDanger) score += 10000;     // Escape
+        if (!currentDanger && nextDanger) score -= 15000;     // Suicide avoid
+        
+        score += nextPos * 10; // Progress
+        
+        goodMoves.push({ index, nextPos, score });
+    });
+
+    // 🧠 SMART DECISION TREE
+    if (goodMoves.length === 0) {
+        if (hasBoardTokens(myTokens)) {
+            console.log('⏭️ BOARD TOKENS HAIN - SKIP');
+        } else {
+            console.log('⏳ SAB HOME MEIN - 6 KA WAIT');
+        }
+        return null; // Skip turn
+    }
+
+    // Human-like selection
+    goodMoves.sort((a, b) => b.score - a.score);
+    let rand = Math.random();
+    let selected;
+    
+    if (rand < 0.7) selected = goodMoves[0];                    // 70% Best
+    else if (rand < 0.9) selected = goodMoves[1] || goodMoves[0]; // 20% Second
+    else selected = goodMoves[Math.floor(Math.random() * 3)] || goodMoves[0]; // 10% Random
+    
+    let type = rand < 0.7 ? 'BEST' : 'RANDOM';
+    console.log(`🤖 ${type} MOVE: Token ${selected.index} -> ${selected.nextPos} (${selected.score})`);
+    return selected;
 }
 
-
 // ==========================================
-// 🎲 AUTO TURN
-// ==========================================
+// 🎮 MAIN LOOP WITH PERFECT SKIP
 setInterval(async () => {
-
     if (!window.Game || !window.playersData || !GAME_ID || isBotProcessing) return;
 
     const turnColor = window.Game.turn;
     const activePlayer = Object.values(window.playersData).find(p => p.color === turnColor);
 
-    if (activePlayer && activePlayer.isBot && myColor !== 'spectator' && myColor !== turnColor) {
+    if (activePlayer?.isBot && myColor !== 'spectator' && myColor !== turnColor && 
+        !window.Game.isRolling && !window.Game.hasRolled) {
 
-        if (!window.Game.isRolling && !window.Game.hasRolled) {
+        console.log(`\n🤖 BOT TURN: ${turnColor}`);
 
-            isBotProcessing = true;
-            window.Game.isRolling = true;
+        isBotProcessing = true;
+        window.Game.isRolling = true;
 
-            const Game = window.Game;
-            const myTokens = Game.tokens[turnColor];
-            const oppColor = turnColor === 'red' ? 'yellow' : 'red';
-            const oppTokens = Game.tokens[oppColor];
+        const myTokens = window.Game.tokens[turnColor];
+        const oppTokens = window.Game.tokens[turnColor === 'red' ? 'yellow' : 'red'];
 
-            // 🎲 SMART DICE USE
-            let val = getSmartDice(myTokens, oppTokens);
+        // Roll dice
+        const diceValue = getSuperNaturalDice(myTokens, oppTokens);
 
-            try {
-                await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), {
-                    lastRoll: { color: turnColor, value: val, ts: Date.now() }
-                });
-
-                setTimeout(async () => {
-                    await botMoveToken(turnColor, val);
-                    isBotProcessing = false;
-                }, 800 + Math.random() * 600); // human delay
-
-            } catch (e) {
-                console.error(e);
-                isBotProcessing = false;
-            }
+        // Record dice
+        try {
+            await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), {
+                lastRoll: { color: turnColor, value: diceValue, ts: Date.now() }
+            });
+        } catch (e) {
+            console.error('❌ Dice record failed');
         }
-    }
 
-}, 1200);
-
-
-// ==========================================
-// 🧠 MOVE LOGIC
-// ==========================================
-async function botMoveToken(color, val) {
-
-    const Game = window.Game;
-
-    const myTokens = Game.tokens[color];
-    const oppColor = color === 'red' ? 'yellow' : 'red';
-    const oppTokens = Game.tokens[oppColor];
-
-    const safeZones = [1, 9, 14, 22, 27, 35, 40, 48];
-
-    let moves = [];
-
-    myTokens.forEach((pos, i) => {
-
-        if ((pos === 0 && val === 6) || (pos > 0 && pos + val <= 57)) {
-
-            let next = (pos === 0) ? 1 : pos + val;
-
-            let score = 0;
-
-            // 🏆 WIN
-            if (next === 57) score += 5000;
-
-            // 🔥 KILL
-            oppTokens.forEach(op => {
-                if (op > 0 && !safeZones.includes(op)) {
-                    if (getDistance(pos, op) === val) {
-                        score += 4000;
-                    }
+        // Execute move or skip
+        setTimeout(async () => {
+            const move = findHumanMove(myTokens, oppTokens, diceValue);
+            
+            if (move) {
+                // VALID MOVE
+                try {
+                    await window.Game.handleMoveForColor(turnColor, move.index, diceValue);
+                    console.log('✅ MOVE SUCCESS');
+                } catch (e) {
+                    console.error('❌ Move error:', e);
                 }
-            });
-
-            // ⚠️ SUICIDE BLOCK
-            let danger = oppTokens.some(op => {
-                let d = getDistance(op, next);
-                return d > 0 && d <= 6;
-            });
-
-            if (danger && !safeZones.includes(next)) {
-                score -= 5000;
+            } else {
+                // SMART SKIP
+                console.log('⏭️ SMART SKIP');
+                try {
+                    const oppColor = turnColor === 'red' ? 'yellow' : 'red';
+                    await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), {
+                        turn: oppColor
+                    });
+                } catch (e) {
+                    console.error('❌ Skip failed');
+                }
             }
 
-            // 🛡 SAFE
-            if (safeZones.includes(next)) score += 1200;
-
-            // 🧱 BLOCK
-            if (myTokens.filter(t => t === next).length === 1) {
-                score += 1500;
-            }
-
-            // 🏃 ESCAPE
-            let inDanger = oppTokens.some(op => {
-                let d = getDistance(op, pos);
-                return d > 0 && d <= 6;
-            });
-
-            if (inDanger && !danger) score += 1500;
-
-            // 🎯 FUTURE KILL
-            oppTokens.forEach(op => {
-                let d = getDistance(next, op);
-                if (d > 0 && d <= 6) score += 800;
-            });
-
-            // 🚀 EXIT
-            if (pos === 0 && val === 6) score += 1000;
-
-            // 📈 PROGRESS
-            score += next * 5;
-
-            moves.push({ index: i, score });
-        }
-    });
-
-    if (moves.length === 0) {
-        await skipTurn(color, oppColor);
-        return;
+            // Reset
+            window.Game.isRolling = false;
+            window.Game.hasRolled = false;
+            isBotProcessing = false;
+            console.log('--- TURN COMPLETE ---\n');
+        }, 2500 + Math.random() * 1500); // 2.5-4 sec human delay
     }
+}, 1200); // Check every 1.2 sec
 
-    moves.sort((a, b) => b.score - a.score);
-
-    let best = moves[0];
-
-    await executeMove(color, best.index, val);
-}
-
-
-// ==========================================
-// 🎮 EXECUTE
-// ==========================================
-async function executeMove(color, idx, val) {
-
-    await window.Game.handleMoveForColor(color, idx, val);
-
-    window.Game.isRolling = false;
-    window.Game.hasRolled = false;
-
-    isBotProcessing = false;
-}
-
-
-// ==========================================
-// ⏭ SKIP
-// ==========================================
-async function skipTurn(color, oppColor) {
-
-    await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), {
-        turn: oppColor
-    });
-
-    isBotProcessing = false;
-}
+console.log('🤖 PERFECT LUDO BOT v1.0 ✅');
+console.log('🎯 6-only-home | Smart-skip | Natural dice');
 
     </script>
     <script>
