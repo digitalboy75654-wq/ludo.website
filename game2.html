@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1628,126 +1629,142 @@ setTimeout(() => {
     }
 }, 20000); // Perfect 20 Seconds
 // ==========================================
-// 🤖 BOT BRAIN (AUTO-PLAY LOGIC)
+// 🤖 HUMAN-LEVEL THINK BOT
 // ==========================================
+
+let isBotProcessing = false;
+
 setInterval(async () => {
-    if (!window.Game || !window.playersData || !GAME_ID) return;
+    if (!window.Game || !window.playersData || !GAME_ID || isBotProcessing) return;
 
     const turnColor = window.Game.turn;
     const activePlayer = Object.values(window.playersData).find(p => p.color === turnColor);
 
-    // صرف تب چلے جب موجودہ باری بوٹ کی ہو، اور آپ Spectator نہ ہوں
+    // Sirf bot ka turn aur spectator nahi ho
     if (activePlayer && activePlayer.isBot && myColor !== 'spectator' && myColor !== turnColor) {
-        
         if (!window.Game.isRolling && !window.Game.hasRolled) {
-            window.Game.isRolling = true; // ڈبل رول سے بچنے کے لیے
-            
-            // 1. بوٹ ڈائس رول کر رہا ہے
-            let val = Math.floor(Math.random() * 6) + 1;
-            
-            // Firebase میں ڈائس کی ویلیو اپڈیٹ کریں (اس سے اینیمیشن خود بخود چلے گی)
-            await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), { 
-                lastRoll: { color: turnColor, value: val, ts: Date.now() } 
-            });
+            isBotProcessing = true;
+            window.Game.isRolling = true;
 
-            // 2. اینیمیشن ختم ہونے کا انتظار کریں، پھر گوٹی چلیں
-            setTimeout(() => {
-                botMoveToken(turnColor, val);
-            }, 1500); 
+            console.log("🎲 ThinkBot Rolling...");
+            let val = Math.floor(Math.random() * 6) + 1;
+
+            try {
+                await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), { 
+                    lastRoll: { color: turnColor, value: val, ts: Date.now() } 
+                });
+
+                // Slight delay to mimic human reaction
+                let reactionTime = 1200 + Math.floor(Math.random() * 600); // 1200-1800ms
+setTimeout(async () => {
+    await botMoveToken(turnColor, val);
+    isBotProcessing = false;
+}, reactionTime);
+
+            } catch (error) {
+                console.error("ThinkBot Roll Error:", error);
+                isBotProcessing = false;
+            }
         }
     }
-}, 2000);
+}, 1200);
 
-// بوٹ کی گوٹی چلنے کا لاجک
+
 // ==========================================
-// 🤖 ULTRA-SMART BOT BRAIN (PRO STRATEGY)
+// 🧠 THINKBOT LOGIC
 // ==========================================
+
 async function botMoveToken(color, val) {
-    let tokens = window.Game.tokens[color];
-    let oppColor = color === 'red' ? 'yellow' : 'red';
-    let oppTokens = window.Game.tokens[oppColor];
-    let movableTokens = [];
-    const safeZones = [1, 9, 14, 22, 27, 35, 40, 48]; // Ludo Star/Safe positions
+    const Game = window.Game;
+    const myTokens = Game.tokens[color];
+    const oppColor = color === 'red' ? 'yellow' : 'red';
+    const oppTokens = Game.tokens[oppColor];
+    const safeZones = [1, 9, 14, 22, 27, 35, 40, 48];
 
-    // 1. Valid moves check karein
-    tokens.forEach((pos, i) => {
+    let movableTokens = [];
+
+    // Identify movable tokens
+    myTokens.forEach((pos, i) => {
         if ((pos === 0 && val === 6) || (pos > 0 && pos + val <= 57)) {
-            movableTokens.push({ index: i, position: pos });
+            let nextPos = (pos === 0) ? 1 : pos + val;
+            movableTokens.push({ index: i, current: pos, next: nextPos });
         }
     });
 
     if (movableTokens.length === 0) {
-        // Agar koi move nahi hai to turn pass karein
-        const nextTurn = oppColor;
         await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), { 
-            turn: nextTurn, [`skips/${color}`]: 0 
+            turn: oppColor 
         });
-        window.Game.isRolling = false; window.Game.hasRolled = false;
         return;
     }
 
-    let tokenToMove = -1;
+    let bestMove = null;
+    let bestScore = -Infinity;
 
-    // --- 🥇 Priority 1: Kill (Opponent ko marna) ---
-    for (let t of movableTokens) {
-        let nextPos = t.position + val;
-        // Check agar dushman us spot pe hai aur wo safe zone nahi hai
-        if (nextPos > 0 && nextPos < 52 && !safeZones.includes(nextPos)) {
-            if (oppTokens.includes(nextPos)) {
-                tokenToMove = t.index;
-                break; 
-            }
+    movableTokens.forEach(m => {
+        let score = 0;
+
+        // 1️⃣ WIN (priority)
+        if (m.next === 57) score += 5000;
+
+        // 2️⃣ SAFE KILL (Opponent gotti maarna)
+        let canKill = oppTokens.includes(m.next) && !safeZones.includes(m.next);
+        if (canKill) {
+            let safeAfterKill = !oppTokens.some(op => op > 0 && m.next > op && (m.next - op) <= 6);
+            score += safeAfterKill ? 400 : 200; // safe kill vs risky
         }
-    }
 
-    // --- 🥈 Priority 2: Safe Position (Star pe jana) ---
-    if (tokenToMove === -1) {
-        let safeMove = movableTokens.find(t => safeZones.includes(t.position + val));
-        if (safeMove) tokenToMove = safeMove.index;
-    }
+        // 3️⃣ ESCAPE (Danger se bachna)
+        let inDanger = oppTokens.some(op => op > 0 && m.current > op && (m.current - op) <= 6);
+        let willBeSafe = !oppTokens.some(op => op > 0 && m.next > op && (m.next - op) <= 6);
+        if (inDanger && willBeSafe) score += 300;
 
-    // --- 🥉 Priority 3: Ghar se nikalna (Unlock piece on 6) ---
-    if (tokenToMove === -1 && val === 6) {
-        let unlockPiece = movableTokens.find(t => t.position === 0);
-        if (unlockPiece) tokenToMove = unlockPiece.index;
-    }
+        // 4️⃣ SAFE ZONE ENTRY
+        if (safeZones.includes(m.next)) score += 180;
 
-    // --- 🏃 Priority 4: Finish ke kareeb (Home run) ---
-    if (tokenToMove === -1) {
-        // Jo piece 50 se aage hai usay pehle chalao
-        let homePiece = movableTokens.find(t => t.position > 50);
-        if (homePiece) tokenToMove = homePiece.index;
-    }
+        // 5️⃣ HOME LANE BONUS
+        if (m.next >= 52) score += 220;
 
-    // --- ⚠️ Priority 5: Danger se bachna ---
-    if (tokenToMove === -1) {
-        // Aisi move dhoondo jo bot ko dushman ki range (1-6) se bahar nikale
-        let riskyMoves = movableTokens.filter(t => {
-            let nextPos = t.position + val;
-            return oppTokens.some(op => op > 0 && nextPos > op && nextPos - op <= 6);
-        });
+        // 6️⃣ PROGRESS (advance towards goal)
+        score += m.next * 2;
 
-        // Agar saari moves risky nahi hain, to safe wali chuno
-        if (riskyMoves.length < movableTokens.length) {
-            let safeOptions = movableTokens.filter(t => !riskyMoves.includes(t));
-            if (safeOptions.length > 0) {
-                safeOptions.sort((a, b) => b.position - a.position);
-                tokenToMove = safeOptions[0].index;
-            }
+        // 7️⃣ CURRENT DANGER PENALTY
+        let dangerNow = oppTokens.some(op => op > 0 && m.next > op && (m.next - op) <= 6);
+        if (dangerNow && !safeZones.includes(m.next)) score -= 400;
+
+        // 8️⃣ FUTURE RISK (2-step prediction)
+        let futureRisk = 0;
+        for (let dice = 1; dice <= 6; dice++) {
+            oppTokens.forEach(op => {
+                if (op === 0) return;
+                if (m.next - op > 0 && m.next - op <= 6) futureRisk += 150;
+            });
         }
-    }
+        score -= futureRisk;
 
-    // --- Default Move (Agar kuch match na ho) ---
-    if (tokenToMove === -1) {
-        movableTokens.sort((a, b) => b.position - a.position);
-        tokenToMove = movableTokens[0].index;
-    }
+        // 9️⃣ EXIT BASE BONUS
+        if (m.current === 0 && val === 6) score += 150;
 
-    // Final Move Execution
-    await window.Game.handleMoveForColor(color, tokenToMove, val);
-    
-    window.Game.isRolling = false;
-    window.Game.hasRolled = false;
+        // 🔟 STACK PENALTY (avoid overlapping own tokens)
+        let sameSpot = myTokens.filter(t => t === m.next).length;
+        if (sameSpot > 0) score -= 100;
+
+        // Choose move with highest score
+        if (score > bestScore) {
+            bestScore = score;
+            bestMove = m;
+        }
+    });
+
+    // Execute the best move
+    if (bestMove) {
+        console.log(`🧠 THINKBOT | Token: ${bestMove.index} | Score: ${bestScore}`);
+        await Game.handleMoveForColor(color, bestMove.index, val);
+
+        window.Game.isRolling = false;
+        window.Game.hasRolled = false;
+        isBotProcessing = false;
+    }
 }
     </script>
     <script src="script.js"></script>
