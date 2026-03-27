@@ -1,3 +1,7 @@
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -70,7 +74,14 @@
         /* SCROLL AREA */
         .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 100px; }
         
-        
+        /* BRANDING */
+        .app-branding { text-align: center; margin: 25px 0 15px 0; }
+        .brand-title {
+            font-family: 'Orbitron'; font-size: 30px; font-weight: 900;
+            background: linear-gradient(to right, #f1c40f, #ffffff, #f1c40f);
+            -webkit-background-clip: text; color: transparent;
+            text-shadow: 0 0 15px rgba(241, 196, 15, 0.3);
+        }
 
         /* BANNER */
         /* --- 📢 INVITE BANNER DESIGN --- */
@@ -301,7 +312,496 @@
 .center-fab:active {
     transform: scale(0.95);
 }
+/* --- 💎 CARD DESIGN --- */
+/* --- 1vs1 Card (Base) --- */
+.mini-battle-box {
+    position: relative;
+    width: 150px !important;
+    height: 190px !important;
+     background: linear-gradient(135deg, #314eac, #4c54c9);
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    transition: 0.3s ease;
+    margin: 0 !important; /* Kisi bhi card ki apni margin nahi honi chahiye */
+    overflow: hidden;
+}
 
+/* Content ko center karne ke liye */
+.clash-zone, .clash-zone-4p, .clash-zone-tourney {
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.card-footer-solid {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 10px 0;
+    text-align: center;
+}
+
+/* --- 🟢 LIVE TAG (Top Left) --- */
+.status-badge {
+    position: absolute;
+    top: 15px; left: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: #00ff88; /* Neon Green */
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    font-weight: bold;
+    display: flex; align-items: center; gap: 6px;
+    z-index: 10;
+}
+
+.pulse-dot {
+    width: 6px; height: 6px;
+    background: #00ff88;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #00ff88;
+    animation: livePulse 1.2s infinite;
+}
+
+@keyframes livePulse {
+    50% { opacity: 0.2; transform: scale(1.2); }
+}
+
+/* --- 🔵🔴 GOTI CLASH (Pop-out Animation) --- */
+.clash-zone {
+    position: relative;
+    height: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.token-v {
+    font-size: 65px; /* Gotiyon ka size bada hai */
+    position: absolute;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+    z-index: 5;
+}
+
+.blue-v {
+    color: #00d2d3; /* Neon Blue */
+    left: -20px; /* Card ke left edge se bahar */
+    animation: moveBlue 3s infinite alternate cubic-bezier(.17,.67,.83,.67);
+}
+
+.red-v {
+    color: #ff4757; /* Neon Red */
+    right: -20px; /* Card ke right edge se bahar */
+    animation: moveRed 3s infinite alternate cubic-bezier(.17,.67,.83,.67);
+}
+
+.clash-impact {
+    position: absolute;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle, #fff 0%, transparent 70%);
+    opacity: 0;
+    animation: flashImpact 3s infinite alternate;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes moveBlue {
+    from { left: -25px; transform: scale(1); }
+    to { left: 40px; transform: scale(1.1); }
+}
+
+@keyframes moveRed {
+    from { right: -25px; transform: scale(1); }
+    to { right: 40px; transform: scale(1.1); }
+}
+
+@keyframes flashImpact {
+    0%, 80% { opacity: 0; }
+    100% { opacity: 0.8; transform: scale(1.3); }
+}
+
+/* --- 📝 SOLID FOOTER AREA --- */
+.card-footer-solid {
+    position: absolute;
+    bottom: 0; width: 100%;
+    background: #6c5ce7; /* Beautiful Solid Purple Fill */
+    padding: 15px 0;
+    border-radius: 0 0 25px 25px;
+    text-align: center;
+}
+
+.card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    margin: 0; color: #fff;
+    letter-spacing: 1px;
+}
+
+.card-sub {
+    font-size: 9px;
+    color: #f1c40f;
+    font-weight: bold;
+    margin: 4px 0 0 0;
+}
+/* --- ❤️ FRIEND LIVE CARD STYLE --- */
+.friend-live-card {
+    position: relative;
+    width: 170px;
+    height: 210px;
+    background: linear-gradient(135deg, #00b894, #00cec9); /* Fresh Teal/Green Gradient */
+    border-radius: 25px;
+    margin: 20px auto;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 184, 148, 0.4);
+    transition: 0.3s ease;
+}
+
+.friend-live-card:active { transform: scale(0.95); }
+
+/* --- 🟢 LIVE TAG (Top Left) --- */
+.status-badge {
+    position: absolute;
+    top: 15px; left: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: #00ff88; /* Neon Green */
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    font-weight: bold;
+    display: flex; align-items: center; gap: 6px;
+    z-index: 10;
+}
+
+/* --- ❤️ HEART ANIMATION ZONE --- */
+.clash-zone {
+    position: relative;
+    height: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.heart {
+    font-size: 55px; /* Big Hearts */
+    position: absolute;
+    filter: drop-shadow(0 5px 15px rgba(255, 255, 255, 0.3));
+    z-index: 5;
+}
+
+.h-left {
+    color: #fd79a8; /* Soft Pink Heart */
+    left: -15px;
+    animation: moveHeartLeft 5s infinite alternate ease-in-out;
+}
+
+.h-right {
+    color: #fab1a0; /* Peach Heart */
+    right: -15px;
+    animation: moveHeartRight 5s infinite alternate ease-in-out;
+}
+
+.heart-glow {
+    position: absolute;
+    width: 70px; height: 70px;
+    background: radial-gradient(circle, #fff 0%, transparent 75%);
+    opacity: 0;
+    animation: heartMerge 5s infinite alternate;
+}
+
+/* --- ANIMATIONS: Dil Ka Milna --- */
+@keyframes moveHeartLeft {
+    from { left: -20px; transform: scale(1) rotate(-10deg); }
+    to { left: 45px; transform: scale(1.1) rotate(0deg); }
+}
+
+@keyframes moveHeartRight {
+    from { right: -20px; transform: scale(1) rotate(10deg); }
+    to { right: 45px; transform: scale(1.1) rotate(0deg); }
+}
+
+@keyframes heartMerge {
+    0%, 70% { opacity: 0; transform: scale(0.5); }
+    100% { opacity: 1; transform: scale(1.5); }
+}
+
+/* --- 📝 SOLID FOOTER --- */
+.friend-footer {
+    background: #009688 !important; /* Solid Dark Teal Fill */
+}
+
+.card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    color: #fff;
+}
+
+.card-sub {
+    font-size: 9px;
+    color: #ffeaa7; /* Soft Yellow */
+    font-weight: bold;
+}
+/* --- 🎲 MULTIPLAYER CARD STYLE --- */
+.multiplayer-card {
+    position: relative;
+    width: 170px;
+    height: 210px;
+    background: linear-gradient(135deg, #ff7675, #d63031); /* Beautiful Red/Orange Energy */
+    border-radius: 25px;
+    margin: 20px auto;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(214, 48, 49, 0.4);
+    transition: 0.03s ease;
+}
+
+/* --- 🟢 LIVE TAG (Top Left) --- */
+.status-badge {
+    position: absolute;
+    top: 15px; left: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: #00ff88; /* Neon Green */
+    font-family: 'Orbitron', sans-serif;
+    font-size: 9px;
+    font-weight: bold;
+    display: flex; align-items: center; gap: 6px;
+    z-index: 10;
+}
+
+/* --- 🎲 4-WAY CLASH ZONE --- */
+.clash-zone-4p {
+    position: relative;
+    height: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.goti-4 {
+    font-size: 50px; /* Thoda chota size taake 4 fit ho sakein */
+    position: absolute;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3));
+    z-index: 5;
+}
+
+/* Charon Gotiyon ki Positions aur Animations */
+.p-blue   { color: #0984e3; top: -15px; animation: moveDown 3s infinite alternate; }
+.p-red    { color: #ffffff; bottom: -15px; animation: moveUp 3s infinite alternate; }
+.p-green  { color: #00b894; left: -25px; animation: moveRightMulti 3s infinite alternate; }
+.p-yellow { color: #f1c40f; right: -25px; animation: moveLeftMulti 3s infinite alternate; }
+
+/* --- MULTIPLAYER ANIMATIONS --- */
+@keyframes moveDown { from { top: -25px; } to { top: 30px; } }
+@keyframes moveUp   { from { bottom: -25px; } to { bottom: 30px; } }
+@keyframes moveRightMulti { from { left: -30px; } to { left: 45px; } }
+@keyframes moveLeftMulti  { from { right: -30px; } to { right: 45px; } }
+
+.multi-impact {
+    position: absolute;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle, #fff 0%, transparent 75%);
+    opacity: 0;
+    animation: multiFlash 0.7s infinite alternate;
+}
+
+@keyframes multiFlash {
+    0%, 75% { opacity: 0; transform: scale(0.5); }
+    100% { opacity: 0.8; transform: scale(1.4); }
+}
+
+/* --- 📝 MULTI FOOTER --- */
+.multi-footer {
+    background: #c0392b !important; /* Solid Deep Red Fill */
+}
+
+.card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    color: #fff;
+    margin: 0;
+}
+
+.card-sub {
+    font-size: 9px;
+    color: #fab1a0;
+    font-weight: bold;
+    margin-top: 4px;
+}
+/* --- 🏆 TOURNAMENT CARD STYLE --- */
+.tournament-card {
+    position: relative;
+    width: 170px;
+    height: 210px;
+    background: linear-gradient(135deg, #f39c12, #e67e22); /* Royal Gold Gradient */
+    border-radius: 25px;
+    margin: 20px auto;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(230, 126, 34, 0.4);
+    transition: 0.3s ease;
+}
+
+/* --- 🟢 TOURNEY LIVE TAG --- */
+.tourney-live {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid #fff !important;
+    color: #fff !important;
+}
+
+/* --- 🏆 TROPHY ANIMATION ZONE --- */
+.clash-zone-tourney {
+    position: relative;
+    height: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.trophy-v {
+    font-size: 70px; /* Badi Trophy */
+    color: #fff;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+    z-index: 6;
+    animation: trophyBounce 1.5s infinite ease-in-out;
+}
+
+/* Sitaron ki Animation (Stars) */
+.star {
+    position: absolute;
+    color: #f1c40f;
+    font-size: 15px;
+    z-index: 5;
+}
+
+.s1 { top: 10px; left: 30px; animation: starFlicker 1s infinite; }
+.s2 { bottom: 20px; right: 30px; animation: starFlicker 1.2s infinite; }
+
+.winner-glow {
+    position: absolute;
+    width: 100px; height: 100px;
+    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
+    opacity: 0.5;
+    animation: glowRotate 3s infinite linear;
+}
+
+/* --- TOURNAMENT ANIMATIONS --- */
+@keyframes trophyBounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.15); } /* Card ke upar se bahar niklegi */
+}
+
+@keyframes starFlicker {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.5); }
+}
+
+@keyframes glowRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* --- 📝 TOURNAMENT FOOTER --- */
+.tourney-footer {
+    background: #d35400 !important; /* Deep Burnt Orange Fill */
+}
+
+.card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 16px;
+    color: #fff;
+    margin: 0;
+}
+
+.card-sub {
+    font-size: 10px;
+    color: #f1c40f;
+    font-weight: bold;
+    margin-top: 4px;
+}
+/* Popup Overlay */
+.popup-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: none; /* Default hidden */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(8px);
+}
+
+/* Popup Box */
+.popup-content {
+    width: 85%;
+    max-width: 350px;
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    border: 2px solid var(--gold);
+    border-radius: 20px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(241, 196, 15, 0.3);
+    animation: popupScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popupScale {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.popup-header i {
+    font-size: 40px;
+    color: var(--gold);
+    margin-bottom: 15px;
+    filter: drop-shadow(0 0 10px rgba(241, 196, 15, 0.5));
+}
+
+.popup-header h3 {
+    margin: 0;
+    font-family: 'Orbitron';
+    letter-spacing: 2px;
+    color: white;
+}
+
+.popup-body p {
+    color: #ccc;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 20px 0;
+}
+
+/* Buttons */
+.popup-footer {
+    display: flex;
+    gap: 10px;
+}
+
+.skip-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #aaa;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.action-btn {
+    flex: 2;
+    background: var(--gold);
+    border: none;
+    color: #000;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 900;
+    font-family: 'Orbitron';
+    box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
+}
 /* Font import zaroori hai futuristic look ke liye */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap');
 
@@ -317,7 +817,13 @@
     display: inline-block;
 }
 
-
+/* LUDO part ka gradient aur glow */
+.ludo-text {
+    background: linear-gradient(to right, #0061ff, #60efff, #a1ffce);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(96, 239, 255, 0.5));
+}
 
 /* PRO part ka white glow effect */
 .pro-text {
@@ -372,59 +878,6 @@
     50% { transform: scale(1.1); box-shadow: 0 0 20px #f1c40f; }
     100% { transform: scale(1); box-shadow: 0 0 10px #f1c40f; }
 }
-.full-photo-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columns */
-    gap: 10px; /* Photos ke darmiyan halka sa gap */
-    padding: 15px;
-    padding-bottom: 100px; /* Bottom nav ke liye space */
-}
-
-.full-photo-grid img {
-    width: 100%;       /* Screen width ke hisab se full */
-    height: auto;      /* Original ratio barkaraar rahega */
-    display: block;
-    cursor: pointer;
-    border-radius: 12px; /* Sirf corners soft karne ke liye (Optional) */
-}
-
-/* Click karne par halka sa press effect (taake pata chale button hai) */
-.full-photo-grid img:active {
-    transform: scale(0.98);
-    opacity: 0.9;
-}
-/* Container ko full width dein aur content center karein */
-.banner-center-container {
-    width: 100%;
-    display: flex;
-    justify-content: center; /* Horizontally center */
-    align-items: center;     /* Vertically center */
-    margin: 10px 0;          /* Upar niche thoda gap */
-    padding: 5px 0;
-}
-
-.banner-link {
-    display: block;
-    line-height: 0; /* Extra space khatam karne ke liye */
-}
-
-/* Image ka fixed size aur look */
-.banner-fixed-size {
-    width: 320px;
-    height: 50px;
-    display: block;
-    object-fit: fill;       /* Poora 320x50 cover karne ke liye */
-    border-radius: 5px;     /* Optional: corners thode round karne ke liye */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2); /* Optional: halka sa shadow professional look ke liye */
-}
-
-/* Mobile responsive check: Agar screen 320px se choti ho */
-@media (max-width: 320px) {
-    .banner-fixed-size {
-        width: 100%;
-        height: auto;
-    }
-}
     </style>
 </head>
 <body>
@@ -452,11 +905,9 @@
         
     <div class="scroll-area">
         <div class="app-branding">
-            <div class="banner-center-container">
-            <a href="#" class="banner-link">
-                <img src="banner.png" alt="Ludo.lat 320x50" class="banner-fixed-size">
-            </a>
-        </div>
+            <div class="brand-title">
+    <span class="ludo-text">LUDO</span> <span class="pro-text">.LAT</span>
+</div>
         </div>
 
         <div class="banner-wrapper">
@@ -484,20 +935,61 @@
             </button>
         </div>
 
-        
-<div class="full-photo-grid">
-    <img src="2 player.png" onclick="window.location.href='1vs1.html'" alt="Ludo">
+        <div class="grid">
+    <div class="mini-battle-box" onclick="window.location.href='1vs1.html'">
+        <div class="status-badge"><span class="pulse-dot"></span> LIVE</div>
+        <div class="clash-zone">
+            <div class="token-v blue-v"><i class="fas fa-chess-pawn"></i></div>
+            <div class="token-v red-v"><i class="fas fa-chess-pawn"></i></div>
+            <div class="clash-impact"></div>
+        </div>
+        <div class="card-footer-solid">
+            <h3 class="card-title">2 Player</h3>
+            <p class="card-sub">Rendom</p>
+        </div>
+    </div>
 
-    <img src="4 player.png" onclick="window.location.href='4vs4.html'" alt="Board">
+    
 
-    <img src="friend.png" onclick="window.location.href='friend_challenge.html'" alt="Teni 12">
-
-    <img src="snack.png" onclick="window.location.href='4vs4.html'" alt="Teni 2">
-
-    <img src="chess.png" onclick="window.location.href='4vs4.html'" alt="Chess">
-
-    <img src="12 teni.png" onclick="window.location.href='4vs4_chess.html'" alt="Grand Chess">
+    <div class="mini-battle-box friend-live-card" onclick="window.location.href='friend_challenge.html'">
+        <div class="status-badge friend-live-tag"><span class="pulse-dot"></span> LIVE</div>
+        <div class="clash-zone">
+            <div class="heart h-left"><i class="fas fa-heart"></i></div>
+            <div class="heart h-right"><i class="fas fa-heart"></i></div>
+            <div class="heart-glow"></div>
+        </div>
+        <div class="card-footer-solid friend-footer">
+            <h3 class="card-title">With FRIENDS</h3>
+            <p class="card-sub">Private Room</p>
+        </div>
+    </div>
+<div class="mini-battle-box multiplayer-card" onclick="window.location.href='4vs4.html'">
+        <div class="status-badge multi-live"><span class="pulse-dot"></span>LIVE</div>
+        <div class="clash-zone-4p">
+            <div class="goti-4 p-blue"><i class="fas fa-chess-pawn"></i></div>
+            <div class="goti-4 p-red"><i class="fas fa-chess-pawn"></i></div>
+            <div class="goti-4 p-green"><i class="fas fa-chess-pawn"></i></div>
+            <div class="goti-4 p-yellow"><i class="fas fa-chess-pawn"></i></div>
+            <div class="multi-impact"></div>
+        </div>
+        <div class="card-footer-solid multi-footer">
+            <h3 class="card-title">4 PLAYER</h3>
+            <p class="card-sub">Multiplayer Fun</p>
+        </div>
+    </div>
+    <div class="mini-battle-box tournament-card" onclick="window.location.href='4vs4.html'">
+        <div class="status-badge tourney-live">BIG PRIZES</div>
+        <div class="clash-zone-tourney">
+            <div class="trophy-v"><i class="fas fa-trophy"></i></div>
+            <div class="winner-glow"></div>
+        </div>
+        <div class="card-footer-solid tourney-footer">
+            <h3 class="card-title">EVENTS</h3>
+            <p class="card-sub">Join & Win</p>
+        </div>
+    </div>
 </div>
+
     
 
     <div class="navigation-dock">
@@ -530,7 +1022,21 @@
         <span class="nav-label">Profile</span>
     </div>
 </div>
-
+<div id="adminPopup" class="popup-overlay">
+    <div class="popup-content">
+        <div class="popup-header">
+            <i class="fas fa-bullhorn"></i>
+            <h3>ANNOUNCEMENT</h3>
+        </div>
+        <div class="popup-body">
+            <p id="popupMessage">Loading message...</p>
+        </div>
+        <div class="popup-footer">
+            <button class="skip-btn" onclick="closePopup()">SKIP</button>
+            <button class="action-btn" onclick="closePopup()">OKAY</button>
+        </div>
+    </div>
+</div>
 <div id="ad-floater">
     <div class="notify-dot" id="ad-notify"></div>
     <i class="fas fa-gift" id="ad-icon" style="font-size: 20px;"></i>
@@ -618,7 +1124,7 @@ function initFloaterLogic(uid) {
         if (!data) return;
 
         const lastTime = data.last_ad_time || 0;
-        const cooldown = 1 * 1 * 1000; // 1 Hour
+        const cooldown = 60 * 60 * 1000; // 1 Hour
 
         const updateUI = () => {
             const now = Date.now();
