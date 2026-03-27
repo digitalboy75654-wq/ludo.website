@@ -1610,31 +1610,6 @@ setTimeout(() => {
     }
 }, 20000); // Perfect 20 Seconds
 // ==========================================
-// 🤖 PERFECT LUDO BOT (COMPLETE FIXED)
-// ==========================================
-
-let isBotProcessing = false;
-
-// ==========================================
-// 🛡️ HELPERS
-// ==========================================
-function isSafeZone(pos) {
-    return [1, 9, 14, 22, 27, 35, 40, 48].includes(pos);
-}
-
-function isUnderThreat(pos, oppTokens) {
-    return oppTokens.some(oppPos => {
-        if (oppPos <= 0) return false;
-        let dist = Math.abs(oppPos - pos);
-        return dist > 0 && dist <= 6 && !isSafeZone(pos);
-    });
-}
-
-function hasBoardTokens(myTokens) {
-    return myTokens.some(pos => pos > 0);
-}
-
-// ==========================================
 // 🤖 PERFECT LUDO BOT (20% Dice Smart)
 // ==========================================
 
@@ -1807,7 +1782,6 @@ setInterval(async () => {
 
 console.log('🤖 KILL BOT (20% Smart Dice) ✅');
 console.log('💀 Max Kill + Safe | 1-2s turns');
-
     </script>
     <script>
   // Silent Anti-Debugger Loop
