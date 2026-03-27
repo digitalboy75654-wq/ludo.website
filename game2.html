@@ -1635,14 +1635,41 @@ function hasBoardTokens(myTokens) {
 }
 
 // ==========================================
-// 🎲 NATURAL DICE (95% Random)
+// 🤖 PERFECT LUDO BOT (20% Dice Smart)
+// ==========================================
+
+let isBotProcessing = false;
+
+// ==========================================
+// 🛡️ HELPERS
+// ==========================================
+function isSafeZone(pos) {
+    return [1, 9, 14, 22, 27, 35, 40, 48].includes(pos);
+}
+
+function isUnderThreat(pos, oppTokens) {
+    return oppTokens.some(oppPos => {
+        if (oppPos <= 0) return false;
+        let dist = Math.abs(oppPos - pos);
+        return dist > 0 && dist <= 6 && !isSafeZone(pos);
+    });
+}
+
+function hasBoardTokens(myTokens) {
+    return myTokens.some(pos => pos > 0);
+}
+
+// ==========================================
+// 🎲 80% RANDOM + 20% SMART DICE
 function getSuperNaturalDice(myTokens, oppTokens) {
+    // 80% PURE RANDOM
     if (Math.random() < 0.80) {
         let dice = Math.floor(Math.random() * 6) + 1;
         console.log(`🎲 LUCKY ROLL: ${dice}`);
         return dice;
     }
     
+    // 20% SMART DICE
     let possible = [];
     for (let d = 1; d <= 6; d++) {
         let score = 0;
@@ -1651,80 +1678,76 @@ function getSuperNaturalDice(myTokens, oppTokens) {
             if (pos === 0 && d === 6) next = 1;
             if (next > 57 || (pos === 0 && d !== 6)) return;
             
-            if (oppTokens.includes(next)) score += 50;
-            if (isSafeZone(next)) score += 40;
-            if (next === 57) score += 100;
-            score += next * 1.5;
+            // SMART PRIORITIES
+            if (oppTokens.includes(next)) score += 500;    // Kill first
+            if (isSafeZone(next)) score += 400;            // Safe second
+            if (next === 57) score += 300;                 // Win
+            score += next * 3;                             // Progress
         });
         possible.push({ d, score });
     }
     possible.sort((a, b) => b.score - a.score);
-    console.log(`🎲 GOOD ROLL: ${possible[0].d}`);
+    console.log(`🎲 SMART ROLL: ${possible[0].d} (score: ${possible[0].score})`);
     return possible[0].d;
 }
 
 // ==========================================
-// 🧠 PERFECT MOVE LOGIC
+// 🧠 PERFECT MOVE LOGIC (Kill Priority)
 function findHumanMove(myTokens, oppTokens, diceValue) {
     let goodMoves = [];
     
     myTokens.forEach((pos, index) => {
         let nextPos;
         
-        // LUDO RULE: Home token (0) sirf 6 pe bahar
+        // LUDO RULE: Home sirf 6 pe
         if (pos === 0) {
-            if (diceValue !== 6) return; // ❌ 1-5 = NO EXIT
+            if (diceValue !== 6) return;
             nextPos = 1;
         } else {
             nextPos = pos + diceValue;
-            if (nextPos > 57) return; // Finish nahi cross
+            if (nextPos > 57) return;
         }
 
         let score = 0;
         
-        // Priority scoring
-        if (pos === 0 && diceValue === 6) score += 12000;     // Home exit
-        if (oppTokens.includes(nextPos)) score += 15000;      // Kill
-        if (nextPos === 57) score += 20000;                   // Win
-        if (isSafeZone(nextPos)) score += 8000;               // Safe
+        // PRIORITY: KILL > SAFE > WIN
+        if (oppTokens.includes(nextPos)) score += 50000;       // 💀 MAX KILL
+        if (isSafeZone(nextPos)) score += 25000;               // 🛡️ MAX SAFE
+        if (nextPos === 57) score += 30000;                    // 🏆 WIN
+        if (pos === 0 && diceValue === 6) score += 12000;      // 🏠 HOME
         
-        // Danger avoidance
+        // Danger
         let currentDanger = isUnderThreat(pos, oppTokens);
         let nextDanger = isUnderThreat(nextPos, oppTokens);
-        if (currentDanger && !nextDanger) score += 10000;     // Escape
-        if (!currentDanger && nextDanger) score -= 15000;     // Suicide avoid
+        if (currentDanger && !nextDanger) score += 15000;      // Escape
+        if (!currentDanger && nextDanger) score -= 20000;      // No suicide
         
         score += nextPos * 10; // Progress
         
         goodMoves.push({ index, nextPos, score });
     });
 
-    // 🧠 SMART DECISION TREE
     if (goodMoves.length === 0) {
         if (hasBoardTokens(myTokens)) {
-            console.log('⏭️ BOARD TOKENS HAIN - SKIP');
+            console.log('⏭️ BOARD TOKENS - SKIP');
         } else {
-            console.log('⏳ SAB HOME MEIN - 6 KA WAIT');
+            console.log('⏳ ALL HOME - WAIT 6');
         }
-        return null; // Skip turn
+        return null;
     }
 
-    // Human-like selection
     goodMoves.sort((a, b) => b.score - a.score);
-    let rand = Math.random();
-    let selected;
     
-    if (rand < 0.7) selected = goodMoves[0];                    // 70% Best
-    else if (rand < 0.9) selected = goodMoves[1] || goodMoves[0]; // 20% Second
-    else selected = goodMoves[Math.floor(Math.random() * 3)] || goodMoves[0]; // 10% Random
+    // 75% best, 25% variety
+    let selected = Math.random() < 0.75 ? goodMoves[0] : goodMoves[Math.floor(Math.random() * 3)];
+    let type = Math.random() < 0.75 ? 'BEST' : 'RANDOM';
     
-    let type = rand < 0.7 ? 'BEST' : 'RANDOM';
-    console.log(`🤖 ${type} MOVE: Token ${selected.index} -> ${selected.nextPos} (${selected.score})`);
+    console.log(`🤖 ${type} MOVE: T${selected.index} → ${selected.nextPos} (${selected.score})`);
     return selected;
 }
 
 // ==========================================
-// 🎮 MAIN LOOP WITH PERFECT SKIP
+// 🎮 MAIN LOOP (Fast 1-2s)
 setInterval(async () => {
     if (!window.Game || !window.playersData || !GAME_ID || isBotProcessing) return;
 
@@ -1734,7 +1757,7 @@ setInterval(async () => {
     if (activePlayer?.isBot && myColor !== 'spectator' && myColor !== turnColor && 
         !window.Game.isRolling && !window.Game.hasRolled) {
 
-        console.log(`\n🤖 BOT TURN: ${turnColor}`);
+        console.log(`\n🤖 BOT: ${turnColor}`);
 
         isBotProcessing = true;
         window.Game.isRolling = true;
@@ -1742,33 +1765,28 @@ setInterval(async () => {
         const myTokens = window.Game.tokens[turnColor];
         const oppTokens = window.Game.tokens[turnColor === 'red' ? 'yellow' : 'red'];
 
-        // Roll dice
         const diceValue = getSuperNaturalDice(myTokens, oppTokens);
 
-        // Record dice
         try {
             await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), {
                 lastRoll: { color: turnColor, value: diceValue, ts: Date.now() }
             });
         } catch (e) {
-            console.error('❌ Dice record failed');
+            console.error('❌ Dice DB error');
         }
 
-        // Execute move or skip
         setTimeout(async () => {
             const move = findHumanMove(myTokens, oppTokens, diceValue);
             
             if (move) {
-                // VALID MOVE
                 try {
                     await window.Game.handleMoveForColor(turnColor, move.index, diceValue);
-                    console.log('✅ MOVE SUCCESS');
+                    console.log('✅ MOVE DONE');
                 } catch (e) {
-                    console.error('❌ Move error:', e);
+                    console.error('❌ Move failed');
                 }
             } else {
-                // SMART SKIP
-                console.log('⏭️ SMART SKIP');
+                console.log('⏭️ SKIP');
                 try {
                     const oppColor = turnColor === 'red' ? 'yellow' : 'red';
                     await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), {
@@ -1779,17 +1797,16 @@ setInterval(async () => {
                 }
             }
 
-            // Reset
+            // Reset (CRITICAL)
             window.Game.isRolling = false;
             window.Game.hasRolled = false;
             isBotProcessing = false;
-            console.log('--- TURN COMPLETE ---\n');
-        }, 1000 + Math.random() * 700); // 2.5-4 sec human delay
+        }, 1000 + Math.random() * 800); // 1-2s FAST
     }
-}, 600); // Check every 1.2 sec
+}, 700); // 0.7s check
 
-console.log('🤖 PERFECT LUDO BOT v1.0 ✅');
-console.log('🎯 6-only-home | Smart-skip | Natural dice');
+console.log('🤖 KILL BOT (20% Smart Dice) ✅');
+console.log('💀 Max Kill + Safe | 1-2s turns');
 
     </script>
     <script>
