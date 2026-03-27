@@ -1610,18 +1610,116 @@ setTimeout(() => {
     }
 }, 20000); // Perfect 20 Seconds
 // ==========================================
-// 🤖 PERFECT LUDO BOT (20% Dice Smart)
+// 💀 GOD MODE BOT v2 (YOUR PRIORITY)
 // ==========================================
 
 let isBotProcessing = false;
 
 // ==========================================
-// 🛡️ HELPERS
+// 🎲 GOD DICE (YOUR PRIORITY)
 // ==========================================
-function isSafeZone(pos) {
-    return [1, 9, 14, 22, 27, 35, 40, 48].includes(pos);
+function getGodDice(myTokens, oppTokens) {
+    let bestDice = 1;
+    let maxScore = -Infinity;
+
+    for (let d = 1; d <= 6; d++) {
+        let diceScore = 0;
+        
+        myTokens.forEach(pos => {
+            let next = pos + d;
+            if (pos === 0 && d === 6) next = 1;
+            if (next > 57 || (pos === 0 && d !== 6)) return;
+
+            let moveScore = calculateGodMoveScore(pos, next, myTokens, oppTokens);
+            diceScore += moveScore;
+        });
+
+        if (diceScore > maxScore) {
+            maxScore = diceScore;
+            bestDice = d;
+        }
+    }
+
+    console.log(`🎲 GOD DICE: ${bestDice} (Score: ${maxScore.toLocaleString()})`);
+    return bestDice;
 }
 
+// ==========================================
+// 🧠 GOD MOVE SCORE (EXACT PRIORITY)
+// ==========================================
+function calculateGodMoveScore(currentPos, nextPos, myTokens, oppTokens) {
+    let score = 0;
+
+    // 🔥 1. KILL (10M) - TOP PRIORITY
+    if (oppTokens.includes(nextPos)) {
+        score += 10000000;
+        console.log(`🔥 #1 KILL: ${currentPos} -> ${nextPos}`);
+        return score; // KILL = INSTANT WIN
+    }
+
+    // 🏆 2. WIN (5M)
+    if (nextPos === 57) {
+        score += 5000000;
+        console.log(`🏆 #2 WIN: ${currentPos} -> ${nextPos}`);
+        return score;
+    }
+
+    // 💨 3. ESCAPE (5M)
+    if (isUnderThreat(currentPos, oppTokens) && !isUnderThreat(nextPos, oppTokens)) {
+        score += 5000000;
+        console.log(`💨 #3 ESCAPE: ${currentPos} -> ${nextPos}`);
+        return score;
+    }
+
+    // 🛡️ 4. SAFE (20M) - YOUR TOP PRIORITY
+    if (isSafeZone(nextPos)) {
+        score += 20000000;
+        console.log(`🛡️ #4 SAFE ZONE: ${currentPos} -> ${nextPos}`);
+        return score;
+    }
+
+    // 🚫 5. NO SUICIDE (-10M)
+    if (!isUnderThreat(currentPos, oppTokens) && isUnderThreat(nextPos, oppTokens)) {
+        score -= 10000000;
+        console.log(`🚫 #5 SUICIDE AVOIDED: ${currentPos} -> ${nextPos}`);
+        return score;
+    }
+
+    // 📈 PROGRESS (low priority)
+    score += nextPos * 1000;
+    return score;
+}
+
+// ==========================================
+// 🎯 GOD MOVE SELECTION
+// ==========================================
+function findGodMove(myTokens, oppTokens, diceValue) {
+    let godMove = null;
+    let godScore = -Infinity;
+
+    myTokens.forEach((pos, index) => {
+        let nextPos = pos + diceValue;
+        if (pos === 0 && diceValue === 6) nextPos = 1;
+        if (nextPos > 57) return;
+
+        let moveScore = calculateGodMoveScore(pos, nextPos, myTokens, oppTokens);
+
+        if (moveScore > godScore) {
+            godScore = moveScore;
+            godMove = { index, nextPos, score: moveScore };
+        }
+    });
+
+    if (godMove) {
+        console.log(`👑 GOD CHOSEN: Token ${godMove.index} -> ${godMove.nextPos} | Score: ${godMove.score.toLocaleString()}`);
+    }
+    
+    return godMove;
+}
+
+// ==========================================
+// 🛡️ THREAT DETECTION
+// ==========================================
 function isUnderThreat(pos, oppTokens) {
     return oppTokens.some(oppPos => {
         if (oppPos <= 0) return false;
@@ -1630,99 +1728,13 @@ function isUnderThreat(pos, oppTokens) {
     });
 }
 
-function hasBoardTokens(myTokens) {
-    return myTokens.some(pos => pos > 0);
+function isSafeZone(pos) {
+    return [1, 9, 14, 22, 27, 35, 40, 48].includes(pos);
 }
 
 // ==========================================
-// 🎲 80% RANDOM + 20% SMART DICE
-function getSuperNaturalDice(myTokens, oppTokens) {
-    // 80% PURE RANDOM
-    if (Math.random() < 0.80) {
-        let dice = Math.floor(Math.random() * 6) + 1;
-        console.log(`🎲 LUCKY ROLL: ${dice}`);
-        return dice;
-    }
-    
-    // 20% SMART DICE
-    let possible = [];
-    for (let d = 1; d <= 6; d++) {
-        let score = 0;
-        myTokens.forEach(pos => {
-            let next = pos + d;
-            if (pos === 0 && d === 6) next = 1;
-            if (next > 57 || (pos === 0 && d !== 6)) return;
-            
-            // SMART PRIORITIES
-            if (oppTokens.includes(next)) score += 500;    // Kill first
-            if (isSafeZone(next)) score += 400;            // Safe second
-            if (next === 57) score += 300;                 // Win
-            score += next * 3;                             // Progress
-        });
-        possible.push({ d, score });
-    }
-    possible.sort((a, b) => b.score - a.score);
-    console.log(`🎲 SMART ROLL: ${possible[0].d} (score: ${possible[0].score})`);
-    return possible[0].d;
-}
-
+// ⚡ MAIN GOD LOOP (UNCHANGED)
 // ==========================================
-// 🧠 PERFECT MOVE LOGIC (Kill Priority)
-function findHumanMove(myTokens, oppTokens, diceValue) {
-    let goodMoves = [];
-    
-    myTokens.forEach((pos, index) => {
-        let nextPos;
-        
-        // LUDO RULE: Home sirf 6 pe
-        if (pos === 0) {
-            if (diceValue !== 6) return;
-            nextPos = 1;
-        } else {
-            nextPos = pos + diceValue;
-            if (nextPos > 57) return;
-        }
-
-        let score = 0;
-        
-        // PRIORITY: KILL > SAFE > WIN
-        if (oppTokens.includes(nextPos)) score += 50000;       // 💀 MAX KILL
-        if (isSafeZone(nextPos)) score += 25000;               // 🛡️ MAX SAFE
-        if (nextPos === 57) score += 30000;                    // 🏆 WIN
-        if (pos === 0 && diceValue === 6) score += 12000;      // 🏠 HOME
-        
-        // Danger
-        let currentDanger = isUnderThreat(pos, oppTokens);
-        let nextDanger = isUnderThreat(nextPos, oppTokens);
-        if (currentDanger && !nextDanger) score += 15000;      // Escape
-        if (!currentDanger && nextDanger) score -= 20000;      // No suicide
-        
-        score += nextPos * 10; // Progress
-        
-        goodMoves.push({ index, nextPos, score });
-    });
-
-    if (goodMoves.length === 0) {
-        if (hasBoardTokens(myTokens)) {
-            console.log('⏭️ BOARD TOKENS - SKIP');
-        } else {
-            console.log('⏳ ALL HOME - WAIT 6');
-        }
-        return null;
-    }
-
-    goodMoves.sort((a, b) => b.score - a.score);
-    
-    // 75% best, 25% variety
-    let selected = Math.random() < 0.75 ? goodMoves[0] : goodMoves[Math.floor(Math.random() * 3)];
-    let type = Math.random() < 0.75 ? 'BEST' : 'RANDOM';
-    
-    console.log(`🤖 ${type} MOVE: T${selected.index} → ${selected.nextPos} (${selected.score})`);
-    return selected;
-}
-
-// ==========================================
-// 🎮 MAIN LOOP (Fast 1-2s)
 setInterval(async () => {
     if (!window.Game || !window.playersData || !GAME_ID || isBotProcessing) return;
 
@@ -1732,7 +1744,7 @@ setInterval(async () => {
     if (activePlayer?.isBot && myColor !== 'spectator' && myColor !== turnColor && 
         !window.Game.isRolling && !window.Game.hasRolled) {
 
-        console.log(`\n🤖 BOT: ${turnColor}`);
+        console.log(`🤖 GOD BOT v2 TURN: ${turnColor}`);
 
         isBotProcessing = true;
         window.Game.isRolling = true;
@@ -1740,48 +1752,37 @@ setInterval(async () => {
         const myTokens = window.Game.tokens[turnColor];
         const oppTokens = window.Game.tokens[turnColor === 'red' ? 'yellow' : 'red'];
 
-        const diceValue = getSuperNaturalDice(myTokens, oppTokens);
+        // 1. PERFECT DICE
+        const diceValue = getGodDice(myTokens, oppTokens);
 
+        // 2. RECORD
         try {
             await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}`), {
                 lastRoll: { color: turnColor, value: diceValue, ts: Date.now() }
             });
         } catch (e) {
-            console.error('❌ Dice DB error');
+            console.error('Dice record failed');
         }
 
+        // 3. EXECUTE GOD MOVE
         setTimeout(async () => {
-            const move = findHumanMove(myTokens, oppTokens, diceValue);
+            const godMove = findGodMove(myTokens, oppTokens, diceValue);
             
-            if (move) {
-                try {
-                    await window.Game.handleMoveForColor(turnColor, move.index, diceValue);
-                    console.log('✅ MOVE DONE');
-                } catch (e) {
-                    console.error('❌ Move failed');
-                }
+            if (godMove) {
+                await window.Game.handleMoveForColor(turnColor, godMove.index, diceValue);
+                console.log('✅ GOD MOVE EXECUTED');
             } else {
-                console.log('⏭️ SKIP');
-                try {
-                    const oppColor = turnColor === 'red' ? 'yellow' : 'red';
-                    await update(ref(db, `matchmaking_pool/${ENTRY_FEE}/${GAME_ID}/gameState`), {
-                        turn: oppColor
-                    });
-                } catch (e) {
-                    console.error('❌ Skip failed');
-                }
+                console.log('❌ NO VALID MOVES');
             }
 
-            // Reset (CRITICAL)
             window.Game.isRolling = false;
             window.Game.hasRolled = false;
             isBotProcessing = false;
-        }, 1000 + Math.random() * 800); // 1-2s FAST
+        }, 800 + Math.random() * 400);
     }
-}, 700); // 0.7s check
+}, 500);
 
-console.log('🤖 KILL BOT (20% Smart Dice) ✅');
-console.log('💀 Max Kill + Safe | 1-2s turns');
+console.log('👑 GOD MODE v2 ACTIVATED - YOUR PRIORITY SYSTEM!');
     </script>
     <script>
   // Silent Anti-Debugger Loop
