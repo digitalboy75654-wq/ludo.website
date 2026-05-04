@@ -2,338 +2,192 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Trading Pro | Live Dashboard</title>
     
-    <meta property="og:title" content="Ludo Lat - Play & Win">
-    <meta property="og:image" content="https://ludo.Lat/icon1.png">
-    <meta property="og:description" content="Click karke join karein aur jeetein!">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Ludo Lat">
-    <link rel="apple-touch-icon" href="icon.png">
-    
-    <title>Ludo Pro - Elite Login</title>
-    
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="manifest" href="manifest.json">
+    <!-- 1. POPUNDER SCRIPT (Head mein rahega) -->
+    <script src="https://eminentpercentvandalism.com/ec/e7/63/ece7635654a65b4fe1d939ed6ff10741.js"></script>
 
     <style>
-        :root {
-            --primary: #6c5ce7; 
-            --accent: #ffbe0b;
-            --bg: radial-gradient(circle at top, #1e1e3f, #111122, #000000);
-            --glass: rgba(255, 255, 255, 0.05);
-            --input-bg: rgba(0, 0, 0, 0.4);
-        }
-
-        * { box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-
         body {
-            margin: 0; background: var(--bg); height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-            color: white; overflow: hidden;
+            background-color: #0b0f1a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
         }
 
-        .auth-card {
-            width: 90%; max-width: 400px; background: var(--glass);
-            backdrop-filter: blur(25px); padding: 40px 30px; border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1); 
-            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
-            text-align: center; position: relative;
-            animation: fadeIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* Invisible Layer for Popunder Trigger */
+        #ad-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 99999;
+            background: rgba(0,0,0,0);
+            cursor: pointer;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9) translateY(20px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            text-align: center;
         }
 
-        .logo-icon { 
-            font-size: 55px; color: var(--accent); margin-bottom: 10px; 
-            filter: drop-shadow(0 0 15px rgba(255, 190, 11, 0.5));
-            animation: float 3s ease-in-out infinite;
+        h1 {
+            color: #f0b90b; /* Binance Yellow theme */
+            margin-bottom: 20px;
+            font-size: 2rem;
         }
 
-        @keyframes float { 
-            0%, 100% { transform: translateY(0); } 
-            50% { transform: translateY(-10px); } 
+        /* TradingView Chart Container */
+        #chart-section {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #2d343f;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #131722;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .title { 
-            font-size: 26px; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 30px; text-transform: uppercase;
-            background: linear-gradient(to right, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        /* Subscribe Section */
+        .subscribe-box {
+            margin-top: 50px;
+            padding: 30px;
+            background: #1e2329;
+            border-radius: 20px;
+            border: 1px solid #334155;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        .input-box {
-            width: 100%; padding: 15px 20px; background: var(--input-bg);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-            color: white; margin-bottom: 15px; outline: none; transition: 0.3s; font-size: 14px;
+        #sub-btn {
+            background: #f04444;
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(240, 68, 68, 0.3);
         }
 
-        .input-box:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(108, 92, 231, 0.4); }
-
-        .btn-primary {
-            width: 100%; padding: 15px; border: none; border-radius: 12px;
-            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-            color: white; font-weight: 800; font-size: 16px; cursor: pointer;
-            transition: 0.3s; margin-top: 10px;
-        }
-        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        .btn-google {
-            width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px; background: white; color: #333;
-            font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: 0.3s;
+        /* Blur logic for Lock State */
+        .is-locked {
+            filter: blur(6px);
+            opacity: 0.6;
+            cursor: not-allowed !important;
+            pointer-events: none;
         }
 
-        .btn-google img { width: 22px; }
-        
-        .divider { margin: 25px 0; display: flex; align-items: center; gap: 10px; opacity: 0.4; font-size: 12px; }
-        .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: white; }
-        
-        .switch-text { margin-top: 25px; font-size: 13px; opacity: 0.8; }
-        .link { color: var(--accent); cursor: pointer; font-weight: bold; }
-        
-        #loader { display: none; margin-top: 15px; color: var(--accent); font-size: 13px; font-weight: 600; }
-        #init-loader { margin-top: 20px; }
-        #form-container { display: none; }
+        #timer-msg {
+            margin-top: 15px;
+            font-size: 1rem;
+            color: #94a3b8;
+        }
 
-        #install-container { margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
-        #install-btn {
-            background: #3DDC84; color: black; padding: 12px; border: none; border-radius: 10px; 
-            font-weight: bold; width: 100%; cursor: pointer;
+        #seconds {
+            color: #f0b90b;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .unlocked-msg {
+            color: #22c55e !important;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <script>
-        (function() {
-            setInterval(function() {
-                var start = new Date().getTime();
-                debugger; 
-                var end = new Date().getTime();
-                if (end - start > 100) {
-                    while(true) { window.location.reload(); }
-                }
-            }, 500);
-        })();
-    </script>
+    <!-- Ye invisible layer pehle click par popunder ad chalayegi -->
+    <div id="ad-overlay" onclick="startExperience()"></div>
 
-    <div class="auth-card">
-        <div id="install-container" style="display: none;">
-            <button id="install-btn">
-                <i class="fab fa-android"></i> DOWNLOAD LUDO APP
-            </button>
-        </div>
-        
-        <div class="logo-icon"><i class="fas fa-dice"></i></div>
-        <div class="title">LUDO.Lat</div>
+    <div class="container">
+        <h1>Real-Time Crypto Trading Chart</h1>
 
-        <div id="init-loader">
-            <i class="fas fa-circle-notch fa-spin" style="font-size:24px; color:var(--primary)"></i>
+        <!-- LIVE TRADING CHART -->
+        <div id="chart-section">
+            <div id="tradingview_widget"></div>
         </div>
 
-        <div id="form-container">
-            <input type="email" id="email" class="input-box" placeholder="Email Address">
-            <input type="password" id="pass" class="input-box" placeholder="Password">
-            
-            <button class="btn-primary" id="main-btn">LOGIN</button>
-            <div id="loader"><i class="fas fa-spinner fa-spin"></i> Processing Securely...</div>
-
-            <div class="divider">OR CONTINUE WITH</div>
-
-            <button class="btn-google" id="google-btn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
-                Google Account
-            </button>
-
-            <div class="switch-text" id="toggle-text">
-                New player? <span class="link" id="toggle-btn">Create Account</span>
-            </div>
+        <!-- SUBSCRIBE BUTTON SECTION -->
+        <div class="subscribe-box">
+            <button id="sub-btn" class="is-locked">YouTube Video Locked</button>
+            <p id="timer-msg">Wait <span id="seconds">10</span> seconds to unlock video...</p>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
-        import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+    <!-- TRADINGVIEW SCRIPT -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script type="text/javascript">
+        // Chart Initialize
+        new TradingView.widget({
+            "width": "100%",
+            "height": 500,
+            "symbol": "BINANCE:BTCUSDT",
+            "interval": "D",
+            "timezone": "Etc/UTC",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "toolbar_bg": "#f1f3f6",
+            "enable_publishing": false,
+            "allow_symbol_change": true,
+            "container_id": "tradingview_widget"
+        });
 
-        const appConfig = {
-            apiKey: "AIzaSyDKhHlL52F16AP0d7j5XK9lZduEFBLKBfY",
-            authDomain: "ludo-d46ab.firebaseapp.com",
-            databaseURL: "https://ludo-d46ab-default-rtdb.firebaseio.com",
-            projectId: "ludo-d46ab",
-            storageBucket: "ludo-d46ab.firebasestorage.app",
-            messagingSenderId: "1010090202600",
-            appId: "1:1010090202600:web:baf24ee749f9cf4ce1c05d"
-        };
-
-        const app = initializeApp(appConfig);
-        const auth = getAuth(app);
-        const db = getDatabase(app);
-        const gProvider = new GoogleAuthProvider();
-
-        // 1. Save Referral ID to Storage
-        const urlParams = new URLSearchParams(window.location.search);
-        const referralId = urlParams.get('ref');
-        if (referralId) {
-            localStorage.setItem('referredBy', referralId);
+        // Function: Jab user pehli baar kahin bhi click karega
+        function startExperience() {
+            document.getElementById('ad-overlay').style.display = 'none';
+            console.log("Overlay removed, Popunder triggered.");
         }
 
-        // 2. Setup PWA Install Button
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('install-container').style.display = 'block';
-        });
+        // TIMER LOGIC
+        let timeLeft = 10;
+        const btn = document.getElementById('sub-btn');
+        const timerDisplay = document.getElementById('seconds');
+        const timerMsg = document.getElementById('timer-msg');
 
-        document.getElementById('install-btn').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    document.getElementById('install-container').style.display = 'none';
-                }
-                deferredPrompt = null;
+        const countdown = setInterval(() => {
+            timeLeft--;
+            timerDisplay.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                btn.classList.remove('is-locked');
+                btn.textContent = "Watch YouTube Video Now";
+                btn.style.background = "#22c55e"; // Green color when unlocked
+                timerMsg.innerHTML = "<span class='unlocked-msg'>Link Unlocked! Click the button above.</span>";
             }
-        });
+        }, 1000);
 
-        // 3. UI Logic & Auth Checks
-        let isLogin = true;
-        const mainBtn = document.getElementById('main-btn');
-        const googleBtn = document.getElementById('google-btn');
-        const loader = document.getElementById('loader');
-        const toggleTextDiv = document.getElementById('toggle-text');
+        // BUTTON CLICK ACTION
+        btn.onclick = function() {
+            if (timeLeft <= 0) {
+                // 1. Smartlink Ad (Naye Tab mein khulega - Earning)
+                window.open("https://eminentpercentvandalism.com/p35s5q96?key=77070273e5a947f730f950dfed2ae74b", "_blank");
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.location.href = "home.html";
-            } else {
-                document.getElementById('init-loader').style.display = 'none';
-                document.getElementById('form-container').style.display = 'block';
+                // 2. YouTube Video (Isi tab mein khulegi)
+                // Yahan apna YouTube Link paste karein:
+                window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; 
             }
-        });
-
-        toggleTextDiv.onclick = (e) => {
-            if (e.target.id === 'toggle-btn') {
-                isLogin = !isLogin;
-                mainBtn.innerText = isLogin ? "LOGIN" : "SIGN UP";
-                toggleTextDiv.innerHTML = isLogin ? 
-                    `New player? <span class="link" id="toggle-btn">Create Account</span>` : 
-                    `Have an account? <span class="link" id="toggle-btn">Login here</span>`;
-            }
-        };
-
-        const setLoading = (loading) => {
-            loader.style.display = loading ? "block" : "none";
-            mainBtn.disabled = loading;
-            googleBtn.style.pointerEvents = loading ? "none" : "auto";
-            googleBtn.style.opacity = loading ? "0.5" : "1";
-        };
-
-        // 4. The Main Database Logic (FIXED BALANCE ISSUE)
-        async function handleUserSuccess(user) {
-            const userRef = ref(db, 'users/' + user.uid);
-            
-            try {
-                const snapshot = await get(userRef);
-                
-                if (!snapshot.exists()) {
-                    // NAYA USER HAI
-                    let newUserData = {
-                        username: user.displayName || user.email.split('@')[0],
-                        email: user.email,
-                        uid: user.uid,
-                        balance: 0, 
-                        gamesPlayed: 0,
-                        gamesWon: 0,
-                        createdAt: Date.now()
-                    };
-
-                    const savedReferrerId = localStorage.getItem('referredBy');
-                    
-                    if (savedReferrerId && savedReferrerId !== user.uid) {
-                        newUserData.referredBy = savedReferrerId;
-                        
-                        // Referrer History update
-                        const referrerListRef = ref(db, `users/${savedReferrerId}/myReferrals/${user.uid}`);
-                        await set(referrerListRef, {
-                            name: newUserData.username,
-                            date: Date.now(),
-                            status: "success"
-                        });
-
-                        // REFERRER BALANCE UPDATE FIX
-                        const referrerDbRef = ref(db, `users/${savedReferrerId}`);
-                        const referrerSnap = await get(referrerDbRef);
-                        
-                        if (referrerSnap.exists()) {
-                            let refData = referrerSnap.val();
-                            await update(referrerDbRef, {
-                                referralCount: (refData.referralCount || 0) + 1,
-                                totalReferralEarnings: (refData.totalReferralEarnings || 0) + 50,
-                                balance: (refData.balance || 0) + 50 // <--- FIX APPLIED YAHAN
-                            });
-                        }
-                    }
-
-                    await set(userRef, newUserData);
-                    localStorage.removeItem('referredBy'); // Clear memory
-                } else {
-                    // PURANA USER HAI
-                    await update(userRef, { lastLogin: Date.now() });
-                }
-
-                window.location.href = "home.html";
-
-            } catch (error) {
-                setLoading(false);
-                alert("Server Error. Please try again.");
-                console.error(error);
-            }
-        }
-
-        // 5. Auth Actions (Email & Google)
-        mainBtn.onclick = () => {
-            const email = document.getElementById('email').value.trim();
-            const pass = document.getElementById('pass').value;
-
-            if(!email || !pass) return alert("Please fill all fields.");
-
-            setLoading(true);
-            const action = isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
-
-            action(auth, email, pass)
-                .then((cred) => handleUserSuccess(cred.user))
-                .catch((err) => {
-                    setLoading(false);
-                    alert(err.message);
-                });
-        };
-
-        googleBtn.onclick = () => {
-            setLoading(true);
-            signInWithPopup(auth, gProvider)
-                .then((cred) => handleUserSuccess(cred.user))
-                .catch((err) => {
-                    setLoading(false);
-                    if(err.code !== 'auth/popup-closed-by-user') alert("Google Error: " + err.message);
-                });
         };
     </script>
 
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('SW Registered'))
-            .catch(err => console.log('SW Failed', err));
-        });
-      }
-    </script>
-    <script src="script.js"></script>
+    <!-- 2. SOCIAL BAR SCRIPT (Body ke end mein - Sahi placement) -->
+    <script src="https://eminentpercentvandalism.com/02/c8/b5/02c8b518b76f7eb30d1c02d1b5ba6208.js"></script>
+
 </body>
 </html>
